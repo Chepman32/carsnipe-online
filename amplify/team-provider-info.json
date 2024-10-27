@@ -17,6 +17,12 @@
       },
       "api": {
         "carsnipeonline": {}
+      },
+      "function": {
+        "paymentsHandler": {
+          "deploymentBucketName": "amplify-carsnipeonline-dev-e94b4-deployment",
+          "s3Key": "amplify-builds/paymentsHandler-746938646e5566456a41-build.zip"
+        }
       }
     }
   }

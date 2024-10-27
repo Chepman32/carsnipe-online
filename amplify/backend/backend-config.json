@@ -44,5 +44,30 @@
       "providerPlugin": "awscloudformation",
       "service": "Cognito"
     }
+  },
+  "function": {
+    "paymentsHandler": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_paymentsHandler_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "paymentsHandler"
+        }
+      ]
+    },
+    "AMPLIFY_function_paymentsHandler_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "paymentsHandler"
+        }
+      ]
+    }
   }
 }
