@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-carsnipeonline-dev-e94b4-authRole",
+      "UnauthRoleArn": "arn:aws:iam::162721372843:role/amplify-carsnipeonline-dev-e94b4-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::162721372843:role/amplify-carsnipeonline-dev-e94b4-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-carsnipeonline-dev-e94b4-deployment",
+      "UnauthRoleName": "amplify-carsnipeonline-dev-e94b4-unauthRole",
+      "StackName": "amplify-carsnipeonline-dev-e94b4",
+      "StackId": "arn:aws:cloudformation:us-east-2:162721372843:stack/amplify-carsnipeonline-dev-e94b4/9fc1c6c0-943c-11ef-a325-066104a72575",
+      "AmplifyAppId": "d35lko9d4avsrc"
+    },
+    "categories": {
+      "auth": {
+        "carsnipeonlined285936a": {}
+      },
+      "api": {
+        "carsnipeonline": {}
+      }
+    }
+  }
+}
