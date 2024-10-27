@@ -28,18 +28,6 @@ export const onCreateUser = /* GraphQL */ `
         date
         __typename
       }
-      sentMessages {
-        nextToken
-        __typename
-      }
-      receivedMessages {
-        nextToken
-        __typename
-      }
-      conversations {
-        nextToken
-        __typename
-      }
       createdAt
       updatedAt
       __typename
@@ -73,18 +61,6 @@ export const onUpdateUser = /* GraphQL */ `
         date
         __typename
       }
-      sentMessages {
-        nextToken
-        __typename
-      }
-      receivedMessages {
-        nextToken
-        __typename
-      }
-      conversations {
-        nextToken
-        __typename
-      }
       createdAt
       updatedAt
       __typename
@@ -116,18 +92,6 @@ export const onDeleteUser = /* GraphQL */ `
       achievements {
         name
         date
-        __typename
-      }
-      sentMessages {
-        nextToken
-        __typename
-      }
-      receivedMessages {
-        nextToken
-        __typename
-      }
-      conversations {
-        nextToken
         __typename
       }
       createdAt
@@ -265,135 +229,6 @@ export const onDeleteCar = /* GraphQL */ `
         nextToken
         __typename
       }
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onCreateMessage = /* GraphQL */ `
-  subscription OnCreateMessage($filter: ModelSubscriptionMessageFilterInput) {
-    onCreateMessage(filter: $filter) {
-      id
-      content
-      senderId
-      receiverId
-      timestamp
-      conversation {
-        id
-        lastMessageTimestamp
-        createdAt
-        updatedAt
-        __typename
-      }
-      conversationMessagesId
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateMessage = /* GraphQL */ `
-  subscription OnUpdateMessage($filter: ModelSubscriptionMessageFilterInput) {
-    onUpdateMessage(filter: $filter) {
-      id
-      content
-      senderId
-      receiverId
-      timestamp
-      conversation {
-        id
-        lastMessageTimestamp
-        createdAt
-        updatedAt
-        __typename
-      }
-      conversationMessagesId
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteMessage = /* GraphQL */ `
-  subscription OnDeleteMessage($filter: ModelSubscriptionMessageFilterInput) {
-    onDeleteMessage(filter: $filter) {
-      id
-      content
-      senderId
-      receiverId
-      timestamp
-      conversation {
-        id
-        lastMessageTimestamp
-        createdAt
-        updatedAt
-        __typename
-      }
-      conversationMessagesId
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onCreateConversation = /* GraphQL */ `
-  subscription OnCreateConversation(
-    $filter: ModelSubscriptionConversationFilterInput
-  ) {
-    onCreateConversation(filter: $filter) {
-      id
-      participants {
-        nextToken
-        __typename
-      }
-      messages {
-        nextToken
-        __typename
-      }
-      lastMessageTimestamp
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateConversation = /* GraphQL */ `
-  subscription OnUpdateConversation(
-    $filter: ModelSubscriptionConversationFilterInput
-  ) {
-    onUpdateConversation(filter: $filter) {
-      id
-      participants {
-        nextToken
-        __typename
-      }
-      messages {
-        nextToken
-        __typename
-      }
-      lastMessageTimestamp
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteConversation = /* GraphQL */ `
-  subscription OnDeleteConversation(
-    $filter: ModelSubscriptionConversationFilterInput
-  ) {
-    onDeleteConversation(filter: $filter) {
-      id
-      participants {
-        nextToken
-        __typename
-      }
-      messages {
-        nextToken
-        __typename
-      }
-      lastMessageTimestamp
       createdAt
       updatedAt
       __typename
@@ -621,102 +456,6 @@ export const onDeleteAuctionUser = /* GraphQL */ `
         buy
         minBid
         type
-        createdAt
-        updatedAt
-        __typename
-      }
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onCreateUserConversation = /* GraphQL */ `
-  subscription OnCreateUserConversation(
-    $filter: ModelSubscriptionUserConversationFilterInput
-  ) {
-    onCreateUserConversation(filter: $filter) {
-      id
-      userId
-      conversationId
-      user {
-        id
-        nickname
-        money
-        email
-        avatar
-        bio
-        createdAt
-        updatedAt
-        __typename
-      }
-      conversation {
-        id
-        lastMessageTimestamp
-        createdAt
-        updatedAt
-        __typename
-      }
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateUserConversation = /* GraphQL */ `
-  subscription OnUpdateUserConversation(
-    $filter: ModelSubscriptionUserConversationFilterInput
-  ) {
-    onUpdateUserConversation(filter: $filter) {
-      id
-      userId
-      conversationId
-      user {
-        id
-        nickname
-        money
-        email
-        avatar
-        bio
-        createdAt
-        updatedAt
-        __typename
-      }
-      conversation {
-        id
-        lastMessageTimestamp
-        createdAt
-        updatedAt
-        __typename
-      }
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteUserConversation = /* GraphQL */ `
-  subscription OnDeleteUserConversation(
-    $filter: ModelSubscriptionUserConversationFilterInput
-  ) {
-    onDeleteUserConversation(filter: $filter) {
-      id
-      userId
-      conversationId
-      user {
-        id
-        nickname
-        money
-        email
-        avatar
-        bio
-        createdAt
-        updatedAt
-        __typename
-      }
-      conversation {
-        id
-        lastMessageTimestamp
         createdAt
         updatedAt
         __typename

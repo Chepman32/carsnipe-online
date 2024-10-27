@@ -9,9 +9,6 @@ type User @model @auth(rules: [{allow: public}]) {
   avatar: String
   bio: String
   achievements: [Achievement]
-  sentMessages: [Message] @hasMany(indexName: "bySender", fields: ["id"])
-  receivedMessages: [Message] @hasMany(indexName: "byReceiver", fields: ["id"])
-  conversations: [Conversation] @manyToMany(relationName: "UserConversation")
 }
 
 type Achievement {
@@ -49,21 +46,4 @@ type Car @model @auth(rules: [{allow: public}]) {
   price: Int!
   type: String
   users: [User] @manyToMany(relationName: "UserCar")
-}
-
-type Message @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  content: String!
-  senderId: ID! @index(name: "bySender")
-  receiverId: ID! @index(name: "byReceiver")
-  timestamp: AWSDateTime!
-  conversation: Conversation @belongsTo(fields: ["conversationMessagesId"])
-  conversationMessagesId: ID! @index(name: "byConversation")
-}
-
-type Conversation @model @auth(rules: [{allow: public}]) {
-  id: ID!
-  participants: [User] @manyToMany(relationName: "UserConversation")
-  messages: [Message] @hasMany
-  lastMessageTimestamp: AWSDateTime
 }
