@@ -6,7 +6,13 @@
 
 /* eslint-disable */
 import * as React from "react";
-import { Button, Flex, Grid, TextField } from "@aws-amplify/ui-react";
+import {
+  Button,
+  Flex,
+  Grid,
+  SwitchField,
+  TextField,
+} from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
 import { getCar } from "../graphql/queries";
@@ -30,12 +36,20 @@ export default function CarUpdateForm(props) {
     year: "",
     price: "",
     type: "",
+    purchasePrice: "",
+    sellPrice: "",
+    inAuction: false,
   };
   const [make, setMake] = React.useState(initialValues.make);
   const [model, setModel] = React.useState(initialValues.model);
   const [year, setYear] = React.useState(initialValues.year);
   const [price, setPrice] = React.useState(initialValues.price);
   const [type, setType] = React.useState(initialValues.type);
+  const [purchasePrice, setPurchasePrice] = React.useState(
+    initialValues.purchasePrice
+  );
+  const [sellPrice, setSellPrice] = React.useState(initialValues.sellPrice);
+  const [inAuction, setInAuction] = React.useState(initialValues.inAuction);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     const cleanValues = carRecord
@@ -46,6 +60,9 @@ export default function CarUpdateForm(props) {
     setYear(cleanValues.year);
     setPrice(cleanValues.price);
     setType(cleanValues.type);
+    setPurchasePrice(cleanValues.purchasePrice);
+    setSellPrice(cleanValues.sellPrice);
+    setInAuction(cleanValues.inAuction);
     setErrors({});
   };
   const [carRecord, setCarRecord] = React.useState(carModelProp);
@@ -70,6 +87,9 @@ export default function CarUpdateForm(props) {
     year: [{ type: "Required" }],
     price: [{ type: "Required" }],
     type: [],
+    purchasePrice: [],
+    sellPrice: [],
+    inAuction: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -102,6 +122,9 @@ export default function CarUpdateForm(props) {
           year,
           price,
           type: type ?? null,
+          purchasePrice: purchasePrice ?? null,
+          sellPrice: sellPrice ?? null,
+          inAuction: inAuction ?? null,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -167,6 +190,9 @@ export default function CarUpdateForm(props) {
               year,
               price,
               type,
+              purchasePrice,
+              sellPrice,
+              inAuction,
             };
             const result = onChange(modelFields);
             value = result?.make ?? value;
@@ -195,6 +221,9 @@ export default function CarUpdateForm(props) {
               year,
               price,
               type,
+              purchasePrice,
+              sellPrice,
+              inAuction,
             };
             const result = onChange(modelFields);
             value = result?.model ?? value;
@@ -227,6 +256,9 @@ export default function CarUpdateForm(props) {
               year: value,
               price,
               type,
+              purchasePrice,
+              sellPrice,
+              inAuction,
             };
             const result = onChange(modelFields);
             value = result?.year ?? value;
@@ -259,6 +291,9 @@ export default function CarUpdateForm(props) {
               year,
               price: value,
               type,
+              purchasePrice,
+              sellPrice,
+              inAuction,
             };
             const result = onChange(modelFields);
             value = result?.price ?? value;
@@ -287,6 +322,9 @@ export default function CarUpdateForm(props) {
               year,
               price,
               type: value,
+              purchasePrice,
+              sellPrice,
+              inAuction,
             };
             const result = onChange(modelFields);
             value = result?.type ?? value;
@@ -301,6 +339,107 @@ export default function CarUpdateForm(props) {
         hasError={errors.type?.hasError}
         {...getOverrideProps(overrides, "type")}
       ></TextField>
+      <TextField
+        label="Purchase price"
+        isRequired={false}
+        isReadOnly={false}
+        type="number"
+        step="any"
+        value={purchasePrice}
+        onChange={(e) => {
+          let value = isNaN(parseInt(e.target.value))
+            ? e.target.value
+            : parseInt(e.target.value);
+          if (onChange) {
+            const modelFields = {
+              make,
+              model,
+              year,
+              price,
+              type,
+              purchasePrice: value,
+              sellPrice,
+              inAuction,
+            };
+            const result = onChange(modelFields);
+            value = result?.purchasePrice ?? value;
+          }
+          if (errors.purchasePrice?.hasError) {
+            runValidationTasks("purchasePrice", value);
+          }
+          setPurchasePrice(value);
+        }}
+        onBlur={() => runValidationTasks("purchasePrice", purchasePrice)}
+        errorMessage={errors.purchasePrice?.errorMessage}
+        hasError={errors.purchasePrice?.hasError}
+        {...getOverrideProps(overrides, "purchasePrice")}
+      ></TextField>
+      <TextField
+        label="Sell price"
+        isRequired={false}
+        isReadOnly={false}
+        type="number"
+        step="any"
+        value={sellPrice}
+        onChange={(e) => {
+          let value = isNaN(parseInt(e.target.value))
+            ? e.target.value
+            : parseInt(e.target.value);
+          if (onChange) {
+            const modelFields = {
+              make,
+              model,
+              year,
+              price,
+              type,
+              purchasePrice,
+              sellPrice: value,
+              inAuction,
+            };
+            const result = onChange(modelFields);
+            value = result?.sellPrice ?? value;
+          }
+          if (errors.sellPrice?.hasError) {
+            runValidationTasks("sellPrice", value);
+          }
+          setSellPrice(value);
+        }}
+        onBlur={() => runValidationTasks("sellPrice", sellPrice)}
+        errorMessage={errors.sellPrice?.errorMessage}
+        hasError={errors.sellPrice?.hasError}
+        {...getOverrideProps(overrides, "sellPrice")}
+      ></TextField>
+      <SwitchField
+        label="In auction"
+        defaultChecked={false}
+        isDisabled={false}
+        isChecked={inAuction}
+        onChange={(e) => {
+          let value = e.target.checked;
+          if (onChange) {
+            const modelFields = {
+              make,
+              model,
+              year,
+              price,
+              type,
+              purchasePrice,
+              sellPrice,
+              inAuction: value,
+            };
+            const result = onChange(modelFields);
+            value = result?.inAuction ?? value;
+          }
+          if (errors.inAuction?.hasError) {
+            runValidationTasks("inAuction", value);
+          }
+          setInAuction(value);
+        }}
+        onBlur={() => runValidationTasks("inAuction", inAuction)}
+        errorMessage={errors.inAuction?.errorMessage}
+        hasError={errors.inAuction?.hasError}
+        {...getOverrideProps(overrides, "inAuction")}
+      ></SwitchField>
       <Flex
         justifyContent="space-between"
         {...getOverrideProps(overrides, "CTAFlex")}

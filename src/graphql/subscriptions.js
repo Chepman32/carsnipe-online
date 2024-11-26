@@ -19,6 +19,7 @@ export const onCreateUser = /* GraphQL */ `
       bidded {
         auctionId
         bidValue
+        timestamp
         __typename
       }
       avatar
@@ -28,6 +29,13 @@ export const onCreateUser = /* GraphQL */ `
         date
         __typename
       }
+      sold
+      totalCarsOwned
+      totalAuctionsParticipated
+      totalBidsPlaced
+      totalSpent
+      totalAuctionsWon
+      totalProfitEarned
       createdAt
       updatedAt
       __typename
@@ -52,6 +60,7 @@ export const onUpdateUser = /* GraphQL */ `
       bidded {
         auctionId
         bidValue
+        timestamp
         __typename
       }
       avatar
@@ -61,6 +70,13 @@ export const onUpdateUser = /* GraphQL */ `
         date
         __typename
       }
+      sold
+      totalCarsOwned
+      totalAuctionsParticipated
+      totalBidsPlaced
+      totalSpent
+      totalAuctionsWon
+      totalProfitEarned
       createdAt
       updatedAt
       __typename
@@ -85,6 +101,7 @@ export const onDeleteUser = /* GraphQL */ `
       bidded {
         auctionId
         bidValue
+        timestamp
         __typename
       }
       avatar
@@ -92,6 +109,79 @@ export const onDeleteUser = /* GraphQL */ `
       achievements {
         name
         date
+        __typename
+      }
+      sold
+      totalCarsOwned
+      totalAuctionsParticipated
+      totalBidsPlaced
+      totalSpent
+      totalAuctionsWon
+      totalProfitEarned
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreateCar = /* GraphQL */ `
+  subscription OnCreateCar($filter: ModelSubscriptionCarFilterInput) {
+    onCreateCar(filter: $filter) {
+      id
+      make
+      model
+      year
+      price
+      type
+      purchasePrice
+      sellPrice
+      inAuction
+      users {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateCar = /* GraphQL */ `
+  subscription OnUpdateCar($filter: ModelSubscriptionCarFilterInput) {
+    onUpdateCar(filter: $filter) {
+      id
+      make
+      model
+      year
+      price
+      type
+      purchasePrice
+      sellPrice
+      inAuction
+      users {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteCar = /* GraphQL */ `
+  subscription OnDeleteCar($filter: ModelSubscriptionCarFilterInput) {
+    onDeleteCar(filter: $filter) {
+      id
+      make
+      model
+      year
+      price
+      type
+      purchasePrice
+      sellPrice
+      inAuction
+      users {
+        nextToken
         __typename
       }
       createdAt
@@ -120,6 +210,7 @@ export const onCreateAuction = /* GraphQL */ `
         nextToken
         __typename
       }
+      bidsCount
       createdAt
       updatedAt
       __typename
@@ -146,6 +237,7 @@ export const onUpdateAuction = /* GraphQL */ `
         nextToken
         __typename
       }
+      bidsCount
       createdAt
       updatedAt
       __typename
@@ -172,63 +264,7 @@ export const onDeleteAuction = /* GraphQL */ `
         nextToken
         __typename
       }
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onCreateCar = /* GraphQL */ `
-  subscription OnCreateCar($filter: ModelSubscriptionCarFilterInput) {
-    onCreateCar(filter: $filter) {
-      id
-      make
-      model
-      year
-      price
-      type
-      users {
-        nextToken
-        __typename
-      }
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onUpdateCar = /* GraphQL */ `
-  subscription OnUpdateCar($filter: ModelSubscriptionCarFilterInput) {
-    onUpdateCar(filter: $filter) {
-      id
-      make
-      model
-      year
-      price
-      type
-      users {
-        nextToken
-        __typename
-      }
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const onDeleteCar = /* GraphQL */ `
-  subscription OnDeleteCar($filter: ModelSubscriptionCarFilterInput) {
-    onDeleteCar(filter: $filter) {
-      id
-      make
-      model
-      year
-      price
-      type
-      users {
-        nextToken
-        __typename
-      }
+      bidsCount
       createdAt
       updatedAt
       __typename
@@ -248,6 +284,13 @@ export const onCreateUserCar = /* GraphQL */ `
         email
         avatar
         bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
         createdAt
         updatedAt
         __typename
@@ -259,6 +302,9 @@ export const onCreateUserCar = /* GraphQL */ `
         year
         price
         type
+        purchasePrice
+        sellPrice
+        inAuction
         createdAt
         updatedAt
         __typename
@@ -282,6 +328,13 @@ export const onUpdateUserCar = /* GraphQL */ `
         email
         avatar
         bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
         createdAt
         updatedAt
         __typename
@@ -293,6 +346,9 @@ export const onUpdateUserCar = /* GraphQL */ `
         year
         price
         type
+        purchasePrice
+        sellPrice
+        inAuction
         createdAt
         updatedAt
         __typename
@@ -316,6 +372,13 @@ export const onDeleteUserCar = /* GraphQL */ `
         email
         avatar
         bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
         createdAt
         updatedAt
         __typename
@@ -327,6 +390,9 @@ export const onDeleteUserCar = /* GraphQL */ `
         year
         price
         type
+        purchasePrice
+        sellPrice
+        inAuction
         createdAt
         updatedAt
         __typename
@@ -352,6 +418,13 @@ export const onCreateAuctionUser = /* GraphQL */ `
         email
         avatar
         bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
         createdAt
         updatedAt
         __typename
@@ -370,6 +443,7 @@ export const onCreateAuctionUser = /* GraphQL */ `
         buy
         minBid
         type
+        bidsCount
         createdAt
         updatedAt
         __typename
@@ -395,6 +469,13 @@ export const onUpdateAuctionUser = /* GraphQL */ `
         email
         avatar
         bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
         createdAt
         updatedAt
         __typename
@@ -413,6 +494,7 @@ export const onUpdateAuctionUser = /* GraphQL */ `
         buy
         minBid
         type
+        bidsCount
         createdAt
         updatedAt
         __typename
@@ -438,6 +520,13 @@ export const onDeleteAuctionUser = /* GraphQL */ `
         email
         avatar
         bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
         createdAt
         updatedAt
         __typename
@@ -456,6 +545,7 @@ export const onDeleteAuctionUser = /* GraphQL */ `
         buy
         minBid
         type
+        bidsCount
         createdAt
         updatedAt
         __typename

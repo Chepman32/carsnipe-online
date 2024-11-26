@@ -27,6 +27,13 @@ export declare type UserCreateFormInputValues = {
     email?: string;
     avatar?: string;
     bio?: string;
+    sold?: string[];
+    totalCarsOwned?: number;
+    totalAuctionsParticipated?: number;
+    totalBidsPlaced?: number;
+    totalSpent?: number;
+    totalAuctionsWon?: number;
+    totalProfitEarned?: number;
 };
 export declare type UserCreateFormValidationValues = {
     nickname?: ValidationFunction<string>;
@@ -34,6 +41,13 @@ export declare type UserCreateFormValidationValues = {
     email?: ValidationFunction<string>;
     avatar?: ValidationFunction<string>;
     bio?: ValidationFunction<string>;
+    sold?: ValidationFunction<string>;
+    totalCarsOwned?: ValidationFunction<number>;
+    totalAuctionsParticipated?: ValidationFunction<number>;
+    totalBidsPlaced?: ValidationFunction<number>;
+    totalSpent?: ValidationFunction<number>;
+    totalAuctionsWon?: ValidationFunction<number>;
+    totalProfitEarned?: ValidationFunction<number>;
 };
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type UserCreateFormOverridesProps = {
@@ -43,6 +57,13 @@ export declare type UserCreateFormOverridesProps = {
     email?: PrimitiveOverrideProps<TextFieldProps>;
     avatar?: PrimitiveOverrideProps<TextFieldProps>;
     bio?: PrimitiveOverrideProps<TextFieldProps>;
+    sold?: PrimitiveOverrideProps<TextFieldProps>;
+    totalCarsOwned?: PrimitiveOverrideProps<TextFieldProps>;
+    totalAuctionsParticipated?: PrimitiveOverrideProps<TextFieldProps>;
+    totalBidsPlaced?: PrimitiveOverrideProps<TextFieldProps>;
+    totalSpent?: PrimitiveOverrideProps<TextFieldProps>;
+    totalAuctionsWon?: PrimitiveOverrideProps<TextFieldProps>;
+    totalProfitEarned?: PrimitiveOverrideProps<TextFieldProps>;
 } & EscapeHatchProps;
 export declare type UserCreateFormProps = React.PropsWithChildren<{
     overrides?: UserCreateFormOverridesProps | undefined | null;

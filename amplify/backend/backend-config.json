@@ -18,54 +18,45 @@
     }
   },
   "auth": {
-    "carsnipeonlined285936a": {
+    "carsnipeonline80e1a7fb": {
       "customAuth": false,
       "dependsOn": [],
-      "frontendAuthConfig": {
-        "mfaConfiguration": "OFF",
-        "mfaTypes": [
-          "SMS"
-        ],
-        "passwordProtectionSettings": {
-          "passwordPolicyCharacters": [],
-          "passwordPolicyMinLength": 8
-        },
-        "signupAttributes": [
-          "EMAIL"
-        ],
-        "socialProviders": [],
-        "usernameAttributes": [
-          "EMAIL"
-        ],
-        "verificationMechanisms": [
-          "EMAIL"
-        ]
-      },
       "providerPlugin": "awscloudformation",
-      "service": "Cognito"
+      "service": "Cognito",
+      "serviceType": "imported"
     }
   },
-  "function": {
-    "paymentsHandler": {
-      "build": true,
-      "providerPlugin": "awscloudformation",
-      "service": "Lambda"
-    }
-  },
+  "function": {},
   "parameters": {
-    "AMPLIFY_function_paymentsHandler_deploymentBucketName": {
+    "AMPLIFY_auth_carsnipeonline80e1a7fb_nativeClientId": {
       "usedBy": [
         {
-          "category": "function",
-          "resourceName": "paymentsHandler"
+          "category": "auth",
+          "resourceName": "carsnipeonline80e1a7fb"
         }
       ]
     },
-    "AMPLIFY_function_paymentsHandler_s3Key": {
+    "AMPLIFY_auth_carsnipeonline80e1a7fb_userPoolId": {
       "usedBy": [
         {
-          "category": "function",
-          "resourceName": "paymentsHandler"
+          "category": "auth",
+          "resourceName": "carsnipeonline80e1a7fb"
+        }
+      ]
+    },
+    "AMPLIFY_auth_carsnipeonline80e1a7fb_userPoolName": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "carsnipeonline80e1a7fb"
+        }
+      ]
+    },
+    "AMPLIFY_auth_carsnipeonline80e1a7fb_webClientId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "carsnipeonline80e1a7fb"
         }
       ]
     }

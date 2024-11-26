@@ -19,6 +19,7 @@ export const getUser = /* GraphQL */ `
       bidded {
         auctionId
         bidValue
+        timestamp
         __typename
       }
       avatar
@@ -28,6 +29,13 @@ export const getUser = /* GraphQL */ `
         date
         __typename
       }
+      sold
+      totalCarsOwned
+      totalAuctionsParticipated
+      totalBidsPlaced
+      totalSpent
+      totalAuctionsWon
+      totalProfitEarned
       createdAt
       updatedAt
       __typename
@@ -48,6 +56,61 @@ export const listUsers = /* GraphQL */ `
         email
         avatar
         bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getCar = /* GraphQL */ `
+  query GetCar($id: ID!) {
+    getCar(id: $id) {
+      id
+      make
+      model
+      year
+      price
+      type
+      purchasePrice
+      sellPrice
+      inAuction
+      users {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listCars = /* GraphQL */ `
+  query ListCars(
+    $filter: ModelCarFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listCars(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        make
+        model
+        year
+        price
+        type
+        purchasePrice
+        sellPrice
+        inAuction
         createdAt
         updatedAt
         __typename
@@ -77,6 +140,7 @@ export const getAuction = /* GraphQL */ `
         nextToken
         __typename
       }
+      bidsCount
       createdAt
       updatedAt
       __typename
@@ -104,48 +168,7 @@ export const listAuctions = /* GraphQL */ `
         buy
         minBid
         type
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const getCar = /* GraphQL */ `
-  query GetCar($id: ID!) {
-    getCar(id: $id) {
-      id
-      make
-      model
-      year
-      price
-      type
-      users {
-        nextToken
-        __typename
-      }
-      createdAt
-      updatedAt
-      __typename
-    }
-  }
-`;
-export const listCars = /* GraphQL */ `
-  query ListCars(
-    $filter: ModelCarFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listCars(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        make
-        model
-        year
-        price
-        type
+        bidsCount
         createdAt
         updatedAt
         __typename
@@ -168,6 +191,13 @@ export const getUserCar = /* GraphQL */ `
         email
         avatar
         bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
         createdAt
         updatedAt
         __typename
@@ -179,6 +209,9 @@ export const getUserCar = /* GraphQL */ `
         year
         price
         type
+        purchasePrice
+        sellPrice
+        inAuction
         createdAt
         updatedAt
         __typename
@@ -222,6 +255,13 @@ export const getAuctionUser = /* GraphQL */ `
         email
         avatar
         bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
         createdAt
         updatedAt
         __typename
@@ -240,6 +280,7 @@ export const getAuctionUser = /* GraphQL */ `
         buy
         minBid
         type
+        bidsCount
         createdAt
         updatedAt
         __typename

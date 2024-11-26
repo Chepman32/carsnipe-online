@@ -5,7 +5,7 @@
  **************************************************************************/
 
 import * as React from "react";
-import { GridProps, TextFieldProps } from "@aws-amplify/ui-react";
+import { GridProps, SwitchFieldProps, TextFieldProps } from "@aws-amplify/ui-react";
 export declare type EscapeHatchProps = {
     [elementHierarchy: string]: Record<string, unknown>;
 } | null;
@@ -27,6 +27,9 @@ export declare type CarUpdateFormInputValues = {
     year?: number;
     price?: number;
     type?: string;
+    purchasePrice?: number;
+    sellPrice?: number;
+    inAuction?: boolean;
 };
 export declare type CarUpdateFormValidationValues = {
     make?: ValidationFunction<string>;
@@ -34,6 +37,9 @@ export declare type CarUpdateFormValidationValues = {
     year?: ValidationFunction<number>;
     price?: ValidationFunction<number>;
     type?: ValidationFunction<string>;
+    purchasePrice?: ValidationFunction<number>;
+    sellPrice?: ValidationFunction<number>;
+    inAuction?: ValidationFunction<boolean>;
 };
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type CarUpdateFormOverridesProps = {
@@ -43,6 +49,9 @@ export declare type CarUpdateFormOverridesProps = {
     year?: PrimitiveOverrideProps<TextFieldProps>;
     price?: PrimitiveOverrideProps<TextFieldProps>;
     type?: PrimitiveOverrideProps<TextFieldProps>;
+    purchasePrice?: PrimitiveOverrideProps<TextFieldProps>;
+    sellPrice?: PrimitiveOverrideProps<TextFieldProps>;
+    inAuction?: PrimitiveOverrideProps<SwitchFieldProps>;
 } & EscapeHatchProps;
 export declare type CarUpdateFormProps = React.PropsWithChildren<{
     overrides?: CarUpdateFormOverridesProps | undefined | null;
