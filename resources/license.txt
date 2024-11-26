@@ -1,0 +1,8 @@
+Carsnipe License Agreement
+
+You must agree to the terms to install this application.
+
+Terms and conditions:
+1. This software is provided "as is" without any guarantees or warranties.
+2. You are responsible for complying with local laws and regulations.
+3. Do not redistribute or reverse-engineer without explicit permission.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, Col, Row, Typography } from "antd";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./auctionPage.css";
 import AuctionHubMyBids from "./AuctionHubCards/AuctionHubMyBids";
 import AuctionHubMyAuctions from "./AuctionHubCards/AuctionHubMyAuctions";
@@ -10,52 +10,62 @@ import { playOpeningSound, playSwitchSound } from "../../functions";
 
 export default function AuctionsHub() {
   const [focusedTile, setFocusedTile] = useState("search");
-
   const navigate = useNavigate();
+
+  // Restore last focused tile from sessionStorage on component mount
+  useEffect(() => {
+    const savedTile = sessionStorage.getItem("lastFocusedTile");
+    if (savedTile) {
+      setFocusedTile(savedTile);
+    }
+  }, []);
 
   const handleKeyDown = useCallback(
     (event) => {
-      const { key } = event
-      if (event.key === "ArrowRight" && focusedTile === "search") {
+      const { key } = event;
+      if (key === "ArrowRight" && focusedTile === "search") {
         playSwitchSound();
         setFocusedTile("start");
-      } else if (event.key === "ArrowLeft" && focusedTile !== "search") {
+      } else if (key === "ArrowLeft" && focusedTile !== "search") {
         playSwitchSound();
         setFocusedTile("search");
-      } else if (event.key === "ArrowDown" && focusedTile !== "search" && focusedTile !== "myauctions") {
+      } else if (key === "ArrowDown" && focusedTile !== "search" && focusedTile !== "myauctions") {
         setFocusedTile((prevTile) =>
-          prevTile === "start" ? "mybids" : prevTile === "mybids" ? "myauctions" : prevTile === "myauctions" ? "myauctions" : prevTile
+          prevTile === "start" ? "mybids" : prevTile === "mybids" ? "myauctions" : prevTile
         );
         playSwitchSound();
-      } else if (event.key === "ArrowUp" && focusedTile !== "search" && focusedTile !== "start") {
+      } else if (key === "ArrowUp" && focusedTile !== "search" && focusedTile !== "start") {
         setFocusedTile((prevTile) =>
           prevTile === "myauctions" ? "mybids" : prevTile === "mybids" ? "start" : prevTile
         );
         playSwitchSound();
-      }
-      else if (key === "Enter") {
-        playOpeningSound()
+      } else if (key === "Enter") {
+        playOpeningSound();
+        
+        // Store the focused tile before navigating away
+        sessionStorage.setItem("lastFocusedTile", focusedTile);
+
         switch (focusedTile) {
           case "search":
-            navigate("/auctions")
+            navigate("/auctions");
             break;
           case "start":
-            navigate("/myCars")
+            navigate("/myCars");
             break;
           case "mybids":
-            navigate("/myBids")
+            navigate("/myBids");
             break;
           case "myauctions":
-            navigate("/myAuctions")
+            navigate("/myAuctions");
             break;
           default:
             break;
         }
       }
     },
-    [focusedTile]
+    [focusedTile, navigate]
   );
-  
+
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => {

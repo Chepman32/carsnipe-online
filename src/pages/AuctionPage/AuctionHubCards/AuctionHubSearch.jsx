@@ -45,7 +45,7 @@ export default function AuctionHubSearch({ focused }) {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                transform: hovered ? 'scale(1.1)' : 'scale(1)', 
+                transform: hovered || focused ? 'scale(1.05)' : 'scale(1)',
               }}
             />
           </div>

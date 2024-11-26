@@ -1,67 +1,56 @@
-.wheel-spin-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  }
-  
-  .wheel-spin-container * {
-    background: transparent;
-  }
-  
-  .wheel-spin-window {
-    width: 35vh;
-    height: 25vh;
-    overflow: hidden;
-    margin-bottom: 1rem;
-    position: relative;
-  }
-  
-  .wheel-spin-reel {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-  
-  .wheel-spin-image {
-    width: 35vh;
-    height: 35vh;
-    object-fit: contain;
-    display: block;
-    border: 1px solid black;
-  }
-  
-  .wheel-spin-button {
-    padding: 0.5rem 1rem;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 0.375rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .wheel-spin-button:hover {
-    background-color: #2563eb;
-  }
-  
-  .wheel-spin-button:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
-  }
-  
-  .wheel-spin-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+.slot-machine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
 
-  .slotItem__image {
-    width: 25vw;
-    height: 25vw;
-    object-fit: contain;
-  }
+.slot-reel {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.slot-item {
+  width: 100%; /* Full width within slot-char */
+  height: 33vh !important;
+  object-fit: contain; /* Ensure no cropping occurs */
+  margin-bottom: 100px;
+}
+
+.slot-container {
+  width: 400px; /* Fixed width for the container */
+  height: 33vh !important;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+}
+
+.slot-char {
+  display: flex; /* Ensure images stack properly */
+  align-items: center;
+  justify-content: center;
+  height: 33vh !important;
+  width: 400px; /* Match container width */
+}
+
+.spin-button {
+  font-size: 24px;
+  padding: 15px 30px;
+  background-color: #ff6f61;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.spin-button:hover {
+  background-color: #ff4435;
+}
+
+.React Slot Counter {
+  height: 33vh !important;
+}
+

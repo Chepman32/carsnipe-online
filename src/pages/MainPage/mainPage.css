@@ -1,6 +1,6 @@
 .mainPage {
   display: flex;
-  padding: .5rem;
+  padding: 0.5rem;
   background: url(../../assets/images/soft-background.png);
   height: 100vh;
 }
@@ -27,7 +27,7 @@
 .column:first-child .tile:first-child,
 .column:first-child .tile:last-child,
 .column:last-child .tile:first-child,
-.column:last-child .tile:last-child {
+.column:last-child .tile:nth-child(2) {
   width: 24.3vw;
 }
 
@@ -52,12 +52,22 @@
 
 .column:last-child .tile:first-child {
   background: rgb(192, 108, 55);
-  height: 50%;
+  height: 45%;
+}
+
+.column:last-child .tile:nth-child(2) {
+  background: rgb(182, 182, 34);
+  height: 45%;
 }
 
 .column:last-child .tile:last-child {
-  background: silver;
-  height: 50%;
+  background: #ddd;
+  height: 10vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: black;
+  font-size: 1.2rem;
 }
 
 .focused {
@@ -84,47 +94,47 @@
   font-size: 5vh;
   font-weight: 600;
   color: #333;
-  padding: .3vh 1.5vh;
-  border-radius: .7vh;
+  padding: 0.3vh 1.5vh;
+  border-radius: 0.7vh;
   text-transform: uppercase;
   text-align: center;
 }
 
 .activeCard {
-  border: .2rem solid red;
+  border: 0.2rem solid red;
   border-radius: 15px;
 }
 
 @media (max-width: 512px) {
   .mainPage {
-    flex-direction: column; /* Stack columns vertically on very small screens */
-  }
-
-  .column {
-    width: 100%; /* Full width for columns on very small screens */
-  }
-
-  .tile {
-    font-size: 1.2rem; /* Smaller font size for tiles */
-  }
-}
-
-@media (max-width: 768px) {
-  .mainPage {
-    padding: 10px; /* Reduced padding for smaller screens */
     flex-direction: column;
   }
 
   .column {
     width: 100%;
-    flex-direction: column; /* Stack columns vertically on smaller screens */
+  }
+
+  .tile {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainPage {
+    padding: 10px;
+    flex-direction: column;
+  }
+
+  .column {
+    width: 100%;
+    flex-direction: column;
   }
 
   .column:first-child .tile:first-child,
   .column:first-child .tile:last-child,
   .column:last-child .tile:first-child,
-  .column:last-child .tile:last-child {
-    width: 100%; /* Full width for tiles on smaller screens */
+  .column:last-child .tile:nth-child(2) {
+    width: 100%;
     height: 80vw;
   }
 
@@ -134,20 +144,20 @@
   }
 
   .mainActionsModal__row {
-    font-size: 1.5vh; /* Smaller font size for actions modal */
+    font-size: 1.5vh;
   }
 
   .mainpage__cardText_black {
-    font-size: 4vh; /* Adjust font size for smaller screens */
+    font-size: 4vh;
   }
 }
 
 @media (min-width: 769px) and (max-width: 1100px) {
   .mainPage {
-    padding: 15px; /* Adjust padding for medium screens */
+    padding: 15px;
   }
 
   .tile {
-    font-size: 1.5rem; /* Adjust font size for medium screens */
+    font-size: 1.5rem;
   }
 }

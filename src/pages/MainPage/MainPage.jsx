@@ -7,9 +7,9 @@ import MainPageCenter from "./MainPageCards/MainPageCenter";
 import MainPageRightTop from "./MainPageCards/MainPageRightTop";
 import MainPageRightBottom from "./MainPageCards/MainPageRightBottom";
 import { playOpeningSound, playSwitchSound } from "../../functions";
+import MainPageExit from "./MainPageCards/MainPageExit";
 
 export const MainPage = () => {
-  // Check sessionStorage for a saved tile, defaulting to "leftTop" if none is found
   const initialFocusedTile = sessionStorage.getItem("lastFocusedTile") || "leftTop";
   const [focusedTile, setFocusedTile] = useState(initialFocusedTile);
   const navigate = useNavigate();
@@ -26,52 +26,43 @@ export const MainPage = () => {
       } else if (key === "ArrowRight" && focusedTile === "center") {
         playSwitchSound();
         setFocusedTile("rightTop");
-      } else if (key === "ArrowLeft" && focusedTile === "rightBottom") {
-        playSwitchSound();
-        setFocusedTile("center");
-      } else if (key === "ArrowLeft" && focusedTile === "leftBottom") {
-        // Do nothing for leftBottom
-      } else if (key === "ArrowLeft" && focusedTile !== "leftTop") {
-        playSwitchSound();
-        setFocusedTile("leftTop");
-      } else if (
-        key === "ArrowDown" &&
-        focusedTile !== "center" &&
-        focusedTile !== "rightBottom" &&
-        focusedTile !== "leftBottom"
-      ) {
-        setFocusedTile((prevTile) =>
-          prevTile === "leftTop"
-            ? "leftBottom"
-            : prevTile === "leftBottom"
-            ? "rightTop"
-            : prevTile === "rightTop"
-            ? "rightBottom"
-            : prevTile
-        );
-        playSwitchSound();
-      } else if (
-        key === "ArrowUp" &&
-        focusedTile !== "center" &&
-        focusedTile !== "leftTop" &&
-        focusedTile !== "rightTop"
-      ) {
-        setFocusedTile((prevTile) =>
-          prevTile === "rightBottom"
-            ? "rightTop"
-            : prevTile === "rightTop"
-            ? "leftBottom"
-            : prevTile === "leftBottom"
-            ? "leftTop"
-            : prevTile
-        );
-        playSwitchSound();
+      } else if (key === "ArrowLeft") {
+        if (focusedTile === "rightBottom") {
+          playSwitchSound();
+          setFocusedTile("center");
+        } else if (focusedTile === "exitBtn") {
+          playSwitchSound();
+          setFocusedTile("center");
+        } else if (focusedTile !== "leftTop") {
+          playSwitchSound();
+          setFocusedTile("leftTop");
+        }
+      } else if (key === "ArrowDown") {
+        if (focusedTile === "leftTop") {
+          playSwitchSound();
+          setFocusedTile("leftBottom");
+        } else if (focusedTile === "rightTop") {
+          playSwitchSound();
+          setFocusedTile("rightBottom");
+        } else if (focusedTile === "rightBottom") {
+          playSwitchSound();
+          setFocusedTile("exitBtn");
+        }
+      } else if (key === "ArrowUp") {
+        if (focusedTile === "leftBottom") {
+          playSwitchSound();
+          setFocusedTile("leftTop");
+        } else if (focusedTile === "rightBottom") {
+          playSwitchSound();
+          setFocusedTile("rightTop");
+        } else if (focusedTile === "exitBtn") {
+          playSwitchSound();
+          setFocusedTile("rightBottom");
+        }
       } else if (key === "Enter") {
         playOpeningSound();
-
-        // Store the focused tile before navigating away
         sessionStorage.setItem("lastFocusedTile", focusedTile);
-
+  
         switch (focusedTile) {
           case "leftTop":
             navigate("/mycars");
@@ -86,6 +77,9 @@ export const MainPage = () => {
             navigate("/store");
             break;
           case "rightBottom":
+            navigate("/profileEditPage");
+            break;
+          case "exitBtn":
             navigate("/profileEditPage");
             break;
           default:
@@ -119,6 +113,7 @@ export const MainPage = () => {
       <div className="column">
         <MainPageRightTop focused={focusedTile === "rightTop"} handleMouseEnter={handleMouseEnter} />
         <MainPageRightBottom focused={focusedTile === "rightBottom"} handleMouseEnter={handleMouseEnter} />
+        <MainPageExit focused={focusedTile === "exitBtn"} handleMouseEnter={handleMouseEnter} />
       </div>
     </div>
   );

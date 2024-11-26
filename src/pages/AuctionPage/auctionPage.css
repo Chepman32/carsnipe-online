@@ -232,7 +232,7 @@
   transition: transform 0.5s ease-in-out;
 }
 
-.hubCard:hover .cardContent {
+.hubCard:hover .cardContent, .activeCard .cardContent {
   transform: scale(1.3);
 }
 
