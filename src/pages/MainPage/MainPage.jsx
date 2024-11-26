@@ -9,32 +9,33 @@ import MainPageRightBottom from "./MainPageCards/MainPageRightBottom";
 import { playOpeningSound, playSwitchSound } from "../../functions";
 
 export const MainPage = () => {
-  const [focusedTile, setFocusedTile] = useState("leftTop");
-
+  // Check sessionStorage for a saved tile, defaulting to "leftTop" if none is found
+  const initialFocusedTile = sessionStorage.getItem("lastFocusedTile") || "leftTop";
+  const [focusedTile, setFocusedTile] = useState(initialFocusedTile);
   const navigate = useNavigate();
 
   const handleKeyDown = useCallback(
     (event) => {
       const { key } = event;
-      if (event.key === "ArrowRight" && focusedTile === "leftTop") {
+      if (key === "ArrowRight" && focusedTile === "leftTop") {
         playSwitchSound();
         setFocusedTile("center");
-      } else if (event.key === "ArrowRight" && focusedTile === "leftBottom") {
+      } else if (key === "ArrowRight" && focusedTile === "leftBottom") {
         playSwitchSound();
         setFocusedTile("center");
-      } else if (event.key === "ArrowRight" && focusedTile === "center") {
+      } else if (key === "ArrowRight" && focusedTile === "center") {
         playSwitchSound();
         setFocusedTile("rightTop");
-      } else if (event.key === "ArrowLeft" && focusedTile === "rightBottom") {
+      } else if (key === "ArrowLeft" && focusedTile === "rightBottom") {
         playSwitchSound();
         setFocusedTile("center");
-      } else if (event.key === "ArrowLeft" && focusedTile === "leftBottom") {
-        // Add this line to do nothing for leftBottom
-      } else if (event.key === "ArrowLeft" && focusedTile !== "leftTop") {
+      } else if (key === "ArrowLeft" && focusedTile === "leftBottom") {
+        // Do nothing for leftBottom
+      } else if (key === "ArrowLeft" && focusedTile !== "leftTop") {
         playSwitchSound();
         setFocusedTile("leftTop");
       } else if (
-        event.key === "ArrowDown" &&
+        key === "ArrowDown" &&
         focusedTile !== "center" &&
         focusedTile !== "rightBottom" &&
         focusedTile !== "leftBottom"
@@ -50,10 +51,10 @@ export const MainPage = () => {
         );
         playSwitchSound();
       } else if (
-        event.key === "ArrowUp" &&
+        key === "ArrowUp" &&
         focusedTile !== "center" &&
         focusedTile !== "leftTop" &&
-        focusedTile !== "rightTop" // Add rightTop to the condition
+        focusedTile !== "rightTop"
       ) {
         setFocusedTile((prevTile) =>
           prevTile === "rightBottom"
@@ -65,14 +66,12 @@ export const MainPage = () => {
             : prevTile
         );
         playSwitchSound();
-      } else if (event.key === "ArrowUp" && focusedTile === "leftTop") {
-        // Add this line to do nothing for leftTop
-      } else if (event.key === "ArrowUp" && focusedTile === "rightTop") {
-        // Add this line to do nothing for rightTop
-      } else if (event.key === "ArrowUp" && focusedTile === "center") {
-        // Add this line to do nothing for center
       } else if (key === "Enter") {
         playOpeningSound();
+
+        // Store the focused tile before navigating away
+        sessionStorage.setItem("lastFocusedTile", focusedTile);
+
         switch (focusedTile) {
           case "leftTop":
             navigate("/mycars");
@@ -94,7 +93,7 @@ export const MainPage = () => {
         }
       }
     },
-    [focusedTile]
+    [focusedTile, navigate]
   );
 
   useEffect(() => {

@@ -10,7 +10,7 @@ export default function AuctionHubNotifications() {
           <Card style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onMouseOver={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
-          className={hovered ? "auctionHub__card" : "auctionHub__card auctionHub__card_hovered"}>
+          className={`cardZoom auctionHub__card ${hovered ? "auctionHub__card_hovered" : ""}`}>
           <Typography.Text className=" auctionHub__cardText_black" style={{fontSize: "4vh"}}>
           Auction notifications
             </Typography.Text>

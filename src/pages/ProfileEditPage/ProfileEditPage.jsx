@@ -10,7 +10,7 @@ import avatar4 from "../../assets/images/avatars/images (2).jpeg";
 import avatar5 from "../../assets/images/avatars/images (3).jpeg";
 import avatar6 from "../../assets/images/avatars/images.jpeg";
 import "./styles.css";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const client = generateClient();
 
@@ -23,12 +23,12 @@ const avatarMap = {
   avatar3,
   avatar4,
   avatar5,
-  avatar6,
+  avatar6, 
 };
 
 const avatars = Object.keys(avatarMap);
 
-const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut }) => {
+const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
   const [form] = Form.useForm();
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -58,6 +58,12 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut }) => {
         nickname,
         bio,
         avatar: selectedAvatar,
+        totalCarsOwned: playerInfo.totalCarsOwned, // Assuming we retain or increment this based on usage elsewhere
+        totalAuctionsParticipated: playerInfo.totalAuctionsParticipated,
+        totalBidsPlaced: playerInfo.totalBidsPlaced,
+        totalSpent: playerInfo.totalSpent,
+        totalAuctionsWon: playerInfo.totalAuctionsWon,
+        totalProfitEarned: playerInfo.totalProfitEarned,
       };
       await client.graphql({
         query: mutations.updateUser,
@@ -82,8 +88,12 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut }) => {
     }
   };
 
+  const navigate = useNavigate()
+
   const handleSignOut = () => {
+    setPlayerInfo(null);
     signOut();
+    navigate('/')
     notification.info({
       message: 'Signed Out',
       description: 'You have been signed out successfully',

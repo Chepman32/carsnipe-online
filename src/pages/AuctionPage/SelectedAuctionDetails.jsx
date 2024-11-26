@@ -14,7 +14,7 @@ export const SelectedAuctionDetails = ({ selectedAuction }) => {
   useEffect(() => {
     const getAvatar = async () => {
       const auctionUser = await fetchAuctionUser(selectedAuction?.id);
-      setAvatar(auctionUser.avatar);
+      setAvatar(auctionUser?.avatar);
     }
     getAvatar()
   }, [selectedAuction]);

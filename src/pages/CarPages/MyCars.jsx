@@ -84,49 +84,58 @@ const MyCars = ({ playerInfo }) => {
  }, [cars, selectedCarIndex, carDetailsVisible, newAuctionvisible]);
 
  const createNewAuction = async () => {
-   const auctionDurationSeconds = auctionDuration * 60 * 60;
-   const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-   const endTime = currentTimeInSeconds + auctionDurationSeconds;
-   const newAuction = {
-     make: selectedCar.make,
-     model: selectedCar.model,
-     year: selectedCar.year,
-     type: selectedCar.type,
-     carId: selectedCar.id,
-     endTime,
-     status: 'Active',
-     lastBidPlayer: '',
-     player: playerInfo?.nickname,
-     buy: selectedCar.price,
-     minBid,
-   };
-   try {
-     setLoadingNewAuction(true);
-     selectedCar && await deleteUserCar(await getUserCar(playerInfo.id, selectedCar.id));
-     const result = await client.graphql({
-       query: mutations.createAuction,
-       variables: {
-         input: newAuction,
-       },
-     });
+  const auctionDurationSeconds = auctionDuration * 60 * 60;
+  const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+  const endTime = currentTimeInSeconds + auctionDurationSeconds;
+  const newAuction = {
+    make: selectedCar.make,
+    model: selectedCar.model,
+    year: selectedCar.year,
+    type: selectedCar.type,
+    carId: selectedCar.id,
+    endTime,
+    status: 'Active',
+    lastBidPlayer: '',
+    player: playerInfo?.nickname,
+    buy: selectedCar.price,
+    minBid,
+  };
 
-     const createdAuctionId = result?.data?.createAuction?.id;
-     if (createdAuctionId) {
-       const createdAuctionUser = await createNewAuctionUser(playerInfo.id, createdAuctionId);
-       playSwitchSound()
-       message.success('Auction created successfully!');
-     } else {
-       throw new Error('Failed to retrieve the ID of the created auction.');
-     }
-   } catch (error) {
-     console.error('Error creating auction:', error);
-   } finally {
-     setLoadingNewAuction(false);
-     setNewAuctionVisible(false);
-     setSelectedCarIndex(prev => cars.length > prev ? prev - 1 : 0)
-   }
- };
+  try {
+    setLoadingNewAuction(true);
 
+    const result = await client.graphql({
+      query: mutations.createAuction,
+      variables: {
+        input: newAuction,
+      },
+    });
+
+    const createdAuctionId = result?.data?.createAuction?.id;
+    if (createdAuctionId) {
+      await createNewAuctionUser(playerInfo.id, createdAuctionId);
+
+      const carToDelete = await getUserCar(playerInfo.id, selectedCar.id);
+      if (carToDelete && carToDelete.id) {
+        await deleteUserCar(carToDelete.id);
+      } else {
+        throw new Error("Car not found or invalid ID for deletion");
+      }
+
+      playSwitchSound();
+      message.success('Auction created successfully!');
+    } else {
+      throw new Error('Failed to retrieve the ID of the created auction.');
+    }
+  } catch (error) {
+    console.error('Error creating auction:', error);
+  } finally {
+    setLoadingNewAuction(false);
+    setNewAuctionVisible(false);
+    setSelectedCarIndex((prev) => (cars.length > prev ? prev - 1 : 0));
+  }
+};
+  
   const showCarDetailsModal = () => {
    setCarDetailsVisible(true);
  };

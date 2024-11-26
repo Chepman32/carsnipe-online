@@ -1,5 +1,5 @@
 .cars {
-    padding: 20px;
+    padding: 20px 0;
   }
   
   .cars__container {
@@ -141,4 +141,32 @@
     .carDetailsModal {
       width: 95%;
     }
+  }
+
+  .make-section {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .make-section-container {
+    width: 96%;
+    display: flex;
+    padding-left: 1vw;
+  }
+  
+  .make-name {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+    padding-left: 1vw;
+    background: url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1HzAqyKcsouEUVEV05ID1OOIZ5FKIw8g8JA&s);
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  
+  .make-cars {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
   }

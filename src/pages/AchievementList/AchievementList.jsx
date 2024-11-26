@@ -2,17 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, Row, Col } from 'antd';
 import 'antd/dist/reset.css';
 import './achievementList.css';
-import firstBid from "../../assets/images/achievements/gold-medal-with-blue-ribbon-for-first-place-trophy-winner-award-isolated-on-background-golden-badge-icon-sport-business-achievement.jpg";
 import goals from "../../assets/images/achievements/goals.png";
 import starter from "../../assets/images/achievements/debt.png";
 import quick from "../../assets/images/achievements/flash.png";
 import collector from "../../assets/images/achievements/delivery-truck.png";
-import lucky from "../../assets/images/achievements/ticket.png";
-import profit from "../../assets/images/achievements/invesment.png";
-import { fetchUserAchievementsList } from '../../functions'; // Import your achievement fetching function
+import { fetchUserAchievementsList, getAchievementImageSource } from '../../functions'; // Import your achievement fetching function
 
 const achievements = [
-  { title: "First One", description: "Place your first bid.", image: firstBid },
+  { title: "First One", description: "Place your first bid." },
   { title: "First Win", description: "Win your first auction.", image: goals },
   { title: "Starter Pack", description: "Own 3 cars.", image: starter },
   { title: "Quick Sale", description: "Sell your first car.", image: quick },
@@ -112,7 +109,6 @@ const AchievementList = ({ userId }) => {
   const [hovered, setHovered] = useState(null);
   const [userAchievements, setUserAchievements] = useState([]);
 
-  // Fetch user achievements when the component mounts
   useEffect(() => {
     const fetchAchievements = async () => {
       try {
@@ -122,11 +118,9 @@ const AchievementList = ({ userId }) => {
         console.error("Error fetching user achievements:", error);
       }
     };
-    
     fetchAchievements();
   }, [userId]);
 
-  // Check if the user has the achievement
   const userHasAchievement = (title) => {
     return userAchievements.some(achievement => achievement.name === title);
   };
@@ -149,7 +143,7 @@ const AchievementList = ({ userId }) => {
                       alt={achievement.title}
                       src={
                         userHasAchievement(achievement.title)
-                          ? achievement.image || "https://cdn-icons-png.freepik.com/512/4387/4387887.png"
+                          ? getAchievementImageSource(achievement.title) || "https://cdn-icons-png.freepik.com/512/4387/4387887.png"
                           : "https://static.thenounproject.com/png/426780-200.png"
                       }
                       className="card-image"

@@ -1,6 +1,7 @@
 import { Card, Row, Typography } from 'antd'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import icon from "../../../assets/icons/auctions.png"
 
 export default function AuctionHubMyBids({ focused, onClick }) {
   const [hovered, setHovered] = useState(false)
@@ -9,6 +10,7 @@ export default function AuctionHubMyBids({ focused, onClick }) {
     <Link to="/myBids">
       <Row style={{ height: '25%' }}>
         <Card
+          className={`cardZoom ${focused ? "activeCard" : "hubCard"}`}
           style={{
             width: '100%',
             height: '100%',
@@ -18,12 +20,14 @@ export default function AuctionHubMyBids({ focused, onClick }) {
           }}
           onMouseOver={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
-          onClick={onClick} // Call the onClick function when clicked
-          className={focused ? "activeCard" : "hubCard"}
+          onClick={onClick}
         >
-          <Typography.Text className="auctionHub__cardText_black">
-            My bids
-          </Typography.Text>
+          <div className="cardContent">
+            <img src={icon} alt="icon" />
+            <Typography.Text className="auctionHub__cardText_black">
+              My bids
+            </Typography.Text>
+          </div>
         </Card>
       </Row>
     </Link>

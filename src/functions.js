@@ -10,6 +10,7 @@ import avatar3 from "./assets/images/avatars/images (1).jpeg"
 import avatar4 from "./assets/images/avatars/images (2).jpeg"
 import avatar5 from "./assets/images/avatars/images (3).jpeg"
 import avatar6 from "./assets/images/avatars/images.jpeg"
+import { message } from "antd";
 
 const client = generateClient();
 
@@ -111,16 +112,26 @@ export function calculateTimeDifference(targetTime) {
 }
 
 export const createNewUserCar = async (userId, carId) => {
-  await client.graphql({
-    query: mutations.createUserCar,
-    variables: {
-      input: {
-        userId,
-        carId,
-      },
-    },
-  });
-}
+  try {
+    await client.graphql({
+      query: mutations.createUserCar,
+      variables: { input: { userId, carId } },
+    });
+    
+    const user = await client.graphql({
+      query: mutations.updateUser,
+      variables: {
+        input: {
+          id: userId,
+          totalCarsOwned: { increment: 1 }
+        }
+      }
+    });
+    return user;
+  } catch (error) {
+    console.error("Error associating car with user:", error);
+  }
+};
 
 export async function getUserCar(userId, carId) {
   const userCarData = await client.graphql({
@@ -133,19 +144,35 @@ export async function getUserCar(userId, carId) {
     },
   });
 
-  const toBeDeletedUserCar = userCarData.data.listUserCars.items[0]; // This should now contain the UserCar data
-
-  return toBeDeletedUserCar;
+  const cars = userCarData?.data?.listUserCars?.items;
+  
+  if (cars && cars.length > 0) {
+    return cars[0]; // Return the first matching car object
+  } else {
+    throw new Error("Car not found for the specified user and car ID");
+  }
 }
 
-export async function deleteUserCar(userCar) {
-  const deletedData = await client.graphql({
-    query: mutations.deleteUserCar, // Replace with your actual delete mutation
-    variables: { input: { id: userCar.id } }, // Pass 'id' inside an 'input' object
-  });
+export const deleteUserCar = async (carId, userId) => {
+  try {
+    await client.graphql({
+      query: mutations.deleteUserCar,
+      variables: { input: { id: carId } },
+    });
 
-  return deletedData;
-}
+    await client.graphql({
+      query: mutations.updateUser,
+      variables: {
+        input: {
+          id: userId,
+          totalCarsOwned: { decrement: 1 }
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error deleting user car:", error);
+  }
+};
 
 export const createNewAuctionUser = async (userId, auctionId) => {
   try {
@@ -292,6 +319,22 @@ export const fetchUserBiddedList = async (userId) => {
   }
 };
 
+export const fetchUserData = async (userId) => {
+  try {
+    const userData = await client.graphql({
+      query: queries.getUser,
+      variables: {
+        id: userId,
+      },
+    });
+
+    return userData.data.getUser || null;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    return null;
+  }
+};
+
 export const fetchUserAchievementsList = async (userId) => {
   try {
     const userData = await client.graphql({
@@ -301,11 +344,10 @@ export const fetchUserAchievementsList = async (userId) => {
       },
     });
 
-    // Ensure we return the correct field containing the achievements
-    return userData.data.getUser.achievements || []; // Return an empty array if no achievements
+    return userData.data.getUser.achievements || [];
   } catch (error) {
     console.error("Error fetching user achievements:", error);
-    return []; // Return an empty array on error to avoid breaking the code
+    return [];
   }
 };
 
@@ -380,6 +422,8 @@ export const selectAvatar = (avatar) => {
       return avatar4;
     case "avatar5":
       return avatar5;
+      case "avatar6":
+      return avatar6;
     default:
       return avatar1;
   }
@@ -393,3 +437,86 @@ export const getImageSource = (make, model) => {
   const imageName = `${make} ${model}.png`;
   return require(`./assets/images/${imageName}`);
 };
+
+export const getAchievementImageSource = (title) => {
+  const imageName = `${title}.png`;
+  return require(`./assets/images/achievements/${imageName}`);
+};
+
+export async function checkAndUpdateAchievements(user) {
+  const info = await fetchUserData(user.id);
+  try {
+    const userAchievements = await fetchUserAchievementsList(user.id);
+    const userCars = await fetchUserCarsRequest(user.id);
+    const userBidded = await fetchUserBiddedList(user.id);
+    const userSold = info.sold || [];
+    const userNickname = user.nickname;
+
+    const currentAchievements = userAchievements.map(a => a.name);
+    const newAchievements = [];
+
+    const addAchievement = (name) => {
+      if (!currentAchievements.includes(name)) {
+        newAchievements.push({ name, date: new Date().toISOString() });
+      }
+    };
+
+    console.log("userBidded", userBidded.length);
+
+    if (userBidded.length === 0) addAchievement("First One");
+    if (userCars.length >= 3) addAchievement("Starter Pack");
+    if (userCars.length >= 5) addAchievement("New Collector");
+    if (userSold.length >= 1) addAchievement("Quick Sale");
+
+    const userAuctionsParticipated = userBidded.map(bid => bid.auctionId);
+    const uniqueAuctions = new Set(userAuctionsParticipated);
+    if (uniqueAuctions.size >= 20) addAchievement("Auction Veteran");
+
+    const totalSpent = userBidded.reduce((sum, bid) => sum + bid.bidValue, 0);
+    if (totalSpent > 500000) addAchievement("Big Spender");
+
+    const uniqueAuctionsFirstBid = new Set(
+      userBidded.filter(bid => {
+        const auction = userAuctionsParticipated.find(a => a.id === bid.auctionId);
+        return auction && auction.lastBidPlayer === userNickname;
+      }).map(bid => bid.auctionId)
+    ).size;
+    if (uniqueAuctionsFirstBid >= 5) addAchievement("Early Bird");
+
+    const bargainWin = userBidded.some(bid => {
+      const auction = userAuctionsParticipated.find(a => a.id === bid.auctionId);
+      return auction && auction.status === "Finished" && bid.bidValue <= auction.buy * 0.9;
+    });
+    if (bargainWin) addAchievement("Bargain Hunter");
+
+    if (userSold.length > 0) {
+      const profitSales = userSold.some(carId => {
+        const car = userCars.find(car => car.id === carId);
+        return car && car.sellPrice > car.purchasePrice;
+      });
+      if (profitSales) addAchievement("First Profit");
+    }
+
+    if (userBidded.some(bid => bid.bidValue > 100000)) addAchievement("High Roller");
+
+    if (newAchievements.length > 0) {
+      const updatedAchievements = [...userAchievements, ...newAchievements];
+      await client.graphql({
+        query: mutations.updateUser,
+        variables: {
+          input: {
+            id: user.id,
+            achievements: updatedAchievements.map(ach => ({
+              name: ach.name,
+              date: ach.date,
+            })),
+          },
+        },
+      });
+
+      newAchievements.forEach(ach => message.success(`Achievement unlocked: ${ach.name}`));
+    }
+  } catch (error) {
+    console.error("Error updating achievements:", error);
+  }
+}

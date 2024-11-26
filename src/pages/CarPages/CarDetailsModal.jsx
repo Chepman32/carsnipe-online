@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Spin } from "antd";
 import "./carsPage.css";
 import CarDetailsModalRow from "./CarDetailsModalRow";
-import { playSwitchSound } from "../../functions";
+import { getImageSource, playSwitchSound } from "../../functions";
 import { isMobile } from "react-device-detect";
 
 const CarDetailsModal = ({
@@ -72,11 +72,18 @@ const CarDetailsModal = ({
       centered
       className="carDetailsModal"
       width={isMobile ? window.innerWidth * 0.8 : window.innerWidth * 0.5}
-      visible={visible}
-      title="Car Details"
+      open={visible}
+      title={visible && selectedCar ? <h3 style={{ textAlign: "center", fontWeight: "700" }}>{selectedCar?.make} {selectedCar?.model}</h3> : "Car Details"}
       onCancel={handleCancel}
       footer={null}
     >
+      {
+        forAuction && selectedCar && <img
+        src={getImageSource(selectedCar.make, selectedCar.model)}
+        alt={`${selectedCar.make} ${selectedCar.model}`}
+  className='carsPage__item__image'
+      />
+      }
       {!forAuction && (
         <CarDetailsModalRow
           handler={() => buyCar(selectedCar)}

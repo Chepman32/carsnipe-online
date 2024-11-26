@@ -1,384 +1,19 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Button, Modal, Form, Input, message, Select, Typography, Spin } from "antd";
+import { Button, Modal, Form, Input, message, Select, Spin } from "antd";
 import { generateClient } from 'aws-amplify/api';
 import { listCars as listCarsQuery } from '../../graphql/queries';
 import * as mutations from '../../graphql/mutations';
 import "./carsPage.css";
 import CarDetailsModal from "./CarDetailsModal";
 import CarCard from "./CarCard";
-import { createNewUserCar, playSwitchSound, playOpeningSound, playClosingSound } from "../../functions";
+import { createNewUserCar, playSwitchSound, playOpeningSound, playClosingSound, checkAndUpdateAchievements } from "../../functions";
 import { CreditWarningModal } from "../../components/CreditWarningModal/CreditWarningModal";
 
 const { Option } = Select;
 const client = generateClient();
 
-const cars = [
-  {
-    make: "Chevrolet",
-    model: "Tahoe",
-    year: 2024,
-    price: 90000,
-    type: "epic"
-  },
-  {
-    make: "Ford",
-    model: "Focus",
-    year: 2017,
-    price: 20000,
-    type: "regular"
-  },
-  {
-    make: "Aston Martin",
-    model: "DBX",
-    year: 2024,
-    price: 90000,
-    type: "regular"
-  },
-  {
-    make: "Chevrolet",
-    model: "Silverado",
-    year: 2020,
-    price: 70000,
-    type: "epic"
-  },
-  {
-    make: "Mercedes-Benz",
-    model: "A-Class",
-    year: 2020,
-    price: 30000,
-    type: "epic"
-  },
-  {
-    make: "BMW",
-    model: "X5",
-    year: 2024,
-    price: 60000,
-    type: "regular"
-  },
-  {
-    make: "BMW",
-    model: "335i",
-    year: 2016,
-    price: 40000,
-    type: "epic"
-  },
-  {
-    make: "Mercedes-Benz AMG",
-    model: "SL 63",
-    year: 2024,
-    price: 100000,
-    type: "epic"
-  },
-  {
-    make: "Alfa Romeo",
-    model: "4C",
-    year: 2017,
-    price: 60000,
-    type: "epic"
-  },
-  {
-    make: "Aston Martin",
-    model: "Vantage",
-    year: 2022,
-    price: 80000,
-    type: "epic"
-  },
-  {
-    make: "Bentley",
-    model: "Continental GTC",
-    year: 2024,
-    price: 140000,
-    type: "epic"
-  },
-  {
-    make: "Mazda",
-    model: "CX-5",
-    year: 2021,
-    price: 25000,
-    type: "regular"
-  },
-  {
-    make: "Porsche",
-    model: "911 GT3 RS",
-    year: 2024,
-    price: 200000,
-    type: "legendary"
-  },
-  {
-    make: "Toyota",
-    model: "Camry",
-    year: 2021,
-    price: 40000,
-    type: "regular"
-  },
-  {
-    make: "Volkswagen",
-    model: "Golf GTI",
-    year: 2021,
-    price: 39980,
-    type: "epic"
-  },
-  {
-    make: "Mazda",
-    model: "MX-5",
-    year: 2020,
-    price: 25000,
-    type: "regular"
-  },
-  {
-    make: "Aston Martin",
-    model: "DB12",
-    year: 2024,
-    price: 200000,
-    type: "legendary"
-  },
-  {
-    make: "Mercedes-Benz",
-    model: "EQS",
-    year: 2024,
-    price: 108000,
-    type: "epic"
-  },
-  {
-    make: "Audi",
-    model: "RS E-Tron GT",
-    year: 2024,
-    price: 90000,
-    type: "epic"
-  },
-  {
-    make: "Ford",
-    model: "Focus RS",
-    year: 2024,
-    price: 50000,
-    type: "legendary"
-  },
-  {
-    make: "Mercedes-Benz",
-    model: "AMG GT",
-    year: 2023,
-    price: 190000,
-    type: "legendary"
-  },
-  {
-    make: "Volkswagen",
-    model: "ID4",
-    year: 2024,
-    price: 70000,
-    type: "epic"
-  },
-  {
-    make: "Nissan",
-    model: "GT-R",
-    year: 2024,
-    price: 110000,
-    type: "legendary"
-  },
-  {
-    make: "Mercedes-Benz",
-    model: "GLC",
-    year: 2022,
-    price: 90000,
-    type: "legendary"
-  },
-  {
-    make: "Dodge",
-    model: "Viper SRT",
-    year: 2017,
-    price: 80000,
-    type: "legendary"
-  },
-  {
-    make: "Lamborghini",
-    model: "Centenario",
-    year: 2024,
-    price: 300000,
-    type: "epic"
-  },
-  {
-    make: "Lucid",
-    model: "Air Sapphire",
-    year: 2023,
-    price: 80000,
-    type: "legendary"
-  },
-  {
-    make: "Ford",
-    model: "Mustang",
-    year: 2021,
-    price: 50000,
-    type: "regular"
-  },
-  {
-    make: "Mitsubishi",
-    model: "Eclipse Spyder GT",
-    year: 2008,
-    price: 15000,
-    type: "regular"
-  },
-  {
-    make: "Lamborghini",
-    model: "Urus",
-    year: 2024,
-    price: 240000,
-    type: "epic"
-  },
-  {
-    make: "Hummer",
-    model: "EV",
-    year: 2022,
-    price: 100000,
-    type: "legendary"
-  },
-  {
-    make: "Toyota",
-    model: "Tundra",
-    year: 2024,
-    price: 80000,
-    type: "epic"
-  },
-  {
-    make: "Aston Martin",
-    model: "DBS",
-    year: 2011,
-    price: 50000,
-    type: "epic"
-  },
-  {
-    make: "Hummer",
-    model: "H3",
-    year: 2009,
-    price: 40000,
-    type: "epic"
-  },
-  {
-    make: "Rivian",
-    model: "R1S",
-    year: 2024,
-    price: 60000,
-    type: "legendary"
-  },
-  {
-    make: "Mercedes-Benz",
-    model: "E-Class",
-    year: 2024,
-    price: 70000,
-    type: "regular"
-  },
-  {
-    make: "Bentley",
-    model: "Bentayga",
-    year: 2018,
-    price: 40000,
-    type: "regular"
-  },
-  {
-    make: "Porsche",
-    model: "Cayenne",
-    year: 2023,
-    price: 90000,
-    type: "regular"
-  },
-  {
-    make: "Lamborghini",
-    model: "Huracan",
-    year: 2024,
-    price: 250000,
-    type: "legendary"
-  },
-  {
-    make: "Audi",
-    model: "A4",
-    year: 2018,
-    price: 10000,
-    type: "regular"
-  },
-  {
-    make: "BMW",
-    model: "218i",
-    year: 2019,
-    price: 15000,
-    type: "epic"
-  },
-  {
-    make: "Rivian",
-    model: "R1T",
-    year: 2023,
-    price: 80000,
-    type: "regular"
-  },
-  {
-    make: "Toyota",
-    model: "Supra",
-    year: 2021,
-    price: 35000,
-    type: "epic"
-  },
-  {
-    make: "Toyota",
-    model: "Land Cruiser 300",
-    year: 2023,
-    price: 60000,
-    type: "regular"
-  },
-  {
-    make: "Dodge",
-    model: "Charger",
-    year: 2023,
-    price: 50000,
-    type: "regular"
-  }
-];
-
-const bulkUploadCars = async (carsData) => {
-  const results = {
-    successful: [],
-    failed: []
-  };
-  
-  const uploadPromises = carsData.map(async (car) => {
-    try {
-      const carInput = {
-        make: car.make,
-        model: car.model,
-        year: parseInt(car.year),
-        price: parseInt(car.price),
-        type: car.type.toLowerCase()
-      };
-
-      const response = await client.graphql({
-        query: mutations.createCar,
-        variables: { input: carInput }
-      });
-
-      results.successful.push({
-        ...car,
-        id: response.data.createCar.id
-      });
-      
-      return response;
-    } catch (error) {
-      results.failed.push({
-        car,
-        error: error.message
-      });
-      console.error(`Failed to upload car: ${car.make} ${car.model}`, error);
-    }
-  });
-
-  await Promise.all(uploadPromises);
-
-  return {
-    totalProcessed: carsData.length,
-    successful: results.successful.length,
-    failed: results.failed.length,
-    successfulCars: results.successful,
-    failedCars: results.failed
-  };
-};
-
 const CarsStore = ({ playerInfo, setMoney, money }) => {
-  const [carsState, setCars] = useState([]);
+  const [cars, setCars] = useState([]);
   const [visible, setVisible] = useState(false);
   const [loadingBuy, setLoadingBuy] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
@@ -387,63 +22,158 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   const [selectedCarIndex, setSelectedCarIndex] = useState(0);
   const [creditWarningModalvisible, setCreditWarningModalvisible] = useState(false);
   const [carsLoading, setCarsLoading] = useState(true);
-  const [uploadInProgress, setUploadInProgress] = useState(false);
 
   const carsContainerRef = useRef(null);
+
+  const showCarDetailsModal = useCallback(() => {
+    setCarDetailsVisible(true);
+  }, []);
 
   const fetchCars = useCallback(async () => {
     try {
       const carData = await client.graphql({ query: listCarsQuery });
-      setCars(carData.data.listCars.items);
+      const cars = carData.data.listCars.items;
+      const sortedCars = cars.sort((a, b) => {
+        const nameA = `${a.make || ""} ${a.model || ""}`.trim();
+        const nameB = `${b.make || ""} ${b.model || ""}`.trim();
+        return nameA.localeCompare(nameB);
+      });
+      setCars(sortedCars);
     } catch (error) {
       console.error("Error fetching cars:", error);
-      message.error("Failed to fetch cars");
     } finally {
       setCarsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchCars();
+    async function fetchAllCars() {
+      await fetchCars();
+    }
+    fetchAllCars();
   }, [fetchCars]);
 
-  const handleBulkUpload = async () => {
-    try {
-      setUploadInProgress(true);
-      const results = await bulkUploadCars(cars);
-      message.success(`Successfully uploaded ${results.successful} cars`);
-      if (results.failed > 0) {
-        message.warning(`Failed to upload ${results.failed} cars`);
+  const groupCarsByMake = (cars) => {
+    return cars.reduce((groups, car) => {
+      const make = car.make ? car.make.trim().toUpperCase() : "UNKNOWN";
+      if (!groups[make]) {
+        groups[make] = [];
       }
-      await fetchCars();
-    } catch (error) {
-      message.error('Error during bulk upload');
-      console.error(error);
-    } finally {
-      setUploadInProgress(false);
-    }
+      groups[make].push(car);
+      return groups;
+    }, {});
   };
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       const { key } = event;
-      const carsCount = carsState.length;
-      if (key === "ArrowRight" && !carDetailsVisible) {
-        playSwitchSound();
-        setSelectedCarIndex((prevIndex) => (prevIndex + 1) % carsCount);
-      } else if (key === "ArrowLeft" && !carDetailsVisible) {
-        playSwitchSound();
-        setSelectedCarIndex((prevIndex) => (prevIndex - 1 + carsCount) % carsCount);
-      } else if (key === "ArrowDown" && !carDetailsVisible) {
-        playSwitchSound();
-        setSelectedCarIndex((prevIndex) => (prevIndex + 5) % carsCount);
-      } else if (key === "ArrowUp" && !carDetailsVisible) {
-        playSwitchSound();
-        setSelectedCarIndex((prevIndex) => (prevIndex - 5 + carsCount) % carsCount);
-      } else if (key === "Enter" && !carDetailsVisible) {
-        setSelectedCar(carsState[selectedCarIndex]);
-        playOpeningSound();
-        showCarDetailsModal();
+      if (carDetailsVisible) return;
+
+      const getItemsPerRow = () => {
+        const windowWidth = window.innerWidth;
+        let itemWidth;
+        
+        if (windowWidth <= 512) {
+          itemWidth = windowWidth * 0.95;
+        } else if (windowWidth <= 768) {
+          itemWidth = windowWidth * 0.48;
+        } else if (windowWidth <= 900) {
+          itemWidth = windowWidth * 0.48;
+        } else if (windowWidth <= 1200) {
+          itemWidth = windowWidth * 0.31;
+        } else if (windowWidth <= 1600) {
+          itemWidth = windowWidth * 0.23;
+        } else {
+          itemWidth = windowWidth * 0.19;
+        }
+
+        const itemsPerRow = Math.floor((windowWidth - 40) / (itemWidth + 10));
+        return Math.max(1, itemsPerRow);
+      };
+
+      const itemsPerRow = getItemsPerRow();
+      const carsByMake = groupCarsByMake(cars);
+      const makes = Object.keys(carsByMake);
+      
+      const currentMake = makes.find((make) => {
+        const makeStartIndex = cars.indexOf(carsByMake[make][0]);
+        const makeEndIndex = makeStartIndex + carsByMake[make].length - 1;
+        return selectedCarIndex >= makeStartIndex && selectedCarIndex <= makeEndIndex;
+      });
+      
+      const currentMakeCars = carsByMake[currentMake] || [];
+      const currentMakeStartIndex = cars.indexOf(currentMakeCars[0]);
+      const positionInMake = selectedCarIndex - currentMakeStartIndex;
+      const currentRow = Math.floor(positionInMake / itemsPerRow);
+      const positionInRow = positionInMake % itemsPerRow;
+
+      switch (key) {
+        case "ArrowRight": {
+          if (positionInRow < itemsPerRow - 1 && positionInMake < currentMakeCars.length - 1) {
+            setSelectedCarIndex(selectedCarIndex + 1);
+            playSwitchSound();
+          }
+          break;
+        }
+        
+        case "ArrowLeft": {
+          if (positionInRow > 0) {
+            setSelectedCarIndex(selectedCarIndex - 1);
+            playSwitchSound();
+          }
+          break;
+        }
+        
+        case "ArrowDown": {
+          const nextRowStartIndex = currentMakeStartIndex + (currentRow + 1) * itemsPerRow;
+          
+          if (currentRow < Math.floor((currentMakeCars.length - 1) / itemsPerRow)) {
+            const nextIndex = Math.min(nextRowStartIndex + positionInRow, currentMakeStartIndex + currentMakeCars.length - 1);
+            setSelectedCarIndex(nextIndex);
+            playSwitchSound();
+          } else {
+            const currentMakeIndex = makes.indexOf(currentMake);
+            if (currentMakeIndex < makes.length - 1) {
+              const nextMake = makes[currentMakeIndex + 1];
+              const nextMakeStartIndex = cars.indexOf(carsByMake[nextMake][0]);
+              setSelectedCarIndex(nextMakeStartIndex);
+              playSwitchSound();
+            }
+          }
+          break;
+        }
+        
+        case "ArrowUp": {
+          const prevRowStartIndex = currentMakeStartIndex + (currentRow - 1) * itemsPerRow;
+          
+          if (currentRow > 0) {
+            const prevIndex = Math.min(prevRowStartIndex + positionInRow, currentMakeStartIndex + currentMakeCars.length - 1);
+            setSelectedCarIndex(prevIndex);
+            playSwitchSound();
+          } else {
+            const currentMakeIndex = makes.indexOf(currentMake);
+            if (currentMakeIndex > 0) {
+              const prevMake = makes[currentMakeIndex - 1];
+              const prevMakeCars = carsByMake[prevMake];
+              const prevMakeStartIndex = cars.indexOf(prevMakeCars[0]);
+              const lastRowIndex = Math.floor((prevMakeCars.length - 1) / itemsPerRow);
+              const lastRowStartIndex = prevMakeStartIndex + lastRowIndex * itemsPerRow;
+              const targetIndex = Math.min(lastRowStartIndex + positionInRow, prevMakeStartIndex + prevMakeCars.length - 1);
+              setSelectedCarIndex(targetIndex);
+              playSwitchSound();
+            }
+          }
+          break;
+        }
+        
+        case "Enter": {
+          setSelectedCar(cars[selectedCarIndex]);
+          playOpeningSound();
+          showCarDetailsModal();
+          break;
+        }
+        default:
+          break;
       }
     };
 
@@ -451,7 +181,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [carsState, selectedCarIndex, carDetailsVisible]);
+  }, [cars, selectedCarIndex, carDetailsVisible, showCarDetailsModal, playSwitchSound, playOpeningSound]);
 
   const buyCar = async (car) => {
     if (playerInfo && playerInfo.id && money >= car.price) {
@@ -459,22 +189,21 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       setMoney(money - car.price);
       try {
         setLoadingBuy(true);
-
         await client.graphql({
           query: mutations.updateUser,
           variables: {
             input: {
               id: playerInfo.id,
               money: money - car.price,
+              totalSpent: (playerInfo.totalSpent || 0) + car.price,
             },
           },
         });
-
         createNewUserCar(playerInfo.id, car.id);
-        message.success('Car successfully bought!');
+        message.success("Car successfully bought!");
       } catch (err) {
         console.log(err);
-        message.error('Error buying car');
+        message.error("Error buying car");
       } finally {
         setLoadingBuy(false);
         setSelectedCar(null);
@@ -482,11 +211,9 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     } else if (playerInfo && money < car.price) {
       setCreditWarningModalvisible(true);
       handleCarDetailsCancel();
+      return;
     }
-  };
-
-  const showCarDetailsModal = () => {
-    setCarDetailsVisible(true);
+    await checkAndUpdateAchievements(playerInfo);
   };
 
   const handleCancel = () => {
@@ -514,7 +241,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     await fetchCars();
     setVisible(false);
     form.resetFields();
-    message.success('Car created successfully!');
+    message.success("Car created successfully!");
   };
 
   const getImageSource = (make, model) => {
@@ -524,37 +251,45 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
   return (
     <div className="cars">
-    <Button
-        type="primary"
-        onClick={handleBulkUpload}
-        loading={uploadInProgress}
-        style={{ marginBottom: '20px' }}
-      >
-        Upload All Cars
-      </Button>
-
       {carsLoading ? (
         <Spin size="large" fullscreen />
       ) : (
         <div ref={carsContainerRef} className="cars__container">
-          {carsState.length && carsState.map((car, index) => (
-            <CarCard
-              key={car.id + Math.random()}
-              selectedCar={index === selectedCarIndex ? car : null}
-              setSelectedCar={(car) => {
-                setSelectedCar(car)
-                setSelectedCarIndex(index)
-                showCarDetailsModal()
-              }}
-              showCarDetailsModal={showCarDetailsModal}
-              car={car}
-              getImageSource={getImageSource}
-              showPrice
-            />
+          {Object.entries(groupCarsByMake(cars)).map(([make, makeCars]) => (
+            <div key={make} className="make-section">
+              <h2 className="make-name">{make}</h2>
+              <section className="make-section-container">
+              <div className="make-cars">
+                {makeCars
+                  .sort((a, b) => {
+                    const nameA = `${a.make || ""} ${a.model || ""}`.trim();
+                    const nameB = `${b.make || ""} ${b.model || ""}`.trim();
+                    return nameA.localeCompare(nameB);
+                  })
+                  .map((car) => {
+                    const absoluteIndex = cars.indexOf(car);
+                    return (
+                      <CarCard
+                        key={car.id}
+                        selectedCar={absoluteIndex === selectedCarIndex ? car : null}
+                        setSelectedCar={(selectedCar) => {
+                          setSelectedCar(selectedCar);
+                          setSelectedCarIndex(absoluteIndex);
+                          showCarDetailsModal();
+                        }}
+                        showCarDetailsModal={showCarDetailsModal}
+                        car={car}
+                        getImageSource={getImageSource}
+                        showPrice
+                      />
+                    );
+                  })}
+              </div>
+              </section>
+            </div>
           ))}
         </div>
       )}
-
       <Modal
         visible={visible}
         title="Create a New Car"
@@ -568,7 +303,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
               createNewCar(values);
             })
             .catch((info) => {
-              console.log('Validate Failed:', info);
+              console.log("Validate Failed:", info);
             });
         }}
       >
@@ -578,19 +313,19 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           initialValues={{ remember: true }}
           onFinish={(values) => createNewCar(values)}
         >
-          <Form.Item name="make" label="Make" rules={[{ required: true, message: 'Please enter the make!' }]}>
+          <Form.Item name="make" label="Make" rules={[{ required: true, message: "Please enter the make!" }]}>
             <Input autoFocus />
           </Form.Item>
-          <Form.Item name="model" label="Model" rules={[{ required: true, message: 'Please enter the model!' }]}>
+          <Form.Item name="model" label="Model" rules={[{ required: true, message: "Please enter the model!" }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="year" label="Year" rules={[{ required: true, message: 'Please enter the year!' }]}>
+          <Form.Item name="year" label="Year" rules={[{ required: true, message: "Please enter the year!" }]}>
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="price" label="Price" rules={[{ required: true, message: 'Please enter the price!' }]}>
+          <Form.Item name="price" label="Price" rules={[{ required: true, message: "Please enter the price!" }]}>
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="type" label="Type" rules={[{ required: true, message: 'Please select the type!' }]}>
+          <Form.Item name="type" label="Type" rules={[{ required: true, message: "Please select the type!" }]}>
             <Select>
               <Option value="regular">Regular</Option>
               <Option value="epic">Epic</Option>
@@ -599,7 +334,6 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           </Form.Item>
         </Form>
       </Modal>
-
       <CarDetailsModal
         visible={carDetailsVisible && selectedCar !== null}
         handleCancel={handleCarDetailsCancel}
@@ -607,11 +341,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         buyCar={buyCar}
         loadingBuy={loadingBuy}
       />
-      
-      <CreditWarningModal 
-        isModalVisible={creditWarningModalvisible} 
-        setIsModalVisible={setCreditWarningModalvisible} 
-      />
+      <CreditWarningModal isModalVisible={creditWarningModalvisible} setIsModalVisible={setCreditWarningModalvisible} />
     </div>
   );
 };

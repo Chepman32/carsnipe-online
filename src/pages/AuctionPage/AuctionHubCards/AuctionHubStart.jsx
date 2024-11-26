@@ -21,12 +21,14 @@ export default function AuctionHubStart({ focused, onClick }) {
           }}
           onMouseOver={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
-          onClick={onClick} // Call the onClick function when clicked
+          onClick={onClick}
           className={focused ? "activeCard" : "hubCard"}
         >
-          <Typography.Text className="auctionHub__cardText">
-            Start auction
-          </Typography.Text>
+          <div className="cardContent">
+            <Typography.Text className="auctionHub__cardText">
+              Start auction
+            </Typography.Text>
+          </div>
         </Card>
       </Row>
     </Link>
