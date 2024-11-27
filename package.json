@@ -1,27 +1,71 @@
 {
-  "name": "carsnipe.online",
+  "name": "carsnipe",
   "version": "0.1.0",
+  "main": "main.js",
+  "description": "Carsnipe - Your application description here",
+  "author": "Your Name",
   "private": true,
+  "homepage": "./",
   "dependencies": {
-    "@aws-amplify/ui-react": "^6.5.5",
+    "@aws-amplify/ui-react": "^6.5.2",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "antd": "^5.21.5",
-    "aws-amplify": "^6.6.7",
+    "animejs": "^3.2.2",
+    "antd": "^5.21.2",
+    "aws-amplify": "^6.6.4",
     "react": "^18.3.1",
     "react-device-detect": "^2.2.3",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.27.0",
+    "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
-    "react-slot-counter": "^3.0.1",
+    "react-slot-machine": "github:thomasrutzer/react-slot-machine#v1.0.3",
+    "react-slot-machine-gen": "^1.3.3",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "electron-dev": "NODE_ENV=development electron .",
+    "package": "electron-packager . carsnipe --platform=win32 --arch=x64 --out=dist",
+    "package-mac": "electron-builder --mac --x64",
+    "package-win": "electron-builder --win --x64",
+    "package-linux": "electron-builder --linux AppImage --x64"
+  },
+  "build": {
+    "appId": "com.yourapp.carsnipe",
+    "productName": "Carsnipe",
+    "files": [
+      "build/**/*",
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "main.js"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "resources/appIcon.ico"
+    },
+    "nsis": {
+      "include": "resources/installer.nsh",
+      "license": "resources/license.txt",
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "resources/installer-icon.ico",
+      "uninstallerIcon": "resources/uninstaller-icon.ico",
+      "shortcutName": "Carsnipe"
+    },
+    "directories": {
+      "output": "dist"
+    }
   },
   "eslintConfig": {
     "extends": [
@@ -40,5 +84,15 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/preset-react": "^7.25.7",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.0",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.0",
+    "electron-builder": "^23.6.0",
+    "electron-packager": "^17.1.0",
+    "html-webpack-plugin": "5",
+    "source-map-explorer": "^2.5.2"
   }
 }
