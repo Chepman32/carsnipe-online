@@ -1,16 +1,16 @@
-import React from 'react';
-import { Typography } from 'antd';
+import React from "react";
+import { Typography } from "antd";
 
 const MainPageExit = ({ focused, handleMouseEnter }) => {
   const handleExit = () => {
-    window.api.quitApp();
+    window.electron.send("quit-app");
   };
 
   return (
     <div
-      className={`tile ${focused ? 'focused' : ''}`}
+      className={`tile ${focused ? "focused" : ""}`}
       onClick={handleExit}
-      onMouseEnter={() => handleMouseEnter('exitBtn')}
+      onMouseEnter={() => handleMouseEnter("exitBtn")}
     >
       <Typography.Text className="mainpage__cardText_black">
         Quit
