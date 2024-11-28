@@ -18,10 +18,17 @@
           "userPoolName": "carsnipee8a5937b_userpool_e8a5937b-dev",
           "webClientId": "58kasgbt6bd86tlegvtqi8gmdm",
           "nativeClientId": "hi1akgtfntj8ghdqsqasaghmm"
-        }
+        },
+        "carsnipeonlinea9a53f6c": {}
       },
       "api": {
         "carsnipeonline": {}
+      },
+      "function": {
+        "paymentsHandler": {
+          "deploymentBucketName": "amplify-carsnipeonline-main-9dee2-deployment",
+          "s3Key": "amplify-builds/paymentsHandler-75706a494b4651434e49-build.zip"
+        }
       }
     }
   }
