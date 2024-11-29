@@ -41,6 +41,10 @@
   height: 50%;
 }
 
+.column:first-child .tile:last-child .mainpage__cardText_black {
+  background: transparent;
+}
+
 .column:nth-child(2) .tile {
   background: url(../../assets/images/auctionsHub.jpg);
   background-size: cover;
@@ -86,6 +90,7 @@
 }
 
 .mainHub__card:hover {
+  cursor: pointer;
   border: 2px solid red;
 }
 

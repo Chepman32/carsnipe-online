@@ -138,6 +138,14 @@ export default function App() {
     document.title = "Carsnipe Online";
   }, [currentAuthenticatedUser]);
 
+  const handleExit = () => {
+    if (window.electron?.quitApp) {
+      window.electron.quitApp();
+    } else {
+      console.error("Electron quit functionality is not available.");
+    }
+  };
+
   if (loading || creatingUser) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -170,8 +178,6 @@ export default function App() {
                           path="/"
                           element={
                             <MainPage
-                              playerInfo={playerInfo}
-                              currentAuthenticatedUser={currentAuthenticatedUser}
                             />
                           }
                         />
@@ -267,6 +273,13 @@ export default function App() {
               )}
             </Authenticator>
           </div>
+          {
+            !playerInfo && (
+              <div className="exit-button" onClick={handleExit} >
+            Quit game
+          </div>
+            )
+          }
         </div>
       </div>
     </HashRouter>
