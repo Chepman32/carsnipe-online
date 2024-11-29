@@ -12,30 +12,31 @@ import MainPageExit from "./MainPageCards/MainPageExit";
 export const MainPage = () => {
   const initialFocusedTile = sessionStorage.getItem("lastFocusedTile") || "leftTop";
   const [focusedTile, setFocusedTile] = useState(initialFocusedTile);
+  const [lastFocusedLeftTile, setLastFocusedLeftTile] = useState("leftTop");
+  const [lastFocusedRightTile, setLastFocusedRightTile] = useState("rightTop");
   const navigate = useNavigate();
 
   const handleKeyDown = useCallback(
     (event) => {
       const { key } = event;
-      if (key === "ArrowRight" && focusedTile === "leftTop") {
-        playSwitchSound();
-        setFocusedTile("center");
-      } else if (key === "ArrowRight" && focusedTile === "leftBottom") {
-        playSwitchSound();
-        setFocusedTile("center");
-      } else if (key === "ArrowRight" && focusedTile === "center") {
-        playSwitchSound();
-        setFocusedTile("rightTop");
+
+      if (key === "ArrowRight") {
+        if (focusedTile === "leftTop" || focusedTile === "leftBottom") {
+          setLastFocusedLeftTile(focusedTile);
+          playSwitchSound();
+          setFocusedTile("center");
+        } else if (focusedTile === "center") {
+          playSwitchSound();
+          setFocusedTile(lastFocusedRightTile);
+        }
       } else if (key === "ArrowLeft") {
-        if (focusedTile === "rightBottom") {
+        if (focusedTile === "rightTop" || focusedTile === "rightBottom" || focusedTile === "exitBtn") {
+          setLastFocusedRightTile(focusedTile);
           playSwitchSound();
           setFocusedTile("center");
-        } else if (focusedTile === "exitBtn") {
+        } else if (focusedTile === "center") {
           playSwitchSound();
-          setFocusedTile("center");
-        } else if (focusedTile !== "leftTop") {
-          playSwitchSound();
-          setFocusedTile("leftTop");
+          setFocusedTile(lastFocusedLeftTile);
         }
       } else if (key === "ArrowDown") {
         if (focusedTile === "leftTop") {
@@ -62,7 +63,7 @@ export const MainPage = () => {
       } else if (key === "Enter") {
         playOpeningSound();
         sessionStorage.setItem("lastFocusedTile", focusedTile);
-  
+
         switch (focusedTile) {
           case "leftTop":
             navigate("/mycars");
@@ -87,7 +88,7 @@ export const MainPage = () => {
         }
       }
     },
-    [focusedTile, navigate]
+    [focusedTile, lastFocusedLeftTile, lastFocusedRightTile, navigate]
   );
 
   useEffect(() => {
