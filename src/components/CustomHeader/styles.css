@@ -18,6 +18,10 @@
   align-items: center;
 }
 
+.customHeader__menu * {
+  margin: 0;
+}
+
 .customHeader__menuItem {
   padding: 0 15px; /* Adds space between menu items */
   color: #ffffff;

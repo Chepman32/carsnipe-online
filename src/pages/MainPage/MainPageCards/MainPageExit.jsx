@@ -3,7 +3,11 @@ import { Typography } from "antd";
 
 const MainPageExit = ({ focused, handleMouseEnter }) => {
   const handleExit = () => {
-    window.electron.send("quit-app");
+    if (window.electron?.quitApp) {
+      window.electron.quitApp();
+    } else {
+      console.error("Electron quit functionality is not available.");
+    }
   };
 
   return (

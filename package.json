@@ -47,6 +47,10 @@
     "extraMetadata": {
       "main": "main.js"
     },
+    "mac": {
+      "target": "dmg",
+      "icon": "resources/appIcon.icns"
+    },
     "win": {
       "target": "nsis",
       "icon": "resources/appIcon.ico"
