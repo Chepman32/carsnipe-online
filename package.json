@@ -53,7 +53,7 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "resources/appIcon.ico"
+      "icon": "resources/win-icon.ico"
     },
     "nsis": {
       "include": "resources/installer.nsh",
@@ -63,8 +63,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "installerIcon": "resources/installer-icon.ico",
-      "uninstallerIcon": "resources/uninstaller-icon.ico",
+      "installerIcon": "resources/win-icon.ico",
+      "uninstallerIcon": "resources/win-icon.ico",
       "shortcutName": "Carsnipe"
     },
     "directories": {
