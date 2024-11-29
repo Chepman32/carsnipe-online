@@ -1,0 +1,101 @@
+.musicPlayer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #222;
+    color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nowPlaying {
+    font-size: 1rem;
+    font-weight: bold;
+    flex: 1;
+    margin-right: 20px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+.controlButton {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.controlButton:hover {
+    background-color: #0056b3;
+}
+
+.trackListToggle {
+    background-color: transparent;
+    border: none;
+    color: #007bff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.trackListToggle:hover {
+    color: #0056b3;
+}
+
+.trackList {
+    position: absolute;
+    bottom: 50px; /* Above the fixed player */
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    background-color: #333;
+    overflow-y: auto;
+    border-top: 1px solid #444;
+    padding: 10px 0;
+    list-style: none;
+    margin: 0;
+}
+
+.trackItem {
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.trackItem:hover {
+    background-color: #444;
+}
+
+.trackName {
+    color: #fff;
+    flex: 1;
+}
+
+.playButton {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.playButton:hover {
+    background-color: #0056b3;
+}

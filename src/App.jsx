@@ -1,4 +1,3 @@
-// App.js
 import React, { useCallback, useEffect, useState } from "react";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/api";
@@ -7,6 +6,9 @@ import { Hub } from "aws-amplify/utils";
 import { Authenticator } from "@aws-amplify/ui-react";
 import { HashRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { Spin } from "antd";
+import { Provider } from 'react-redux';
+import store from './redux/store';
+import MusicPlayer from './components/MusicPlayer/MusicPlayer';
 import { listUsers } from "./graphql/queries";
 import { createUser } from "./graphql/mutations";
 import "@aws-amplify/ui-react/styles.css";
@@ -165,7 +167,8 @@ export default function App() {
               {({ signOut, user }) => (
                 <>
                   {playerInfo && (
-                    <main>
+                    <Provider store={store}>
+                      <main>
                       <CustomHeader
                         money={money}
                         username={playerInfo.nickname}
@@ -267,7 +270,9 @@ export default function App() {
                           element={<MusicLibraryPage />}
                         />
                       </Routes>
-                    </main>
+                      </main>
+                      <MusicPlayer />
+                    </Provider>
                   )}
                 </>
               )}
