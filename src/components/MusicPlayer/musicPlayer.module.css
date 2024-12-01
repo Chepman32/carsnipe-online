@@ -1,101 +1,195 @@
+/* src/components/MusicPlayer/musicPlayer.module.css */
+
 .musicPlayer {
     position: fixed;
     bottom: 0;
-    left: 0;
     width: 100%;
-    background-color: #222;
-    color: #fff;
+    background-color: #282c34;
+    color: white;
+    font-family: Arial, sans-serif;
+    display: none;
+  }
+  
+  .container {
+    display: flex;
+    flex-direction: column;
     padding: 10px 20px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  .playerHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.nowPlaying {
-    font-size: 1rem;
+  }
+  
+  .trackInfo {
+    font-size: 16px;
     font-weight: bold;
-    flex: 1;
-    margin-right: 20px;
-}
-
-.controls {
-    display: flex;
-    gap: 10px;
-}
-
-.controlButton {
-    background-color: #007bff;
-    color: #fff;
+  }
+  
+  .hideButton {
+    background: none;
     border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
-    font-size: 0.9rem;
+    color: white;
     cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.controlButton:hover {
-    background-color: #0056b3;
-}
-
-.trackListToggle {
-    background-color: transparent;
-    border: none;
-    color: #007bff;
-    font-size: 0.9rem;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.trackListToggle:hover {
-    color: #0056b3;
-}
-
-.trackList {
-    position: absolute;
-    bottom: 50px; /* Above the fixed player */
-    left: 0;
-    width: 100%;
-    max-height: 200px;
-    background-color: #333;
-    overflow-y: auto;
-    border-top: 1px solid #444;
+  }
+  
+  .statusMessage {
+    text-align: center;
     padding: 10px 0;
-    list-style: none;
-    margin: 0;
-}
-
-.trackItem {
-    padding: 10px 20px;
+  }
+  
+  .errorMessage {
+    text-align: center;
+    padding: 10px 0;
+    color: red;
+  }
+  
+  .progressContainer {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+  }
+  
+  .progressBar {
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  .timeInfo {
+    display: flex;
+    justify-content: space-between;
+    width: 100px;
+  }
+  
+  .currentTime,
+  .timeRemaining {
+    font-size: 12px;
+  }
+  
+  .controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background-color 0.2s;
-    cursor: pointer;
-}
-
-.trackItem:hover {
-    background-color: #444;
-}
-
-.trackName {
-    color: #fff;
-    flex: 1;
-}
-
-.playButton {
-    background-color: #007bff;
-    color: #fff;
+  }
+  
+  .volumeContainer {
+    display: flex;
+    align-items: center;
+  }
+  
+  .volumeSlider {
+    margin-left: 5px;
+  }
+  
+  .mainControls {
+    display: flex;
+    align-items: center;
+  }
+  
+  .controlButton {
+    background: none;
     border: none;
-    border-radius: 5px;
-    padding: 5px;
-    font-size: 0.8rem;
+    color: white;
+    margin: 0 10px;
     cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.playButton:hover {
-    background-color: #0056b3;
-}
+  }
+  
+  .controlButton:disabled {
+    color: gray;
+    cursor: not-allowed;
+  }
+  
+  .extraControls {
+    display: flex;
+    align-items: center;
+  }
+  
+  .playlistButton {
+    background: none;
+    border: none;
+    color: white;
+    margin-left: 10px;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .notification {
+    position: absolute;
+    top: 0;
+    right: -5px;
+    width: 8px;
+    height: 8px;
+    background-color: red;
+    border-radius: 50%;
+  }
+  
+  .trackList {
+    background-color: #333;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  
+  .trackList.visible {
+    max-height: 300px;
+  }
+  
+  .trackListHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+  }
+  
+  .closeButton {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .trackItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+  }
+  
+  .trackItem:hover {
+    background-color: #444;
+  }
+  
+  .activeTrack {
+    background-color: #555;
+  }
+  
+  .trackName {
+    flex: 1;
+  }
+  
+  .playButton {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .minimizedPlayer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background-color: #282c34;
+  }
+  
+  .showButton {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }

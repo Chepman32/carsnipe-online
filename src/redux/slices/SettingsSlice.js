@@ -10,7 +10,7 @@ const initialState = {
   error: null,
 };
 
-const musicPlayerSlice = createSlice({
+const settingsSlice = createSlice({
   name: 'musicPlayer',
   initialState,
   reducers: {
@@ -46,6 +46,6 @@ export const {
   playTrack,
   pauseTrack,
   setCurrentTrack,
-} = musicPlayerSlice.actions;
+} = settingsSlice.actions;
 
-export default musicPlayerSlice.reducer;
+export default settingsSlice.reducer;

@@ -8,12 +8,14 @@ import MainPageRightTop from "./MainPageCards/MainPageRightTop";
 import MainPageRightBottom from "./MainPageCards/MainPageRightBottom";
 import { playOpeningSound, playSwitchSound } from "../../functions";
 import MainPageExit from "./MainPageCards/MainPageExit";
+import { QuickSettingsMenu } from "../../components/QuickSettings/QuickSettingsMenu";
 
 export const MainPage = () => {
   const initialFocusedTile = sessionStorage.getItem("lastFocusedTile") || "leftTop";
   const [focusedTile, setFocusedTile] = useState(initialFocusedTile);
   const [lastFocusedLeftTile, setLastFocusedLeftTile] = useState("leftTop");
   const [lastFocusedRightTile, setLastFocusedRightTile] = useState("rightTop");
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleKeyDown = useCallback(
@@ -96,13 +98,14 @@ export const MainPage = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [focusedTile, handleKeyDown]);
+  }, [handleKeyDown]);
 
   const handleMouseEnter = (tile) => {
     setFocusedTile(tile);
   };
 
   return (
+    <>
     <div className="mainPage" onKeyDown={handleKeyDown} tabIndex={0}>
       <div className="column">
         <MainPageLeftTop focused={focusedTile === "leftTop"} handleMouseEnter={handleMouseEnter} />
@@ -117,5 +120,7 @@ export const MainPage = () => {
         <MainPageExit focused={focusedTile === "exitBtn"} handleMouseEnter={handleMouseEnter} />
       </div>
     </div>
+    <QuickSettingsMenu />
+    </>
   );
 };
