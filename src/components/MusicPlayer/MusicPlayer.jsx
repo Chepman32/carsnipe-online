@@ -27,7 +27,7 @@ const MusicPlayer = () => {
   const [showTrackList, setShowTrackList] = useState(false);
   const [isPlayerVisible, setIsPlayerVisible] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(0.8); // Initialize to 80%
 
   const dispatch = useDispatch();
   const audioRef = useRef(null);
@@ -42,17 +42,32 @@ const MusicPlayer = () => {
     error 
   } = useSelector((state) => state.musicPlayer);
 
+  const { musicOn } = useSelector((state) => state.quickSettings); // Get musicOn from Quick Settings
+
   // Load tracks on mount
   useEffect(() => {
     dispatch(loadTracksRequest());
   }, [dispatch]);
 
-  // Automatically select the first track when tracks are loaded
+  // Play the first track when tracks are loaded
   useEffect(() => {
     if (tracks.length > 0 && !currentTrack) {
-      dispatch(setCurrentTrack(tracks[0]));
+      dispatch(playTrack(tracks[0])); // Automatically start playback if tracks are available
     }
-  }, [tracks, currentTrack, dispatch]);
+  }, [dispatch, tracks, currentTrack]);
+
+  // Play or pause based on isPlaying state
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.play().catch((err) => {
+          console.error('Playback error:', err);
+        });
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [isPlaying]);
 
   // Update audio source when currentTrack changes
   useEffect(() => {
@@ -72,23 +87,16 @@ const MusicPlayer = () => {
         });
       }
     }
-  }, [currentTrack]);
+  }, [currentTrack, isPlaying]);
 
-  // Play or pause based on isPlaying state
+  // Handle volume changes based on musicOn state
   useEffect(() => {
+    const newVolume = musicOn ? 0.8 : 0; // Set volume to 80% if music is on, mute if off
+    setVolume(newVolume);
     if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play().catch((err) => {
-          console.error('Playback error:', err);
-        });
-      } else {
-        audioRef.current.pause();
-        if (currentTrack) {
-          localStorage.setItem(`track-${currentTrack.id}-currentTime`, audioRef.current.currentTime);
-        }
-      }
+      audioRef.current.volume = newVolume; // Set the audio volume
     }
-  }, [isPlaying, currentTrack]);
+  }, [musicOn]); // Run this effect whenever musicOn changes
 
   // Play a specific track
   const handlePlay = (track) => {
@@ -111,7 +119,7 @@ const MusicPlayer = () => {
     }
   };
 
-  // Handle volume changes
+  // Handle volume changes (if you allow manual volume control)
   const handleVolumeChange = (e) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
