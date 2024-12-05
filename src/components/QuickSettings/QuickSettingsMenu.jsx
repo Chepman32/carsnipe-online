@@ -1,26 +1,39 @@
 // src/components/QuickSettingsMenu/QuickSettingsMenu.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { toggleMusic } from "../../redux/slices/musicPlayerSlice"; // Ensure correct import path
+import { toggleMusic } from "../../redux/slices/quickSettingsSlice"; // Corrected import path
 import "./quickSettingsMenu.css";
 
-export const QuickSettingsMenu = () => {
+export const QuickSettingsMenu = ({isMenuOpen, setIsMenuOpen}) => {
   const dispatch = useDispatch();
   const { musicOn } = useSelector((state) => state.quickSettings); // Access musicOn from Redux
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const toggleMenu = () => {
-    setIsMenuOpen((prev) => !prev);
+    setIsMenuOpen(() => !isMenuOpen);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleToggleMusic = () => {
     dispatch(toggleMusic());
   };
 
   return (
-    <div className="quick-settings-container">
+    <div className="quick-settings-container" ref={menuRef}>
       <img
         src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Windows_Settings_icon.svg/2184px-Windows_Settings_icon.svg.png"
         alt="Settings"

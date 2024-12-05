@@ -62,7 +62,7 @@ export const MainPage = () => {
           playSwitchSound();
           setFocusedTile("rightBottom");
         }
-      } else if (key === "Enter") {
+      } else if (key === "Enter" && !settingsMenuOpen) {
         playOpeningSound();
         sessionStorage.setItem("lastFocusedTile", focusedTile);
 
@@ -104,23 +104,31 @@ export const MainPage = () => {
     setFocusedTile(tile);
   };
 
+  const handleTileClick = (event) => {
+    if (settingsMenuOpen) {
+      setSettingsMenuOpen(false);
+      alert("stopped")
+      return
+    }
+  };
+
   return (
     <>
     <div className="mainPage" onKeyDown={handleKeyDown} tabIndex={0}>
       <div className="column">
-        <MainPageLeftTop focused={focusedTile === "leftTop"} handleMouseEnter={handleMouseEnter} />
-        <MainPageLeftBottom focused={focusedTile === "leftBottom"} handleMouseEnter={handleMouseEnter} />
+        <MainPageLeftTop focused={focusedTile === "leftTop"} handleMouseEnter={handleMouseEnter} onClick={handleTileClick} />
+        <MainPageLeftBottom focused={focusedTile === "leftBottom"} handleMouseEnter={handleMouseEnter} onClick={handleTileClick} />
       </div>
       <div className="column">
-        <MainPageCenter focused={focusedTile === "center"} handleMouseEnter={handleMouseEnter} />
+        <MainPageCenter focused={focusedTile === "center"} handleMouseEnter={handleMouseEnter} onClick={handleTileClick} isMenuOpen={settingsMenuOpen} />
       </div>
       <div className="column">
-        <MainPageRightTop focused={focusedTile === "rightTop"} handleMouseEnter={handleMouseEnter} />
-        <MainPageRightBottom focused={focusedTile === "rightBottom"} handleMouseEnter={handleMouseEnter} />
-        <MainPageExit focused={focusedTile === "exitBtn"} handleMouseEnter={handleMouseEnter} />
+        <MainPageRightTop focused={focusedTile === "rightTop"} handleMouseEnter={handleMouseEnter} onClick={handleTileClick} />
+        <MainPageRightBottom focused={focusedTile === "rightBottom"} handleMouseEnter={handleMouseEnter} onClick={handleTileClick} />
+        <MainPageExit focused={focusedTile === "exitBtn"} handleMouseEnter={handleMouseEnter} onClick={handleTileClick} />
       </div>
     </div>
-    <QuickSettingsMenu />
+    <QuickSettingsMenu isMenuOpen={settingsMenuOpen} setIsMenuOpen={setSettingsMenuOpen} />
     </>
   );
 };

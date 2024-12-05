@@ -1,14 +1,20 @@
 import { Typography } from 'antd';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-const MainPageCenter = ({ focused, handleMouseEnter }) => {
+const MainPageCenter = ({ focused, handleMouseEnter, onClick, isMenuOpen }) => {
+
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    !isMenuOpen && navigate("/auctionsHub");
+  };
   return (
-    <Link to="/auctionsHub" className={`tile ${focused ? 'focused' : ''}`} onMouseEnter={() => handleMouseEnter("center")}>
+    <div className={`tile ${focused ? 'focused' : ''}`} onMouseEnter={() => handleMouseEnter("center")} onClick={handleClick}>
       <Typography.Text className="mainpage__cardText_black">
         Auctions
       </Typography.Text>
-    </Link>
+    </div>
   );
 };
 

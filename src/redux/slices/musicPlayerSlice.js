@@ -4,7 +4,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   currentTrack: null,
-  isPlaying: false,
+  isPlaying: true, // Music starts playing by default
   tracks: [],
   loading: false,
   error: null,
@@ -39,26 +39,6 @@ const musicPlayerSlice = createSlice({
   },
 });
 
-const quickSettingsSlice = createSlice({
-  name: 'quickSettings',
-  initialState: {
-    darkMode: false,
-    musicOn: true,
-    soundEffectsOn: true,
-  },
-  reducers: {
-    toggleDarkMode(state) {
-      state.darkMode = !state.darkMode;
-    },
-    toggleMusic(state) {
-      state.musicOn = !state.musicOn;
-    },
-    toggleSoundEffects(state) {
-      state.soundEffectsOn = !state.soundEffectsOn;
-    },
-  },
-});
-
 export const {
   loadTracksRequest,
   loadTracksSuccess,
@@ -67,13 +47,5 @@ export const {
   pauseTrack,
   setCurrentTrack,
 } = musicPlayerSlice.actions;
-
-export const {
-  toggleDarkMode,
-  toggleMusic,
-  toggleSoundEffects,
-} = quickSettingsSlice.actions;
-
-export const quickSettingsReducer = quickSettingsSlice.reducer;
 
 export default musicPlayerSlice.reducer;

@@ -1,0 +1,56 @@
+.quick-settings-container {
+   position: fixed;
+   top: 20px;
+   right: 20px;
+   z-index: 1000;
+ }
+ 
+ .settings-button {
+   width: 40px;
+   height: 40px;
+   cursor: pointer;
+ }
+ 
+ .settings-menu {
+   position: absolute;
+   top: 60px;
+   right: 0;
+   width: 200px;
+   background-color: white;
+   border: 1px solid #ccc;
+   border-radius: 8px;
+   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+   opacity: 0;
+   transform: translateY(-20px);
+   transition: opacity 0.3s ease, transform 0.3s ease;
+   visibility: hidden;
+ }
+ 
+ .settings-menu.open {
+   opacity: 1;
+   transform: translateY(0);
+   visibility: visible;
+ }
+ 
+ .settings-menu-item {
+   display: flex;
+   align-items: center;
+   padding: 10px;
+   cursor: pointer;
+   transition: background-color 0.2s ease;
+ }
+ 
+ .settings-menu-item img {
+   width: 24px;
+   height: 24px;
+   margin-right: 10px;
+ }
+ 
+ .settings-menu-item span {
+   font-size: 16px;
+   color: #333;
+ }
+ 
+ .settings-menu-item:hover {
+   background-color: #f0f0f0;
+ }
