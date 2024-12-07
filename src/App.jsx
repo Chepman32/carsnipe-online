@@ -29,6 +29,7 @@ import { MainPage } from "./pages/MainPage/MainPage";
 import './AuthStyles.css';
 import MusicUploadPage from "./pages/MusicUploadPage/MusicUploadPage";
 import MusicLibraryPage from "./pages/MusicLibraryPage/MusicLibraryPage";
+import GameSettings from "./pages/GameSettings/GameSettings";
 
 const client = generateClient();
 Amplify.configure(awsExports);
@@ -260,6 +261,10 @@ export default function App() {
                         <Route
                           path="/store"
                           element={<Store email={playerInfo.email} />}
+                        />
+                         <Route
+                          path="/settings"
+                          element={<GameSettings playerInfo={playerInfo} />}
                         />
                         <Route
                           path="/musicUpload"

@@ -1,11 +1,10 @@
 // src/redux/slices/quickSettingsSlice.js
-
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   darkMode: JSON.parse(localStorage.getItem('darkMode')) ?? false,
-  musicOn: JSON.parse(localStorage.getItem('musicOn')) ?? true, // Music is on by default
-  soundEffectsOn: JSON.parse(localStorage.getItem('soundEffectsOn')) ?? true,
+  musicOn: JSON.parse(localStorage.getItem('musicOn')) ?? true,
+  soundEffectsOn: JSON.parse(localStorage.getItem('soundEffectsOn')) ?? true
 };
 
 const quickSettingsSlice = createSlice({
@@ -23,8 +22,8 @@ const quickSettingsSlice = createSlice({
     toggleSoundEffects(state) {
       state.soundEffectsOn = !state.soundEffectsOn;
       localStorage.setItem('soundEffectsOn', JSON.stringify(state.soundEffectsOn));
-    },
-  },
+    }
+  }
 });
 
 export const { toggleDarkMode, toggleMusic, toggleSoundEffects } = quickSettingsSlice.actions;

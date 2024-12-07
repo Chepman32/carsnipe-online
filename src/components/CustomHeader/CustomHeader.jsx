@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, Menu, Typography, Drawer } from 'antd';
 import { Link, useLocation } from 'react-router-dom';
 import { isMobile } from 'react-device-detect';
@@ -9,27 +9,55 @@ import auction_icon from "../../assets/icons/auctions.png";
 import myCars_symbol from "../../assets/icons/myCars.jpg";
 import carsStore_symbol from "../../assets/icons/cars_store.png";
 import { MenuItems } from './MenuItems';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleMusic } from '../../redux/slices/quickSettingsSlice';
 
 const { Text } = Typography;
 
 const CustomHeader = ({ nickname, avatar, money }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const closeMenuTimeout = useRef(null);
+
   const location = useLocation();
+  const { musicOn } = useSelector((state) => state.quickSettings);
+  const dispatch = useDispatch();
 
   const toggleDrawer = () => {
     setDrawerVisible(!drawerVisible);
   };
 
-  // Added effect to handle window resize
+  const handleToggleMusic = () => {
+    dispatch(toggleMusic());
+  };
+
+  const handleMouseEnterMenu = () => {
+    if (closeMenuTimeout.current) {
+      clearTimeout(closeMenuTimeout.current); // Cancel any pending close
+    }
+    setIsMenuOpen(true);
+  };
+
+  const handleMouseLeaveMenu = () => {
+    closeMenuTimeout.current = setTimeout(() => {
+      if (!menuRef.current?.matches(':hover')) {
+        setIsMenuOpen(false);
+      }
+    }, 200); // Add delay to allow smoother user experience
+  };
+
+  const handleMenuClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent link navigation and event bubbling
+  };
+
+  // Cleanup timeout on unmount
   useEffect(() => {
-    const handleResize = () => {
+    return () => {
+      if (closeMenuTimeout.current) clearTimeout(closeMenuTimeout.current);
     };
-
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Call on mount
-
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   if (location.pathname === "/") {
@@ -78,51 +106,46 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               <img src={plus_symbol} alt="plus_symbol" className="headerIcon" />
               <Text style={{ marginRight: 15 }} type="warning">{`$${money}`}</Text>
             </Link>
-            <Link to="/profileEditPage" className="customHeader__avatar" style={{ background: 'transparent', borderLeft: location.pathname === "/profileEditPage" || location.pathname === "/achievements" && '1px solid red', borderRight: location.pathname === "/profileEditPage" && '1px solid red' }} >
-              <Typography.Text style={{ marginRight: 15, color: "#fff", fontSize: "1.4rem", fontWeight: "bold" }}>{nickname}</Typography.Text>
+            <Link
+              onMouseEnter={handleMouseEnterMenu}
+              onMouseLeave={handleMouseLeaveMenu}
+              to="/profileEditPage"
+              className="customHeader__avatar"
+              style={{
+                background: 'transparent',
+                borderLeft: (location.pathname === "/profileEditPage" || location.pathname === "/achievements") && '1px solid red',
+                borderRight: location.pathname === "/profileEditPage" && '1px solid red'
+              }}
+              ref={menuRef}
+              onClick={handleMenuClick}
+            >
+              <Typography.Text style={{ marginRight: 15, color: "#fff", fontSize: "1.4rem", fontWeight: "bold" }}>
+                {nickname}
+              </Typography.Text>
               <img src={avatar} alt="avatar" />
+              <div className={`settings-menu ${isMenuOpen ? "open" : ""}`} onClick={handleMenuClick}>
+                <div className="settings-menu-item">
+                  <img src="https://cdn-icons-png.flaticon.com/512/5262/5262027.png" alt="Dark Mode" />
+                  <span>Dark Mode</span>
+                </div>
+                <div className="settings-menu-item" onClick={handleToggleMusic}>
+                  <img
+                    src="https://static.vecteezy.com/system/resources/previews/011/934/413/non_2x/silver-music-note-icon-free-png.png"
+                    alt="Music"
+                  />
+                  <span>Music: {musicOn ? "On" : "Off"}</span>
+                </div>
+                <div className="settings-menu-item">
+                  <img
+                    src="https://cdn1.iconfinder.com/data/icons/ios-and-android-line-set-2/52/call__phone__volume__sound-512.png"
+                    alt="Sound"
+                  />
+                  <span>Sound</span>
+                </div>
+              </div>
             </Link>
           </section>
         </div>
-
-        {
-          isMobile && (
-            <Drawer
-          title={"Menu"}
-          placement="left"
-          onClose={toggleDrawer}
-          open={drawerVisible}
-          width={"60vw"}
-        >
-          <div className="header__drawer" style={{ display: 'flex', flexDirection: 'column' }}>
-            <Link to="/carsStore" className="header__drawer__item" onClick={toggleDrawer}>
-              <img src={carsStore_symbol} alt="carsStore_symbol" className="headerIcon" />
-              <Text strong>Cars Store</Text>
-            </Link>
-            <Link to="/myCars" className="header__drawer__item" onClick={toggleDrawer}>
-              <img src={myCars_symbol} alt="myCars_symbol" className="headerIcon" />
-              <Text strong>My Cars</Text>
-            </Link>
-            <Link to="/auctionsHub" className="header__drawer__item" onClick={toggleDrawer}>
-              <img src={auction_icon} alt="auction_icon" className="headerIcon" />
-              <Text strong>Auctions</Text>
-            </Link>
-            <Link to="store" className="header__drawer__item store" onClick={toggleDrawer}>
-              <img src={plus_symbol} alt="plus_ymbol" className="headerIcon" />
-              <Text strong>{`$${money}`}</Text>
-            </Link>
-            <Link to="/profileEditPage" onClick={toggleDrawer}>
-              <div className="drawer__avatar">
-                <Text className="header__drawer__nickname">
-                  {nickname}
-                </Text>
-                <img src={avatar} alt="avatar" />
-              </div>
-            </Link>
-          </div>
-        </Drawer>
-          )
-        }
       </Menu>
       <div className="headerPlaceholder"></div>
     </>

@@ -4,10 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleMusic } from "../../redux/slices/quickSettingsSlice"; // Corrected import path
 import "./quickSettingsMenu.css";
+import { Link } from "react-router-dom";
 
 export const QuickSettingsMenu = ({isMenuOpen, setIsMenuOpen}) => {
   const dispatch = useDispatch();
-  const { musicOn } = useSelector((state) => state.quickSettings); // Access musicOn from Redux
+  const { musicOn } = useSelector((state) => state.quickSettings);
 
   const menuRef = useRef(null);
 
@@ -34,12 +35,13 @@ export const QuickSettingsMenu = ({isMenuOpen, setIsMenuOpen}) => {
 
   return (
     <div className="quick-settings-container" ref={menuRef}>
+      <Link to="/settings">
       <img
         src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Windows_Settings_icon.svg/2184px-Windows_Settings_icon.svg.png"
         alt="Settings"
         className="settings-button"
         onClick={toggleMenu}
-      />
+      /></Link>
       <div className={`settings-menu ${isMenuOpen ? "open" : ""}`}>
         <div className="settings-menu-item">
           <img src="https://cdn-icons-png.flaticon.com/512/5262/5262027.png" alt="Dark Mode" />

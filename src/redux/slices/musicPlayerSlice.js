@@ -1,10 +1,9 @@
 // src/redux/slices/musicPlayerSlice.js
-
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   currentTrack: null,
-  isPlaying: true, // Music starts playing by default
+  isPlaying: true,
   tracks: [],
   loading: false,
   error: null,
@@ -47,5 +46,4 @@ export const {
   pauseTrack,
   setCurrentTrack,
 } = musicPlayerSlice.actions;
-
 export default musicPlayerSlice.reducer;

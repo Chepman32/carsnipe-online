@@ -1,0 +1,17 @@
+.settings-container {
+    width: 60%;
+    margin: 40px auto;
+    padding: 40px;
+    font-size: 1.2em;
+    background: rgba(255, 255, 255, 0.9);
+  }
+  
+  .settings-row {
+    margin-bottom: 5%;
+    display: flex;
+    align-items: center;
+  }
+  
+  .settings-row > .ant-col:first-child {
+    font-weight: bold;
+  }
