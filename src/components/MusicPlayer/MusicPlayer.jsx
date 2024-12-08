@@ -8,6 +8,7 @@ const MusicPlayer = () => {
   const audioRef = useRef(null);
   const { currentTrack, tracks } = useSelector((state) => state.musicPlayer);
   const { musicOn } = useSelector((state) => state.quickSettings);
+  const { musicVolume } = useSelector((state) => state.mainSettings);
 
   useEffect(() => {
     dispatch(loadTracksRequest());
@@ -33,12 +34,12 @@ const MusicPlayer = () => {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = musicOn ? 0.8 : 0;
+      audioRef.current.volume = musicOn ? musicVolume /100 : 0;
       if (audioRef.current.paused) {
         audioRef.current.play().catch((err) => console.error('Playback error:', err));
       }
     }
-  }, [musicOn]);
+  }, [musicOn, musicVolume]);
 
   const handleToggleMusic = () => {
     dispatch(toggleMusic());
