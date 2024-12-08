@@ -1,14 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  playTrack,
-  loadTracksRequest,
-} from '../../redux/slices/musicPlayerSlice';
+import { playTrack, loadTracksRequest } from '../../redux/slices/musicPlayerSlice';
+import { toggleMusic } from "../../redux/slices/quickSettingsSlice";
 
 const MusicPlayer = () => {
   const dispatch = useDispatch();
   const audioRef = useRef(null);
-  const [savedTime, setSavedTime] = useState(0); // To track playback position when muted
   const { currentTrack, tracks } = useSelector((state) => state.musicPlayer);
   const { musicOn } = useSelector((state) => state.quickSettings);
 
@@ -27,33 +24,25 @@ const MusicPlayer = () => {
       if (audioRef.current.src !== currentTrack.url) {
         audioRef.current.src = currentTrack.url;
         audioRef.current.load();
-        audioRef.current.currentTime = savedTime; // Set the playback position
-        if (musicOn) {
-          audioRef.current.play().catch((err) => {
-            console.error('Playback error:', err);
-          });
-        }
+        audioRef.current
+          .play()
+          .catch((err) => console.error('Playback error:', err));
       }
     }
   }, [currentTrack]);
 
   useEffect(() => {
     if (audioRef.current) {
-      if (!musicOn) {
-        // Save current playback position and pause
-        setSavedTime(audioRef.current.currentTime);
-        audioRef.current.pause();
-      } else {
-        // Restore playback from saved position and unmute
-        audioRef.current.currentTime = savedTime;
-        audioRef.current.play().catch((err) => {
-          console.error('Playback error:', err);
-        });
+      audioRef.current.volume = musicOn ? 0.8 : 0;
+      if (audioRef.current.paused) {
+        audioRef.current.play().catch((err) => console.error('Playback error:', err));
       }
-      audioRef.current.volume = musicOn ? 1 : 0;
-      audioRef.current.muted = !musicOn;
     }
-  }, [musicOn, savedTime]);
+  }, [musicOn]);
+
+  const handleToggleMusic = () => {
+    dispatch(toggleMusic());
+  };
 
   const handleTrackEnd = () => {
     if (!currentTrack || tracks.length === 0) return;
@@ -65,6 +54,7 @@ const MusicPlayer = () => {
   return (
     <div style={{ display: 'none' }}>
       <audio ref={audioRef} onEnded={handleTrackEnd} autoPlay />
+      <button onClick={handleToggleMusic}>Toggle Music</button>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Avatar, notification, Typography } from 'antd';
+import { Form, Input, Button, notification, Typography } from 'antd';
 import { LogoutOutlined } from '@ant-design/icons';
 import { generateClient } from 'aws-amplify/api';
 import * as mutations from '../../graphql/mutations';
@@ -11,6 +11,7 @@ import avatar5 from "../../assets/images/avatars/images (3).jpeg";
 import avatar6 from "../../assets/images/avatars/images.jpeg";
 import "./styles.css";
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux'; // Import useSelector
 
 const client = generateClient();
 
@@ -35,6 +36,9 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   const [nickname, setNickname] = useState(playerInfo.nickname || "");
   const [bio, setBio] = useState(playerInfo.bio || "");
 
+  // Access darkMode from Redux
+  const darkMode = useSelector((state) => state.quickSettings.darkMode);
+
   useEffect(() => {
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap';
@@ -58,7 +62,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
         nickname,
         bio,
         avatar: selectedAvatar,
-        totalCarsOwned: playerInfo.totalCarsOwned, // Assuming we retain or increment this based on usage elsewhere
+        totalCarsOwned: playerInfo.totalCarsOwned, // Retain existing values
         totalAuctionsParticipated: playerInfo.totalAuctionsParticipated,
         totalBidsPlaced: playerInfo.totalBidsPlaced,
         totalSpent: playerInfo.totalSpent,
@@ -103,9 +107,9 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
 
   return (
     <>
-      <div className="profile-container">
+      <div className={`profile-container ${darkMode ? 'dark-mode' : 'light-mode'}`}>
         <div className="profile-box">
-          <Title level={3} style={{ textAlign: 'center', marginBottom: '24px', fontWeight: 600 }}>
+          <Title level={3} className="profile-title">
             Edit Profile: {playerInfo.nickname}
           </Title>
           <Form form={form} layout="vertical" onFinish={handleSubmit}>

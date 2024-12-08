@@ -1,16 +1,48 @@
+/* Define CSS variables for light and dark modes */
+:root {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --border-color: #e8e8e8;
+  --menu-background: #ffffff;
+  --menu-text: #000000;
+  --header-background: #ffffff;
+  --header-text: #000000;
+  --link-hover: #f0f0f0;
+}
+
+.dark-mode {
+  --background-color: #1f1f1f;
+  --text-color: #ffffff;
+  --border-color: #444444;
+  --menu-background: #141414;
+  --menu-text: #ffffff;
+  --header-background: #001529; /* Ant Design dark theme color */
+  --header-text: #ffffff;
+  --link-hover: #333333;
+}
+
+/* Apply CSS variables */
 .customHeader {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
-  background-color: #001529;
+  background-color: var(--header-background);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   height: 64px; /* Set height explicitly */
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px; /* Adds padding to avoid content touching edges */
+  color: var(--header-text);
+}
+
+.customHeader__content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .customHeader__menu {
@@ -23,8 +55,8 @@
 }
 
 .customHeader__menuItem {
-  padding: 0 15px; /* Adds space between menu items */
-  color: #ffffff;
+  padding: 0 20px; /* Increased padding for menu items */
+  color: var(--text-color);
 }
 
 .burgerMenuButton {
@@ -36,11 +68,12 @@
 }
 
 .storeLink {
-  margin-right: 1vw;
+  margin-right: 2vw; /* Adjusted margin for store link */
   padding-left: 0.5vw;
   display: flex;
   align-items: center;
   transition: transform 0.3s ease; /* Shortened transition duration */
+  color: var(--text-color);
 }
 
 .storeLink.scale-up {
@@ -96,16 +129,16 @@
 }
 
 .headerIcon {
-margin-right: 5px;
-width: 20px;
-height: 20px;
+  margin-right: 5px;
+  width: 20px;
+  height: 20px;
 }
 
 .header__drawer__item {
   display: flex;
   align-items: center;
   padding: 12px 16px; /* Add padding for better spacing */
-  color: #000; /* Change text color to black */
+  color: var(--text-color); /* Change text color based on theme */
   font-weight: 500; /* Medium font weight */
   transition: background-color 0.3s; /* Smooth background transition */
   font-size: 4vw;
@@ -127,7 +160,7 @@ height: 20px;
 }
 
 .header__drawer__item:hover {
-  background-color: rgba(0, 0, 0, 0.1); /* Light background on hover */
+  background-color: var(--link-hover); /* Light background on hover */
   border-radius: 4px; /* Rounded corners */
 }
 
@@ -170,7 +203,7 @@ height: 20px;
     justify-content: center;
     align-items: center;
     padding: 0 .5vw;
-    color: #ffffff;
+    color: var(--text-color);
     font-size: 16px;
   }
 }
@@ -181,11 +214,3 @@ height: 20px;
     height: 70px; /* Increased height for larger screens */
   }
 }
-
-  .customHeader__menuItem {
-    padding: 0 20px; /* Increased padding for menu items */
-  }
-
-  .storeLink {
-    margin-right: 2vw; /* Adjusted margin for store link */
-  }
