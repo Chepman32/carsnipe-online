@@ -1,17 +1,16 @@
-// src/pages/GameSettings/GameSettings.jsx
 import React, { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Switch, Slider, Card, Row, Col } from 'antd';
 import 'antd/dist/reset.css';
 import './GameSettings.css';
-import { setMusicVolume, setSoundEffectsVolume } from '../../redux/slices/mainSettingsSlice';
-import { toggleMusic, toggleDarkMode } from '../../redux/slices/quickSettingsSlice';
+import { setDarkMode, setMusicVolume, setSoundEffectsOn } from '../../redux/slices/mainSettingsSlice';
+import { toggleMusic, toggleDarkMode, toggleSoundEffects } from '../../redux/slices/quickSettingsSlice';
 
 const GameSettings = () => {
   const dispatch = useDispatch();
-  const { musicVolume, soundEffectsVolume } = useSelector((state) => state.mainSettings);
-  const { darkMode, musicOn } = useSelector((state) => state.quickSettings);
-
+  const { darkMode, musicOn, soundEffectsOn } = useSelector((state) => state.quickSettings);
+  const { musicVolume } = useSelector((state) => state.mainSettings);
+  
   const previousVolumeRef = useRef(musicVolume);
 
   useEffect(() => {
@@ -24,29 +23,26 @@ const GameSettings = () => {
   }, [musicOn, musicVolume, dispatch]);
 
   const handleDarkModeChange = (checked) => {
-    // If dark mode switch is on and darkMode is false, toggle it on
-    if (checked && !darkMode) {
+    if (checked !== darkMode) {
       dispatch(toggleDarkMode());
-    }
-    // If dark mode switch is off and darkMode is true, toggle it off
-    if (!checked && darkMode) {
-      dispatch(toggleDarkMode());
+      dispatch(setDarkMode(checked));
     }
   };
 
   const handleMusicVolumeChange = (value) => {
     dispatch(setMusicVolume(value));
-
     if (value === 0 && musicOn) {
       dispatch(toggleMusic());
-    }
-    if (value > 0 && !musicOn) {
+    } else if (value > 0 && !musicOn) {
       dispatch(toggleMusic());
     }
   };
 
-  const handleSoundEffectsVolumeChange = (value) => {
-    dispatch(setSoundEffectsVolume(value));
+  const handleSoundEffectsChange = (checked) => {
+    if (checked !== soundEffectsOn) {
+      dispatch(toggleSoundEffects());
+      dispatch(setSoundEffectsOn(checked));
+    }
   };
 
   return (
@@ -58,14 +54,9 @@ const GameSettings = () => {
         </Col>
       </Row>
       <Row className="settings-row" align="middle" gutter={[16, 16]}>
-        <Col span={12}>Sound Effects Volume</Col>
+        <Col span={12}>Sound Effects</Col>
         <Col span={12}>
-          <Slider
-            min={0}
-            max={100}
-            value={soundEffectsVolume}
-            onChange={handleSoundEffectsVolumeChange}
-          />
+          <Switch checked={soundEffectsOn} onChange={handleSoundEffectsChange} />
         </Col>
       </Row>
       <Row className="settings-row" align="middle" gutter={[16, 16]}>

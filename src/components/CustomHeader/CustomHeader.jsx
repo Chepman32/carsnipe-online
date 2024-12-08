@@ -10,7 +10,7 @@ import myCars_symbol from "../../assets/icons/myCars.jpg";
 import carsStore_symbol from "../../assets/icons/cars_store.png";
 import { MenuItems } from './MenuItems';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleMusic, toggleDarkMode } from '../../redux/slices/quickSettingsSlice';
+import { toggleMusic, toggleDarkMode, toggleSoundEffects } from '../../redux/slices/quickSettingsSlice';
 
 const { Text } = Typography;
 
@@ -22,7 +22,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   const closeMenuTimeout = useRef(null);
 
   const location = useLocation();
-  const { musicOn, darkMode } = useSelector((state) => state.quickSettings);
+  const { musicOn, soundEffectsOn, darkMode } = useSelector((state) => state.quickSettings);
   const dispatch = useDispatch();
 
   const toggleDrawer = () => {
@@ -35,6 +35,10 @@ const CustomHeader = ({ nickname, avatar, money }) => {
 
   const handleToggleDarkMode = () => {
     dispatch(toggleDarkMode());
+  };
+
+  const handleToggleSoundEffects = () => {
+    dispatch(toggleSoundEffects());
   };
 
   const handleMouseEnterMenu = () => {
@@ -149,12 +153,12 @@ const CustomHeader = ({ nickname, avatar, money }) => {
     <img src="https://static.vecteezy.com/system/resources/previews/011/934/413/non_2x/silver-music-note-icon-free-png.png" alt="Music" />
     <span>Music: {musicOn ? "On" : "Off"}</span>
   </div>
-  <div className="settings-menu-item">
+  <div className="settings-menu-item" onClick={handleToggleSoundEffects}>
     <img
       src="https://cdn1.iconfinder.com/data/icons/ios-and-android-line-set-2/52/call__phone__volume__sound-512.png"
       alt="Sound"
     />
-    <span>Sound</span>
+    <span>Sound: {soundEffectsOn ? "On" : "Off"}</span>
   </div>
 </div>
           </section>
