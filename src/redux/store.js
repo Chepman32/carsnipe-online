@@ -24,7 +24,7 @@ function* rootSaga() {
 const mainSettingsPersistConfig = {
   key: 'mainSettings',
   storage,
-  whitelist: ['darkMode', 'musicVolume', 'soundEffectsVolume'], // Specify which state properties to persist
+  whitelist: ['darkMode', 'musicVolume', 'soundEffectsOn'], // Updated to include 'soundEffectsOn'
 };
 
 // Persisted Reducer for mainSettings

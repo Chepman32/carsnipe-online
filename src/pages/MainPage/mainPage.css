@@ -10,7 +10,6 @@
 }
 
 .column {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -21,6 +20,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
   font-size: 1.5rem;
 }
 
@@ -43,6 +43,10 @@
 
 .column:first-child .tile:last-child .mainpage__cardText_black {
   background: transparent;
+}
+
+.column:nth-child(2) {
+  margin: 0 .2rem;
 }
 
 .column:nth-child(2) .tile {
@@ -90,7 +94,6 @@
 }
 
 .mainHub__card:hover {
-  cursor: pointer;
   border: 2px solid red;
 }
 

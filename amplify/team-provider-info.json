@@ -22,7 +22,8 @@
         "carsnipeonlinea9a53f6c": {}
       },
       "api": {
-        "carsnipeonline": {}
+        "carsnipeonline": {},
+        "paymentsAPI": {}
       },
       "function": {
         "paymentsHandler": {

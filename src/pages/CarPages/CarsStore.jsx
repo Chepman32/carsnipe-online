@@ -1,3 +1,4 @@
+// src/components/CarsStore.js
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Button, Modal, Form, Input, message, Select, Spin } from "antd";
 import { generateClient } from 'aws-amplify/api';
@@ -6,8 +7,10 @@ import * as mutations from '../../graphql/mutations';
 import "./carsPage.css";
 import CarDetailsModal from "./CarDetailsModal";
 import CarCard from "./CarCard";
-import { createNewUserCar, playSwitchSound, playOpeningSound, playClosingSound, checkAndUpdateAchievements } from "../../functions";
+import { createNewUserCar, checkAndUpdateAchievements } from "../../functions";
 import { CreditWarningModal } from "../../components/CreditWarningModal/CreditWarningModal";
+import useSoundEffects from "../../hooks/useSoundEffects";
+import { useSelector } from 'react-redux'; // Import useSelector
 
 const { Option } = Select;
 const client = generateClient();
@@ -24,6 +27,11 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   const [carsLoading, setCarsLoading] = useState(true);
 
   const carsContainerRef = useRef(null);
+
+  const { playSwitchSound, playOpeningSound, playClosingSound } = useSoundEffects();
+
+  // Get the current value of soundEffectsOn from Redux
+  const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn);
 
   const showCarDetailsModal = useCallback(() => {
     setCarDetailsVisible(true);
@@ -111,7 +119,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         case "ArrowRight": {
           if (positionInRow < itemsPerRow - 1 && positionInMake < currentMakeCars.length - 1) {
             setSelectedCarIndex(selectedCarIndex + 1);
-            playSwitchSound();
+            if (soundEffectsOn) playSwitchSound();
           }
           break;
         }
@@ -119,7 +127,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         case "ArrowLeft": {
           if (positionInRow > 0) {
             setSelectedCarIndex(selectedCarIndex - 1);
-            playSwitchSound();
+            if (soundEffectsOn) playSwitchSound();
           }
           break;
         }
@@ -130,14 +138,14 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           if (currentRow < Math.floor((currentMakeCars.length - 1) / itemsPerRow)) {
             const nextIndex = Math.min(nextRowStartIndex + positionInRow, currentMakeStartIndex + currentMakeCars.length - 1);
             setSelectedCarIndex(nextIndex);
-            playSwitchSound();
+            if (soundEffectsOn) playSwitchSound();
           } else {
             const currentMakeIndex = makes.indexOf(currentMake);
             if (currentMakeIndex < makes.length - 1) {
               const nextMake = makes[currentMakeIndex + 1];
               const nextMakeStartIndex = cars.indexOf(carsByMake[nextMake][0]);
               setSelectedCarIndex(nextMakeStartIndex);
-              playSwitchSound();
+              if (soundEffectsOn) playSwitchSound();
             }
           }
           break;
@@ -149,7 +157,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           if (currentRow > 0) {
             const prevIndex = Math.min(prevRowStartIndex + positionInRow, currentMakeStartIndex + currentMakeCars.length - 1);
             setSelectedCarIndex(prevIndex);
-            playSwitchSound();
+            if (soundEffectsOn) playSwitchSound();
           } else {
             const currentMakeIndex = makes.indexOf(currentMake);
             if (currentMakeIndex > 0) {
@@ -160,7 +168,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
               const lastRowStartIndex = prevMakeStartIndex + lastRowIndex * itemsPerRow;
               const targetIndex = Math.min(lastRowStartIndex + positionInRow, prevMakeStartIndex + prevMakeCars.length - 1);
               setSelectedCarIndex(targetIndex);
-              playSwitchSound();
+              if (soundEffectsOn) playSwitchSound();
             }
           }
           break;
@@ -168,7 +176,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         
         case "Enter": {
           setSelectedCar(cars[selectedCarIndex]);
-          playOpeningSound();
+          if (soundEffectsOn) playOpeningSound();
           showCarDetailsModal();
           break;
         }
@@ -181,11 +189,11 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [cars, selectedCarIndex, carDetailsVisible, showCarDetailsModal, playSwitchSound, playOpeningSound]);
+  }, [cars, selectedCarIndex, carDetailsVisible, showCarDetailsModal, playSwitchSound, playOpeningSound, soundEffectsOn]);
 
   const buyCar = async (car) => {
     if (playerInfo && playerInfo.id && money >= car.price) {
-      playSwitchSound();
+      if (soundEffectsOn) playSwitchSound();
       setMoney(money - car.price);
       try {
         setLoadingBuy(true);
@@ -217,12 +225,12 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   };
 
   const handleCancel = () => {
-    playClosingSound();
+    if (soundEffectsOn) playClosingSound();
     setVisible(false);
   };
 
   const handleCarDetailsCancel = () => {
-    playClosingSound();
+    if (soundEffectsOn) playClosingSound();
     setCarDetailsVisible(false);
   };
 
@@ -259,32 +267,32 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
             <div key={make} className="make-section">
               <h2 className="make-name">{make}</h2>
               <section className="make-section-container">
-              <div className="make-cars">
-                {makeCars
-                  .sort((a, b) => {
-                    const nameA = `${a.make || ""} ${a.model || ""}`.trim();
-                    const nameB = `${b.make || ""} ${b.model || ""}`.trim();
-                    return nameA.localeCompare(nameB);
-                  })
-                  .map((car) => {
-                    const absoluteIndex = cars.indexOf(car);
-                    return (
-                      <CarCard
-                        key={car.id}
-                        selectedCar={absoluteIndex === selectedCarIndex ? car : null}
-                        setSelectedCar={(selectedCar) => {
-                          setSelectedCar(selectedCar);
-                          setSelectedCarIndex(absoluteIndex);
-                          showCarDetailsModal();
-                        }}
-                        showCarDetailsModal={showCarDetailsModal}
-                        car={car}
-                        getImageSource={getImageSource}
-                        showPrice
-                      />
-                    );
-                  })}
-              </div>
+                <div className="make-cars">
+                  {makeCars
+                    .sort((a, b) => {
+                      const nameA = `${a.make || ""} ${a.model || ""}`.trim();
+                      const nameB = `${b.make || ""} ${b.model || ""}`.trim();
+                      return nameA.localeCompare(nameB);
+                    })
+                    .map((car) => {
+                      const absoluteIndex = cars.indexOf(car);
+                      return (
+                        <CarCard
+                          key={car.id}
+                          selectedCar={absoluteIndex === selectedCarIndex ? car : null}
+                          setSelectedCar={(selectedCar) => {
+                            setSelectedCar(selectedCar);
+                            setSelectedCarIndex(absoluteIndex);
+                            showCarDetailsModal();
+                          }}
+                          showCarDetailsModal={showCarDetailsModal}
+                          car={car}
+                          getImageSource={getImageSource}
+                          showPrice
+                        />
+                      );
+                    })}
+                </div>
               </section>
             </div>
           ))}

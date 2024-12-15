@@ -19,7 +19,7 @@ const initialState = {
     const parsed = parseInt(stored, 10);
     return isNaN(parsed) ? 50 : parsed;
   })(),
-  soundEffectsOn: getBooleanFromLocalStorage('soundEffectsOn', true),
+  soundEffectsOn: getBooleanFromLocalStorage('soundEffectsOn', true), // Ensure this is correctly named
 };
 
 const mainSettingsSlice = createSlice({
