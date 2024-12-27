@@ -7,7 +7,7 @@ import * as mutations from '../../graphql/mutations';
 import "./carsPage.css";
 import CarDetailsModal from "./CarDetailsModal";
 import CarCard from "./CarCard";
-import { createNewUserCar, checkAndUpdateAchievements } from "../../functions";
+import { createNewUserCar, checkAndUpdateAchievements, playSwitchSound, playOpeningSound, playClosingSound } from "../../functions";
 import { CreditWarningModal } from "../../components/CreditWarningModal/CreditWarningModal";
 import useSoundEffects from "../../hooks/useSoundEffects";
 import { useSelector } from 'react-redux'; // Import useSelector
@@ -28,10 +28,8 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
   const carsContainerRef = useRef(null);
 
-  const { playSwitchSound, playOpeningSound, playClosingSound } = useSoundEffects();
-
-  // Get the current value of soundEffectsOn from Redux
-  const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn);
+  const soundEffectsOnQuickSettings = useSelector((state) => state.quickSettings.soundEffectsOn)
+  const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn)
 
   const showCarDetailsModal = useCallback(() => {
     setCarDetailsVisible(true);
@@ -119,7 +117,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         case "ArrowRight": {
           if (positionInRow < itemsPerRow - 1 && positionInMake < currentMakeCars.length - 1) {
             setSelectedCarIndex(selectedCarIndex + 1);
-            if (soundEffectsOn) playSwitchSound();
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           }
           break;
         }
@@ -127,7 +125,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         case "ArrowLeft": {
           if (positionInRow > 0) {
             setSelectedCarIndex(selectedCarIndex - 1);
-            if (soundEffectsOn) playSwitchSound();
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           }
           break;
         }
@@ -138,14 +136,14 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           if (currentRow < Math.floor((currentMakeCars.length - 1) / itemsPerRow)) {
             const nextIndex = Math.min(nextRowStartIndex + positionInRow, currentMakeStartIndex + currentMakeCars.length - 1);
             setSelectedCarIndex(nextIndex);
-            if (soundEffectsOn) playSwitchSound();
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           } else {
             const currentMakeIndex = makes.indexOf(currentMake);
             if (currentMakeIndex < makes.length - 1) {
               const nextMake = makes[currentMakeIndex + 1];
               const nextMakeStartIndex = cars.indexOf(carsByMake[nextMake][0]);
               setSelectedCarIndex(nextMakeStartIndex);
-              if (soundEffectsOn) playSwitchSound();
+              if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
           }
           break;
@@ -157,7 +155,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           if (currentRow > 0) {
             const prevIndex = Math.min(prevRowStartIndex + positionInRow, currentMakeStartIndex + currentMakeCars.length - 1);
             setSelectedCarIndex(prevIndex);
-            if (soundEffectsOn) playSwitchSound();
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           } else {
             const currentMakeIndex = makes.indexOf(currentMake);
             if (currentMakeIndex > 0) {
@@ -168,7 +166,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
               const lastRowStartIndex = prevMakeStartIndex + lastRowIndex * itemsPerRow;
               const targetIndex = Math.min(lastRowStartIndex + positionInRow, prevMakeStartIndex + prevMakeCars.length - 1);
               setSelectedCarIndex(targetIndex);
-              if (soundEffectsOn) playSwitchSound();
+              if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
           }
           break;
@@ -176,7 +174,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         
         case "Enter": {
           setSelectedCar(cars[selectedCarIndex]);
-          if (soundEffectsOn) playOpeningSound();
+          if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
           showCarDetailsModal();
           break;
         }
@@ -189,7 +187,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [cars, selectedCarIndex, carDetailsVisible, showCarDetailsModal, playSwitchSound, playOpeningSound, soundEffectsOn]);
+  }, [cars, selectedCarIndex, carDetailsVisible, showCarDetailsModal, soundEffectsOn, soundEffectsOnQuickSettings]);
 
   const buyCar = async (car) => {
     if (playerInfo && playerInfo.id && money >= car.price) {
@@ -225,7 +223,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   };
 
   const handleCancel = () => {
-    if (soundEffectsOn) playClosingSound();
+    if (soundEffectsOn || soundEffectsOnQuickSettings) playClosingSound();
     setVisible(false);
   };
 

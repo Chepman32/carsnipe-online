@@ -1,4 +1,3 @@
-// src/redux/slices/quickSettingsSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {

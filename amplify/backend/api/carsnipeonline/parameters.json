@@ -2,5 +2,5 @@
   "AppSyncApiName": "carsnipeonline",
   "DynamoDBBillingMode": "PAY_PER_REQUEST",
   "DynamoDBEnableServerSideEncryption": false,
-  "APIKeyExpirationEpoch": "171504000000"
+  "APIKeyExpirationEpoch": "1715040000"
 }

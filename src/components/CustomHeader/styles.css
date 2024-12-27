@@ -55,7 +55,7 @@
 }
 
 .customHeader__menuItem {
-  padding: 0 20px; /* Increased padding for menu items */
+  padding: 0 20px;
   color: var(--text-color);
 }
 
@@ -64,15 +64,15 @@
 }
 
 .headerPlaceholder {
-  height: 64px; /* Matches header height */
+  height: 64px;
 }
 
 .storeLink {
-  margin-right: 2vw; /* Adjusted margin for store link */
+  margin-right: 2vw;
   padding-left: 0.5vw;
   display: flex;
   align-items: center;
-  transition: transform 0.3s ease; /* Shortened transition duration */
+  transition: transform 0.3s ease;
   color: var(--text-color);
 }
 
