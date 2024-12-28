@@ -1,4 +1,5 @@
 // src/components/CarsStore.js
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Button, Modal, Form, Input, message, Select, Spin } from "antd";
 import { generateClient } from 'aws-amplify/api';
@@ -7,10 +8,15 @@ import * as mutations from '../../graphql/mutations';
 import "./carsPage.css";
 import CarDetailsModal from "./CarDetailsModal";
 import CarCard from "./CarCard";
-import { createNewUserCar, checkAndUpdateAchievements, playSwitchSound, playOpeningSound, playClosingSound } from "../../functions";
+import {
+  createNewUserCar,
+  checkAndUpdateAchievements,
+  playSwitchSound,
+  playOpeningSound,
+  playClosingSound
+} from "../../functions";
 import { CreditWarningModal } from "../../components/CreditWarningModal/CreditWarningModal";
-import useSoundEffects from "../../hooks/useSoundEffects";
-import { useSelector } from 'react-redux'; // Import useSelector
+import { useSelector } from 'react-redux';
 
 const { Option } = Select;
 const client = generateClient();
@@ -26,10 +32,8 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   const [creditWarningModalvisible, setCreditWarningModalvisible] = useState(false);
   const [carsLoading, setCarsLoading] = useState(true);
 
-  const carsContainerRef = useRef(null);
-
-  const soundEffectsOnQuickSettings = useSelector((state) => state.quickSettings.soundEffectsOn)
-  const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn)
+  const soundEffectsOnQuickSettings = useSelector((state) => state.quickSettings.soundEffectsOn);
+  const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn);
 
   const showCarDetailsModal = useCallback(() => {
     setCarDetailsVisible(true);
@@ -78,7 +82,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       const getItemsPerRow = () => {
         const windowWidth = window.innerWidth;
         let itemWidth;
-        
+
         if (windowWidth <= 512) {
           itemWidth = windowWidth * 0.95;
         } else if (windowWidth <= 768) {
@@ -100,41 +104,47 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       const itemsPerRow = getItemsPerRow();
       const carsByMake = groupCarsByMake(cars);
       const makes = Object.keys(carsByMake);
-      
+
       const currentMake = makes.find((make) => {
         const makeStartIndex = cars.indexOf(carsByMake[make][0]);
         const makeEndIndex = makeStartIndex + carsByMake[make].length - 1;
         return selectedCarIndex >= makeStartIndex && selectedCarIndex <= makeEndIndex;
       });
-      
+
       const currentMakeCars = carsByMake[currentMake] || [];
       const currentMakeStartIndex = cars.indexOf(currentMakeCars[0]);
       const positionInMake = selectedCarIndex - currentMakeStartIndex;
       const currentRow = Math.floor(positionInMake / itemsPerRow);
       const positionInRow = positionInMake % itemsPerRow;
 
+      const scroller = document.getElementById("scroller");
+      const scrollDistance = scroller ? scroller.scrollHeight * 0.05 : 0;
+
       switch (key) {
         case "ArrowRight": {
           if (positionInRow < itemsPerRow - 1 && positionInMake < currentMakeCars.length - 1) {
-            setSelectedCarIndex(selectedCarIndex + 1);
+            setSelectedCarIndex((prevIndex) => prevIndex + 1);
             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           }
           break;
         }
-        
+
         case "ArrowLeft": {
           if (positionInRow > 0) {
-            setSelectedCarIndex(selectedCarIndex - 1);
+            setSelectedCarIndex((prevIndex) => prevIndex - 1);
             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           }
           break;
         }
-        
+
         case "ArrowDown": {
           const nextRowStartIndex = currentMakeStartIndex + (currentRow + 1) * itemsPerRow;
-          
+
           if (currentRow < Math.floor((currentMakeCars.length - 1) / itemsPerRow)) {
-            const nextIndex = Math.min(nextRowStartIndex + positionInRow, currentMakeStartIndex + currentMakeCars.length - 1);
+            const nextIndex = Math.min(
+              nextRowStartIndex + positionInRow,
+              currentMakeStartIndex + currentMakeCars.length - 1
+            );
             setSelectedCarIndex(nextIndex);
             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           } else {
@@ -146,14 +156,25 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
           }
+
+          if (scroller) {
+            scroller.scrollBy({
+              top: scrollDistance,
+              behavior: "smooth"
+            });
+          }
+
           break;
         }
-        
+
         case "ArrowUp": {
           const prevRowStartIndex = currentMakeStartIndex + (currentRow - 1) * itemsPerRow;
-          
+
           if (currentRow > 0) {
-            const prevIndex = Math.min(prevRowStartIndex + positionInRow, currentMakeStartIndex + currentMakeCars.length - 1);
+            const prevIndex = Math.min(
+              prevRowStartIndex + positionInRow,
+              currentMakeStartIndex + currentMakeCars.length - 1
+            );
             setSelectedCarIndex(prevIndex);
             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           } else {
@@ -164,35 +185,55 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
               const prevMakeStartIndex = cars.indexOf(prevMakeCars[0]);
               const lastRowIndex = Math.floor((prevMakeCars.length - 1) / itemsPerRow);
               const lastRowStartIndex = prevMakeStartIndex + lastRowIndex * itemsPerRow;
-              const targetIndex = Math.min(lastRowStartIndex + positionInRow, prevMakeStartIndex + prevMakeCars.length - 1);
+              const targetIndex = Math.min(
+                lastRowStartIndex + positionInRow,
+                prevMakeStartIndex + prevMakeCars.length - 1
+              );
               setSelectedCarIndex(targetIndex);
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
           }
+
+          if (scroller) {
+            scroller.scrollBy({
+              top: -scrollDistance,
+              behavior: "smooth"
+            });
+          }
+
           break;
         }
-        
+
         case "Enter": {
           setSelectedCar(cars[selectedCarIndex]);
           if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
           showCarDetailsModal();
           break;
         }
+
         default:
           break;
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
+
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [cars, selectedCarIndex, carDetailsVisible, showCarDetailsModal, soundEffectsOn, soundEffectsOnQuickSettings]);
+  }, [
+    cars,
+    selectedCarIndex,
+    carDetailsVisible,
+    showCarDetailsModal,
+    soundEffectsOn,
+    soundEffectsOnQuickSettings
+  ]);
 
   const buyCar = async (car) => {
     if (playerInfo && playerInfo.id && money >= car.price) {
       if (soundEffectsOn) playSwitchSound();
-      setMoney(money - car.price);
+      setMoney((prevMoney) => prevMoney - car.price);
       try {
         setLoadingBuy(true);
         await client.graphql({
@@ -201,9 +242,9 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
             input: {
               id: playerInfo.id,
               money: money - car.price,
-              totalSpent: (playerInfo.totalSpent || 0) + car.price,
-            },
-          },
+              totalSpent: (playerInfo.totalSpent || 0) + car.price
+            }
+          }
         });
         createNewUserCar(playerInfo.id, car.id);
         message.success("Car successfully bought!");
@@ -238,11 +279,11 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       model: values.model,
       year: parseInt(values.year),
       price: parseInt(values.price),
-      type: values.type,
+      type: values.type
     };
     await client.graphql({
       query: mutations.createCar,
-      variables: { input: newCar },
+      variables: { input: newCar }
     });
     await fetchCars();
     setVisible(false);
@@ -257,22 +298,28 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
   return (
     <div className="cars">
+      {/* The newly added button to open the car creation modal */}
+      <Button type="primary" onClick={() => setVisible(true)} style={{ marginBottom: '1rem' }}>
+        Add Car
+      </Button>
+
       {carsLoading ? (
         <Spin size="large" fullscreen />
       ) : (
-        <div ref={carsContainerRef} className="cars__container">
-          {Object.entries(groupCarsByMake(cars)).map(([make, makeCars]) => (
-            <div key={make} className="make-section">
-              <h2 className="make-name">{make}</h2>
-              <section className="make-section-container">
-                <div className="make-cars">
-                  {makeCars
-                    .sort((a, b) => {
-                      const nameA = `${a.make || ""} ${a.model || ""}`.trim();
-                      const nameB = `${b.make || ""} ${b.model || ""}`.trim();
-                      return nameA.localeCompare(nameB);
-                    })
-                    .map((car) => {
+        <div className="cars__container">
+          {Object.entries(groupCarsByMake(cars)).map(([make, makeCars]) => {
+            const sortedMakeCars = makeCars.sort((a, b) => {
+              const nameA = `${a.make || ""} ${a.model || ""}`.trim();
+              const nameB = `${b.make || ""} ${b.model || ""}`.trim();
+              return nameA.localeCompare(nameB);
+            });
+
+            return (
+              <div key={make} className="make-section">
+                <h2 className="make-name">{make}</h2>
+                <section className="make-section-container">
+                  <div className="make-cars">
+                    {sortedMakeCars.map((car) => {
                       const absoluteIndex = cars.indexOf(car);
                       return (
                         <CarCard
@@ -286,14 +333,15 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                           showCarDetailsModal={showCarDetailsModal}
                           car={car}
                           getImageSource={getImageSource}
-                          showPrice
+                          showPrice={true}
                         />
                       );
                     })}
-                </div>
-              </section>
-            </div>
-          ))}
+                  </div>
+                </section>
+              </div>
+            );
+          })}
         </div>
       )}
       <Modal
@@ -319,19 +367,39 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           initialValues={{ remember: true }}
           onFinish={(values) => createNewCar(values)}
         >
-          <Form.Item name="make" label="Make" rules={[{ required: true, message: "Please enter the make!" }]}>
+          <Form.Item
+            name="make"
+            label="Make"
+            rules={[{ required: true, message: "Please enter the make!" }]}
+          >
             <Input autoFocus />
           </Form.Item>
-          <Form.Item name="model" label="Model" rules={[{ required: true, message: "Please enter the model!" }]}>
+          <Form.Item
+            name="model"
+            label="Model"
+            rules={[{ required: true, message: "Please enter the model!" }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="year" label="Year" rules={[{ required: true, message: "Please enter the year!" }]}>
+          <Form.Item
+            name="year"
+            label="Year"
+            rules={[{ required: true, message: "Please enter the year!" }]}
+          >
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="price" label="Price" rules={[{ required: true, message: "Please enter the price!" }]}>
+          <Form.Item
+            name="price"
+            label="Price"
+            rules={[{ required: true, message: "Please enter the price!" }]}
+          >
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="type" label="Type" rules={[{ required: true, message: "Please select the type!" }]}>
+          <Form.Item
+            name="type"
+            label="Type"
+            rules={[{ required: true, message: "Please select the type!" }]}
+          >
             <Select>
               <Option value="regular">Regular</Option>
               <Option value="epic">Epic</Option>
@@ -347,7 +415,10 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         buyCar={buyCar}
         loadingBuy={loadingBuy}
       />
-      <CreditWarningModal isModalVisible={creditWarningModalvisible} setIsModalVisible={setCreditWarningModalvisible} />
+      <CreditWarningModal
+        isModalVisible={creditWarningModalvisible}
+        setIsModalVisible={setCreditWarningModalvisible}
+      />
     </div>
   );
 };

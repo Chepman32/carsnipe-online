@@ -29,6 +29,11 @@ body {
   background-position: center;
 }
 
+#scroller {
+  height: 100vh; /* or any explicit height */
+  overflow-y: auto;
+}
+
 .auctionHub__cardText {
   font-size: 6vh;
   font-family: BebasNeue-Regular;
