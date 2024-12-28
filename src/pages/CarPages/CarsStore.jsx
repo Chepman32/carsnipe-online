@@ -118,7 +118,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       const positionInRow = positionInMake % itemsPerRow;
 
       const scroller = document.getElementById("scroller");
-      const scrollDistance = scroller ? scroller.scrollHeight * 0.05 : 0;
+      const scrollDistance = scroller ? scroller.scrollHeight * 0.04 : 0;
 
       switch (key) {
         case "ArrowRight": {
@@ -298,11 +298,9 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
   return (
     <div className="cars">
-      {/* The newly added button to open the car creation modal */}
-      <Button type="primary" onClick={() => setVisible(true)} style={{ marginBottom: '1rem' }}>
+      {/* <Button type="primary" onClick={() => setVisible(true)} style={{ marginBottom: '1rem' }}>
         Add Car
-      </Button>
-
+      </Button> */}
       {carsLoading ? (
         <Spin size="large" fullscreen />
       ) : (
