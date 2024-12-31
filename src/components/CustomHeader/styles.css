@@ -1,4 +1,3 @@
-/* Define CSS variables for light and dark modes */
 :root {
   --background-color: #ffffff;
   --text-color: #000000;
@@ -8,6 +7,8 @@
   --header-background: #ffffff;
   --header-text: #000000;
   --link-hover: #f0f0f0;
+  --active-background: red; /* Red background for active items */
+  --focused-border: 2px solid red; /* Red border for focused items */
 }
 
 .dark-mode {
@@ -19,6 +20,8 @@
   --header-background: #001529; /* Ant Design dark theme color */
   --header-text: #ffffff;
   --link-hover: #333333;
+  --active-background: darkred; /* Adjust active background for dark mode */
+  --focused-border: 2px solid darkred; /* Adjust focused border for dark mode */
 }
 
 /* Apply CSS variables */
@@ -38,27 +41,44 @@
   color: var(--header-text);
 }
 
-.customHeader__content {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .customHeader__menu {
   display: flex;
   align-items: center;
-}
-
-.customHeader__menu * {
-  margin: 0;
+  background-color: var(--menu-background);
 }
 
 .customHeader__menuItem {
   padding: 0 20px;
-  color: var(--text-color);
+  color: var(--menu-text);
+  background: none; /* No background by default */
+  border: none; /* Remove any existing borders */
+  transition: background 0.3s, border 0.3s;
 }
 
+.customHeader__menuItem a {
+  color: inherit; /* Ensure link text color matches theme */
+  text-decoration: none;
+}
+
+.customHeader__menuItem.active {
+  background: var(--active-background); /* Red background when active */
+}
+
+.customHeader__menuItem.focused {
+  border: var(--focused-border); /* Red border when focused */
+}
+
+.customHeader__menuItem:hover {
+  border: var(--focused-border); /* Red border on hover */
+}
+
+/* Remove default focus outline and add custom styling */
+.customHeader__menuItem:focus {
+  outline: none;
+  border: var(--focused-border); /* Red border when focused via keyboard */
+}
+
+/* Rest of your existing CSS remains unchanged */
 .burgerMenuButton {
   margin-left: 2vw;
 }

@@ -1,3 +1,4 @@
+// src/App.js
 import React, { useCallback, useEffect, useState } from "react";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/api";
@@ -5,7 +6,7 @@ import { getCurrentUser } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 import { Authenticator } from "@aws-amplify/ui-react";
 import { HashRouter, Route, Routes, useNavigate } from "react-router-dom";
-import { Spin } from "antd";
+import { Spin } from 'antd';
 import { Provider } from 'react-redux';
 import store from './redux/store';
 import MusicPlayer from './components/MusicPlayer/MusicPlayer';
@@ -30,6 +31,8 @@ import './AuthStyles.css';
 import MusicUploadPage from "./pages/MusicUploadPage/MusicUploadPage";
 import MusicLibraryPage from "./pages/MusicLibraryPage/MusicLibraryPage";
 import GameSettings from "./pages/GameSettings/GameSettings";
+import { useSelectedElement } from './shared/useSelectedElement';
+import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 
 const client = generateClient();
 Amplify.configure(awsExports);
@@ -61,8 +64,12 @@ export default function App() {
   const [creatingUser, setCreatingUser] = useState(false);
   const [money, setMoney] = useState();
 
+  const { selectedElement, handleElementSelect } = useSelectedElement();
+
   useEffect(() => {
-    playerInfo?.id && checkAndUpdateAchievements(playerInfo.id);
+    if (playerInfo?.id) {
+      checkAndUpdateAchievements(playerInfo.id);
+    }
   }, [playerInfo?.id, money]);
 
   const createNewPlayer = useCallback(async (username) => {
@@ -129,7 +136,9 @@ export default function App() {
 
   const listener = async (data) => {
     await createNewPlayer(data?.payload?.data?.nickname);
-    !playerInfo && !loading && window.location.reload();
+    if (!playerInfo && !loading) {
+      window.location.reload();
+    }
   };
 
   useEffect(() => {
@@ -159,7 +168,7 @@ export default function App() {
 
   return (
     <HashRouter>
-      <BackspaceHandler /> {/* Global Backspace handler */}
+      <BackspaceHandler />
       <div className={playerInfo == null || playerInfo === undefined ? "auth-container" : ""}>
         <div className={playerInfo == null || playerInfo === undefined ? "auth-left" : ""} />
         <div className={playerInfo == null || playerInfo === undefined ? "auth-right" : ""}>
@@ -170,111 +179,117 @@ export default function App() {
                   {playerInfo && (
                     <Provider store={store}>
                       <main>
-                      <CustomHeader
-                        money={money}
-                        username={playerInfo.nickname}
-                        email={email}
-                        nickname={playerInfo.nickname}
-                        avatar={selectAvatar(playerInfo.avatar)}
-                      />
-                      <Routes>
-                        <Route
-                          path="/"
-                          element={
-                            <MainPage
-                            />
-                          }
+                        <CustomHeader
+                          money={money}
+                          nickname={playerInfo.nickname}
+                          avatar={selectAvatar(playerInfo.avatar)}
                         />
-                        <Route
-                          path="/profileEditPage"
-                          element={
-                            <ProfileEditPage
+                        <DarkModeWrapper>
+                        <Routes>
+                          <Route
+                            path="/"
+                            element={
+                              <MainPage
+                                selectedElement={selectedElement}
+                                handleElementSelect={handleElementSelect}
+                              />
+                            }
+                          />
+                          <Route
+                            path="/profileEditPage"
+                            element={
+                              <ProfileEditPage
+                                playerInfo={playerInfo}
+                                currentAuthenticatedUser={currentAuthenticatedUser}
+                                signOut={signOut}
+                                setPlayerInfo={setPlayerInfo}
+                              />
+                            }
+                          />
+                          <Route
+                            path="/carsStore"
+                            element={
+                              <CarsStore
+                                playerInfo={playerInfo}
+                                money={money}
+                                setMoney={setMoney}
+                              />
+                            }
+                          />
+                          <Route
+                            path="/auctions"
+                            element={
+                              <AuctionPage
+                                playerInfo={playerInfo}
+                                money={money}
+                                setMoney={setMoney}
+                              />
+                            }
+                          />
+                          <Route
+                            path="/myCars"
+                            element={
+                              <MyCars
+                                playerInfo={playerInfo}
+                                money={money}
+                                setMoney={setMoney}
+                              />
+                            }
+                          />
+                          <Route 
+                            path="/auctionsHub" 
+                            element={<AuctionsHub />} 
+                          />
+                          <Route
+                            path="/myBids"
+                            element={
+                              <MyBids
+                                playerInfo={playerInfo}
+                                money={money}
+                                setMoney={setMoney}
+                              />
+                            }
+                          />
+                          <Route
+                            path="/myAuctions"
+                            element={
+                              <MyAuctions
+                                playerInfo={playerInfo}
+                                money={money}
+                                setMoney={setMoney}
+                              />
+                            }
+                          />
+                          <Route
+                            path="/achievements"
+                            element={<AchievementList userId={playerInfo.id} />}
+                          />
+                          <Route 
+                            path="/paymentError" 
+                            element={<PaymentError />} 
+                          />
+                          <Route
+                            path="/store"
+                            element={<Store email={playerInfo.email} />}
+                          />
+                          <Route
+                            path="/settings"
+                            element={<GameSettings
                               playerInfo={playerInfo}
-                              currentAuthenticatedUser={currentAuthenticatedUser}
-                              signOut={signOut}
-                              setPlayerInfo={setPlayerInfo}
-                            />
-                          }
-                        />
-                        <Route
-                          path="/carsStore"
-                          element={
-                            <CarsStore
-                              playerInfo={playerInfo}
-                              money={money}
-                              setMoney={setMoney}
-                            />
-                          }
-                        />
-                        <Route
-                          path="/auctions"
-                          element={
-                            <AuctionPage
-                              playerInfo={playerInfo}
-                              money={money}
-                              setMoney={setMoney}
-                            />
-                          }
-                        />
-                        <Route
-                          path="/myCars"
-                          element={
-                            <MyCars
-                              playerInfo={playerInfo}
-                              money={money}
-                              setMoney={setMoney}
-                            />
-                          }
-                        />
-                        <Route 
-                          path="/auctionsHub" 
-                          element={<AuctionsHub />} 
-                        />
-                        <Route
-                          path="/myBids"
-                          element={
-                            <MyBids
-                              playerInfo={playerInfo}
-                              money={money}
-                              setMoney={setMoney}
-                            />
-                          }
-                        />
-                        <Route
-                          path="/myAuctions"
-                          element={
-                            <MyAuctions
-                              playerInfo={playerInfo}
-                              money={money}
-                              setMoney={setMoney}
-                            />
-                          }
-                        />
-                        <Route
-                          path="/achievements"
-                          element={<AchievementList userId={playerInfo.id} />}
-                        />
-                        <Route 
-                          path="/paymentError" 
-                          element={<PaymentError />} 
-                        />
-                        <Route
-                          path="/store"
-                          element={<Store email={playerInfo.email} />}
-                        />
-                         <Route
-                          path="/settings"
-                          element={<GameSettings playerInfo={playerInfo} />}
-                        />
-                        <Route
-                          path="/musicUpload"
-                          element={<MusicUploadPage />}
-                        />
-                        <Route
-                          path="/musicLibraryPage"
-                          element={<MusicLibraryPage />}
-                        />
-                      </Routes>
+                              selectedElement={selectedElement}
+                              handleElementSelect={handleElementSelect}
+                            />}
+                          />
+                          <Route
+                            path="/musicUpload"
+                            element={<MusicUploadPage />}
+                          />
+                          <Route
+                            path="/musicLibraryPage"
+                            element={<MusicLibraryPage />}
+                          />
+                        </Routes>
+                        </DarkModeWrapper>
                       </main>
                       <MusicPlayer />
                     </Provider>
@@ -286,8 +301,8 @@ export default function App() {
           {
             !playerInfo && (
               <div className="exit-button" onClick={handleExit} >
-            Quit game
-          </div>
+                Quit game
+              </div>
             )
           }
         </div>

@@ -1,0 +1,20 @@
+.dark-mode {
+    --background-image: url('../assets/images/a9bdf515-102c-4bf3-abb4-afca1e533796-dark.png');
+    --background-color: #121212;
+    --box-background: #1e1e1e;
+    --text-color: #ffffff;
+    --border-color: #333333;
+    --button-primary: #177ddc;
+    --button-primary-hover: #40a9ff;
+    --button-danger: #ff7875;
+    --button-danger-hover: #ff4d4f;
+    --input-background: #2c2c2c;
+    --input-text: #ffffff;
+    --textarea-background: #2c2c2c;
+    --textarea-text: #ffffff;
+    --avatar-border: #40a9ff;
+    --link-background: #177ddc;
+    --link-hover: #40a9ff;
+    --link-text: #ffffff;
+    --notification-background: #1e1e1e;
+  }

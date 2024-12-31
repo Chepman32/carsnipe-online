@@ -1,0 +1,14 @@
+export const HEADER_MAIN_MENU = "HEADER__MAIN_MENU";
+export const HEADER_CARS_STORE = "HEADER_CARS_STORE";
+export const HEADER_MY_CARS = "HEADER__MY_CARS";
+export const HEADER_AUCTIONS = "HEADER__AUCTIONS";
+export const HEADER_STORE = "HEADER__STORE";
+export const HEADER_PROFILE = "HEADER__PROFILE";
+export const GAME_SETTINGS_DARK_MODE = "GAME_SETTINGS__DARK_MODE";
+export const GAME_SETTINGS_MUSIC = "GAME_SETTINGS__MUSIC";
+export const GAME_SETTINGS_VOLUME = "GAME_SETTINGS__VOLUME";
+export const FOCUS_ZONES = {
+    HEADER: 'header',
+    PAGE: 'page',
+    SETTINGS: 'settings',
+  };

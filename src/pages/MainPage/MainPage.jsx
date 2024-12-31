@@ -10,7 +10,7 @@ import { playOpeningSound, playSwitchSound } from "../../functions";
 import MainPageExit from "./MainPageCards/MainPageExit";
 import { QuickSettingsMenu } from "../../components/QuickSettings/QuickSettingsMenu";
 
-export const MainPage = () => {
+export const MainPage = ({ selectedElement, handleElementSelect }) => {
   const initialFocusedTile = sessionStorage.getItem("lastFocusedTile") || "leftTop";
   const [focusedTile, setFocusedTile] = useState(initialFocusedTile);
   const [lastFocusedLeftTile, setLastFocusedLeftTile] = useState("leftTop");

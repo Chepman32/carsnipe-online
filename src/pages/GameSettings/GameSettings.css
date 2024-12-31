@@ -1,17 +1,47 @@
 .settings-container {
-    width: 60%;
-    margin: 40px auto;
-    padding: 40px;
-    font-size: 1.2em;
-    background: rgba(255, 255, 255, 0.9);
-  }
-  
-  .settings-row {
-    margin-bottom: 5%;
-    display: flex;
-    align-items: center;
-  }
-  
-  .settings-row > .ant-col:first-child {
-    font-weight: bold;
-  }
+  width: 60%;
+  margin: 40px auto;
+  padding: 40px;
+  font-size: 1.2em;
+  background: rgba(255, 255, 255, 0.9);
+  color: #000000;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.settings-row {
+  margin-bottom: 5%;
+  display: flex;
+  align-items: center;
+}
+
+.settings-row > .ant-col:first-child {
+  font-weight: bold;
+}
+
+.settings-row.focused {
+  background-color: #f0f0f0;
+  border: 2px solid #1890ff;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, border 0.3s ease;
+}
+
+.dark-mode #main-container:not(.customHeader) {
+  background-image: url('../../assets/images/a9bdf515-102c-4bf3-abb4-afca1e533796-dark.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-color: #121212;
+  color: #ffffff;
+  transition: background-image 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark-mode .settings-container {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+}
+
+.dark-mode .settings-row.focused {
+  background-color: #333333;
+  border: 2px solid #1e90ff;
+}

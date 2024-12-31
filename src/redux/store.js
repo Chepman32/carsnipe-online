@@ -11,6 +11,7 @@ import musicPlayerReducer from './slices/musicPlayerSlice';
 import quickSettingsReducer from './slices/quickSettingsSlice';
 import mainSettingsReducer from './slices/mainSettingsSlice';
 import { musicPlayerSaga } from './sagas/musicPlayerSaga';
+import focusSlice from './slices/focusSlice';
 
 // Root Saga
 function* rootSaga() {
@@ -38,13 +39,12 @@ const store = configureStore({
   reducer: {
     musicPlayer: musicPlayerReducer,
     quickSettings: quickSettingsReducer,
-    mainSettings: persistedMainSettingsReducer, // Use the persisted reducer
+    mainSettings: persistedMainSettingsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       thunk: false, // Disable thunk middleware since you're using saga
       serializableCheck: {
-        // Ignore redux-persist actions for serializable state check to prevent warnings
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }).concat(sagaMiddleware),

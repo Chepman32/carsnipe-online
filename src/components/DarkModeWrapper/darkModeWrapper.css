@@ -1,0 +1,10 @@
+.darkModeWrapper {
+    background: red;
+    margin: 0;
+    font-family: BebasNeue-Regular;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
