@@ -68,6 +68,11 @@
   height: 45%;
 }
 
+.column:last-child .tile:nth-child(3) {
+  background: rgb(48, 64, 183);
+  height: 25%;
+}
+
 .column:last-child .tile:last-child {
   background: #ddd;
   height: 10vh;
@@ -124,6 +129,7 @@
 
   .tile {
     font-size: 1.2rem;
+    cursor: pointer;
   }
 }
 
