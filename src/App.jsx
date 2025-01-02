@@ -31,7 +31,6 @@ import './AuthStyles.css';
 import MusicUploadPage from "./pages/MusicUploadPage/MusicUploadPage";
 import MusicLibraryPage from "./pages/MusicLibraryPage/MusicLibraryPage";
 import GameSettings from "./pages/GameSettings/GameSettings";
-import { useSelectedElement } from './shared/useSelectedElement';
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 
 const client = generateClient();
@@ -64,7 +63,6 @@ export default function App() {
   const [creatingUser, setCreatingUser] = useState(false);
   const [money, setMoney] = useState();
 
-  const { selectedElement, handleElementSelect } = useSelectedElement();
 
   useEffect(() => {
     if (playerInfo?.id) {
@@ -190,8 +188,6 @@ export default function App() {
                             path="/"
                             element={
                               <MainPage
-                                selectedElement={selectedElement}
-                                handleElementSelect={handleElementSelect}
                               />
                             }
                           />
@@ -276,8 +272,6 @@ export default function App() {
                             path="/settings"
                             element={<GameSettings
                               playerInfo={playerInfo}
-                              selectedElement={selectedElement}
-                              handleElementSelect={handleElementSelect}
                             />}
                           />
                           <Route

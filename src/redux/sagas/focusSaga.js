@@ -1,15 +1,11 @@
-// focusSaga.js
-import { takeEvery, put } from 'redux-saga/effects';
+import { takeLatest, put } from 'redux-saga/effects';
+import { handleKeyDown } from './focusSlice';
 
-function* handleFocusSectionChange(action) {
-  console.log('[focusSaga] Focus changed to:', action.payload);
+function* handleKeyDownWorker(action) {
+  // In this basic example, we do not dispatch anything else here.
+  // You can put side effects or other logic if needed.
 }
 
-function* watchFocusSectionChange() {
-  // Directly use the string action type if you prefer:
-  yield takeEvery('focus/setFocusedSection', handleFocusSectionChange);
-}
-
-export default function* focusSaga() {
-  yield watchFocusSectionChange();
+export function* focusSaga() {
+  yield takeLatest(handleKeyDown.type, handleKeyDownWorker);
 }

@@ -11,7 +11,7 @@ import musicPlayerReducer from './slices/musicPlayerSlice';
 import quickSettingsReducer from './slices/quickSettingsSlice';
 import mainSettingsReducer from './slices/mainSettingsSlice';
 import { musicPlayerSaga } from './sagas/musicPlayerSaga';
-import focusSlice from './slices/focusSlice';
+import focusReducer from './slices/focusSlice';
 
 // Root Saga
 function* rootSaga() {
@@ -21,7 +21,6 @@ function* rootSaga() {
   ]);
 }
 
-// Persist Configuration for mainSettings
 const mainSettingsPersistConfig = {
   key: 'mainSettings',
   storage,
@@ -40,6 +39,7 @@ const store = configureStore({
     musicPlayer: musicPlayerReducer,
     quickSettings: quickSettingsReducer,
     mainSettings: persistedMainSettingsReducer,
+    focus: focusReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

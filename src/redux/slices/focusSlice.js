@@ -1,19 +1,114 @@
 // focusSlice.js
+
 import { createSlice } from '@reduxjs/toolkit';
 
+export const FOCUS_ZONES = {
+  HEADER: 'HEADER',
+  PAGE: 'PAGE',
+  SETTINGS: 'SETTINGS'
+};
+
+export const HEADER_MAIN_MENU = 'HEADER_MAIN_MENU';
+export const HEADER_CARS_STORE = 'HEADER_CARS_STORE';
+export const HEADER_MY_CARS = 'HEADER_MY_CARS';
+export const HEADER_AUCTIONS = 'HEADER_AUCTIONS';
+export const HEADER_STORE = 'HEADER_STORE';
+export const HEADER_PROFILE = 'HEADER_PROFILE';
+
+export const SETTINGS_DARK_MODE = 'SETTINGS_DARK_MODE';
+export const SETTINGS_SOUND_EFFECTS = 'SETTINGS_SOUND_EFFECTS';
+export const SETTINGS_MUSIC_VOLUME = 'SETTINGS_MUSIC_VOLUME';
+
 const initialState = {
-  focusedSection: 'header'
+  focusedZone: FOCUS_ZONES.PAGE,
+  currentFocusedElement: 'PAGE_MAIN_CONTENT',
+  currentSettingsElement: SETTINGS_DARK_MODE,
+  currentRoute: "/",
 };
 
 const focusSlice = createSlice({
   name: 'focus',
   initialState,
   reducers: {
-    setFocusedSection(state, action) {
-      state.focusedSection = action.payload;
+    handleKeyDown(state, action) {
+      const key = action.payload;
+      console.log("currentFocusedElement:", state.currentFocusedElement);
+      console.log("currentSettingsElement:", state.currentSettingsElement);
+
+      switch (state.focusedZone) {
+        case FOCUS_ZONES.HEADER:
+          if (key === 'ArrowLeft') {
+            if (state.currentFocusedElement === HEADER_CARS_STORE) {
+              state.currentFocusedElement = HEADER_MAIN_MENU;
+            } else if (state.currentFocusedElement === HEADER_MY_CARS) {
+              state.currentFocusedElement = HEADER_CARS_STORE;
+            } else if (state.currentFocusedElement === HEADER_AUCTIONS) {
+              state.currentFocusedElement = HEADER_MY_CARS;
+            } else if (state.currentFocusedElement === HEADER_STORE) {
+              state.currentFocusedElement = HEADER_AUCTIONS;
+            } else if (state.currentFocusedElement === HEADER_PROFILE) {
+              state.currentFocusedElement = HEADER_STORE;
+            }
+          } else if (key === 'ArrowRight') {
+            if (state.currentFocusedElement === HEADER_MAIN_MENU) {
+              state.currentFocusedElement = HEADER_CARS_STORE;
+            } else if (state.currentFocusedElement === HEADER_CARS_STORE) {
+              state.currentFocusedElement = HEADER_MY_CARS;
+            } else if (state.currentFocusedElement === HEADER_MY_CARS) {
+              state.currentFocusedElement = HEADER_AUCTIONS;
+            } else if (state.currentFocusedElement === HEADER_AUCTIONS) {
+              state.currentFocusedElement = HEADER_STORE;
+            } else if (state.currentFocusedElement === HEADER_STORE) {
+              state.currentFocusedElement = HEADER_PROFILE;
+            }
+          } else if (key === 'ArrowDown') {
+            state.focusedZone = FOCUS_ZONES.SETTINGS;
+            state.currentSettingsElement = SETTINGS_DARK_MODE;
+          }
+          break;
+
+        case FOCUS_ZONES.PAGE:
+          if (key === 'ArrowUp') {
+            state.focusedZone = FOCUS_ZONES.HEADER;
+            state.currentFocusedElement = HEADER_MAIN_MENU;
+          }
+          break;
+
+        case FOCUS_ZONES.SETTINGS:
+          if (key === 'ArrowUp') {
+            if (state.currentSettingsElement === SETTINGS_DARK_MODE) {
+              state.focusedZone = FOCUS_ZONES.HEADER;
+              state.currentFocusedElement = HEADER_MAIN_MENU;
+              state.currentSettingsElement = null;
+            } else if (state.currentSettingsElement === SETTINGS_SOUND_EFFECTS) {
+              state.currentSettingsElement = SETTINGS_DARK_MODE;
+            } else if (state.currentSettingsElement === SETTINGS_MUSIC_VOLUME) {
+              state.currentSettingsElement = SETTINGS_SOUND_EFFECTS;
+            }
+          } else if (key === 'ArrowDown') {
+            if (state.currentSettingsElement === SETTINGS_DARK_MODE) {
+              state.currentSettingsElement = SETTINGS_SOUND_EFFECTS;
+            } else if (state.currentSettingsElement === SETTINGS_SOUND_EFFECTS) {
+              state.currentSettingsElement = SETTINGS_MUSIC_VOLUME;
+            }
+          }
+          break;
+
+        default:
+          break;
+      }
+    },
+    setLocation: (state, action) => {
+      state.currentRoute = action.payload;
+    },
+    setFocusedZone: (state, action) => {
+      state.focusedZone = action.payload;
+      if (action.payload === FOCUS_ZONES.SETTINGS && !state.currentSettingsElement) {
+        state.currentSettingsElement = SETTINGS_DARK_MODE;
+      }
     }
   }
 });
 
-export const { setFocusedSection } = focusSlice.actions;
+export const { handleKeyDown, setLocation, setFocusedZone } = focusSlice.actions;
 export default focusSlice.reducer;
