@@ -1,5 +1,3 @@
-// focusSlice.js
-
 import { createSlice } from '@reduxjs/toolkit';
 
 export const FOCUS_ZONES = {
@@ -19,6 +17,8 @@ export const SETTINGS_DARK_MODE = 'SETTINGS_DARK_MODE';
 export const SETTINGS_SOUND_EFFECTS = 'SETTINGS_SOUND_EFFECTS';
 export const SETTINGS_MUSIC_VOLUME = 'SETTINGS_MUSIC_VOLUME';
 
+export const CARS_STORE_TOP_ITEM = 'CARS_STORE_TOP_ITEM';
+
 const initialState = {
   focusedZone: FOCUS_ZONES.PAGE,
   currentFocusedElement: 'PAGE_MAIN_CONTENT',
@@ -32,12 +32,12 @@ const focusSlice = createSlice({
   reducers: {
     handleKeyDown(state, action) {
       const key = action.payload;
-      console.log("currentFocusedElement:", state.currentFocusedElement);
-      console.log("currentSettingsElement:", state.currentSettingsElement);
-
       switch (state.focusedZone) {
         case FOCUS_ZONES.HEADER:
-          if (key === 'ArrowLeft') {
+          if (key === 'ArrowUp') {
+            return;
+          }
+          else if (key === 'ArrowLeft') {
             if (state.currentFocusedElement === HEADER_CARS_STORE) {
               state.currentFocusedElement = HEADER_MAIN_MENU;
             } else if (state.currentFocusedElement === HEADER_MY_CARS) {
@@ -62,15 +62,19 @@ const focusSlice = createSlice({
               state.currentFocusedElement = HEADER_PROFILE;
             }
           } else if (key === 'ArrowDown') {
-            state.focusedZone = FOCUS_ZONES.SETTINGS;
-            state.currentSettingsElement = SETTINGS_DARK_MODE;
+            if (state.currentRoute === "/carsStore") {
+              state.focusedZone = FOCUS_ZONES.PAGE;
+              state.currentFocusedElement = CARS_STORE_TOP_ITEM;
+            }
           }
           break;
 
         case FOCUS_ZONES.PAGE:
           if (key === 'ArrowUp') {
-            state.focusedZone = FOCUS_ZONES.HEADER;
-            state.currentFocusedElement = HEADER_MAIN_MENU;
+            if (state.currentFocusedElement === SETTINGS_DARK_MODE || state.currentFocusedElement === CARS_STORE_TOP_ITEM) {
+              state.focusedZone = FOCUS_ZONES.HEADER;
+              state.currentFocusedElement = HEADER_MAIN_MENU;
+            }
           }
           break;
 
@@ -106,9 +110,15 @@ const focusSlice = createSlice({
       if (action.payload === FOCUS_ZONES.SETTINGS && !state.currentSettingsElement) {
         state.currentSettingsElement = SETTINGS_DARK_MODE;
       }
+      if (state.currentRoute === "/carsStore" && state.focusedZone !== FOCUS_ZONES.HEADER) {
+        state.currentFocusedElement = CARS_STORE_TOP_ITEM;
+      }
+    },
+    setCurrentFocusedElement: (state, action) => {
+      state.currentFocusedElement = action.payload;
     }
   }
 });
 
-export const { handleKeyDown, setLocation, setFocusedZone } = focusSlice.actions;
+export const { handleKeyDown, setLocation, setFocusedZone, setCurrentFocusedElement } = focusSlice.actions;
 export default focusSlice.reducer;

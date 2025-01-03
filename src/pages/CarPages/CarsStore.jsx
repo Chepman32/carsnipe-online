@@ -1,5 +1,3 @@
-// src/components/CarsStore.js
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Button, Modal, Form, Input, message, Select, Spin } from "antd";
 import { generateClient } from 'aws-amplify/api';
@@ -16,7 +14,8 @@ import {
   playClosingSound
 } from "../../functions";
 import { CreditWarningModal } from "../../components/CreditWarningModal/CreditWarningModal";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { CARS_STORE_TOP_ITEM, FOCUS_ZONES, setCurrentFocusedElement, setFocusedZone } from "../../redux/slices/focusSlice";
 
 const { Option } = Select;
 const client = generateClient();
@@ -34,6 +33,9 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
   const soundEffectsOnQuickSettings = useSelector((state) => state.quickSettings.soundEffectsOn);
   const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn);
+  const { focusedZone } = useSelector((state) => state.focus);
+
+  const dispatch = useDispatch();
 
   const showCarDetailsModal = useCallback(() => {
     setCarDetailsVisible(true);
@@ -73,6 +75,11 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       return groups;
     }, {});
   };
+
+  useEffect(() => {
+    dispatch(setFocusedZone(FOCUS_ZONES.PAGE))
+    focusedZone !== FOCUS_ZONES.HEADER && dispatch(setCurrentFocusedElement(CARS_STORE_TOP_ITEM));
+  }, [dispatch])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -138,6 +145,11 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         }
 
         case "ArrowDown": {
+          if (focusedZone === FOCUS_ZONES.HEADER) {
+            break; // Prevent scrolling if header is focused
+          }
+          setFocusedZone(FOCUS_ZONES.PAGE)
+          setCurrentFocusedElement(CARS_STORE_TOP_ITEM)
           const nextRowStartIndex = currentMakeStartIndex + (currentRow + 1) * itemsPerRow;
 
           if (currentRow < Math.floor((currentMakeCars.length - 1) / itemsPerRow)) {
@@ -168,6 +180,8 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         }
 
         case "ArrowUp": {
+          if(selectedCarIndex === 0) {
+          }
           const prevRowStartIndex = currentMakeStartIndex + (currentRow - 1) * itemsPerRow;
 
           if (currentRow > 0) {
@@ -200,7 +214,6 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
               behavior: "smooth"
             });
           }
-
           break;
         }
 
@@ -216,19 +229,12 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
+    focusedZone !== FOCUS_ZONES.HEADER && document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      focusedZone !== FOCUS_ZONES.HEADER && document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [
-    cars,
-    selectedCarIndex,
-    carDetailsVisible,
-    showCarDetailsModal,
-    soundEffectsOn,
-    soundEffectsOnQuickSettings
-  ]);
+  }, [cars, selectedCarIndex, carDetailsVisible, showCarDetailsModal, soundEffectsOn, soundEffectsOnQuickSettings, focusedZone]);
 
   const buyCar = async (car) => {
     if (playerInfo && playerInfo.id && money >= car.price) {
