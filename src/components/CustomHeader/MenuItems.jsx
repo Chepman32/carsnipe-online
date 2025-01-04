@@ -12,12 +12,12 @@ export const MenuItems = () => {
   return (
     <section className='customHeader__menu'>
       <Menu.Item 
-    key="mainMenu" 
-    style={{ 
-      background: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_MAIN_MENU ? 'red' : "transparent",
-      borderLeft: location.pathname === "/carsStore" ? '1px solid red' : 'none', 
-      borderRight: location.pathname === "/carsStore" ? '1px solid red' : 'none' 
-    }} 
+    key="carsStore" 
+    style={{
+      background: location.pathname === "/" ? 'red' : "transparent",
+      border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_MAIN_MENU ? '2px solid red' : 'none', 
+      borderRight: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_MAIN_MENU ? '2px solid red' : 'none' 
+    }}
     className='customHeader__menuItem'
   >
         <Link to="/" >
@@ -29,9 +29,8 @@ export const MenuItems = () => {
   <Menu.Item 
     key="carsStore" 
     style={{ 
-      background: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_CARS_STORE ? 'red' : "transparent",
-      borderLeft: location.pathname === "/carsStore" ? '1px solid red' : 'none', 
-      borderRight: location.pathname === "/carsStore" ? '1px solid red' : 'none' 
+      background: location.pathname === "/carsStore" ? 'rgba(42, 72, 234, 0.57)' : "transparent",
+      border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_CARS_STORE ? '2px solid red' : 'none',
     }} 
     className='customHeader__menuItem'
   >
@@ -41,9 +40,8 @@ export const MenuItems = () => {
   <Menu.Item 
     key="myCars" 
     style={{ 
-      background: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_MY_CARS ? 'red' : "transparent",
-      borderLeft: location.pathname === "/myCars" ? '1px solid red' : 'none', 
-      borderRight: location.pathname === "/myCars" ? '1px solid red' : 'none' 
+      background: location.pathname === "/myCars" ? 'rgba(42, 72, 234, 0.57)' : "transparent",
+      border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_MY_CARS ? '2px solid red' : 'none', 
     }} 
     className='customHeader__menuItem'
   >
@@ -53,9 +51,9 @@ export const MenuItems = () => {
   <Menu.Item 
     key="auctionsHub" 
     style={{ 
-      background: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_AUCTIONS ? 'red' : "transparent",
-      borderLeft: (location.pathname === "/auctionsHub" || location.pathname === "/auctions" || location.pathname === "/myBids" || location.pathname === "/myAuctions") ? '1px solid red' : 'none',
-      borderRight: (location.pathname === "/auctionsHub" || location.pathname === "/auctions" || location.pathname === "/myBids" || location.pathname === "/myAuctions") ? '1px solid red' : 'none' 
+      background: location.pathname === "/auctionsHub" ? 'rgba(42, 72, 234, 0.57)' : "transparent",
+      borderLeft: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_AUCTIONS ? '3px solid red' : 'none', 
+      borderRight: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_AUCTIONS ? '3px solid red' : 'none'
     }} 
     className='customHeader__menuItem'
   >
