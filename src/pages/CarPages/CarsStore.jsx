@@ -15,7 +15,7 @@ import {
 } from "../../functions";
 import { CreditWarningModal } from "../../components/CreditWarningModal/CreditWarningModal";
 import { useDispatch, useSelector } from 'react-redux';
-import { CARS_STORE_TOP_ITEM, FOCUS_ZONES, setCurrentFocusedElement, setFocusedZone } from "../../redux/slices/focusSlice";
+import { CARS_STORE_TOP_ITEM, FOCUS_ZONES, HEADER_MAIN_MENU, setCurrentFocusedElement, setFocusedZone } from "../../redux/slices/focusSlice";
 
 const { Option } = Select;
 const client = generateClient();
@@ -33,7 +33,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
   const soundEffectsOnQuickSettings = useSelector((state) => state.quickSettings.soundEffectsOn);
   const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn);
-  const { focusedZone } = useSelector((state) => state.focus);
+  const { focusedZone, currentFocusedElement } = useSelector((state) => state.focus);
 
   const dispatch = useDispatch();
 
@@ -80,6 +80,18 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     dispatch(setFocusedZone(FOCUS_ZONES.PAGE))
     focusedZone !== FOCUS_ZONES.HEADER && dispatch(setCurrentFocusedElement(CARS_STORE_TOP_ITEM));
   }, [dispatch])
+
+  useEffect(() => {
+    focusedZone === FOCUS_ZONES.HEADER && setSelectedCarIndex(null)
+    focusedZone === FOCUS_ZONES.PAGE && setSelectedCarIndex(0)
+    cars.indexOf(selectedCar) === 0 && dispatch(setCurrentFocusedElement(CARS_STORE_TOP_ITEM))
+  }, [focusedZone, cars, selectedCar, dispatch])
+
+  useEffect(() => {
+    if(cars.indexOf(selectedCar) === 0) {
+      dispatch(setCurrentFocusedElement(CARS_STORE_TOP_ITEM))
+    }
+  }, [selectedCar, dispatch, cars])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -146,10 +158,9 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
         case "ArrowDown": {
           if (focusedZone === FOCUS_ZONES.HEADER) {
-            break; // Prevent scrolling if header is focused
+            break
           }
           setFocusedZone(FOCUS_ZONES.PAGE)
-          setCurrentFocusedElement(CARS_STORE_TOP_ITEM)
           const nextRowStartIndex = currentMakeStartIndex + (currentRow + 1) * itemsPerRow;
 
           if (currentRow < Math.floor((currentMakeCars.length - 1) / itemsPerRow)) {
@@ -180,7 +191,9 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         }
 
         case "ArrowUp": {
-          if(selectedCarIndex === 0) {
+          if(cars.indexOf(selectedCar) === 0 === 0) {
+            dispatch(setFocusedZone(FOCUS_ZONES.HEADER))
+            dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU))
           }
           const prevRowStartIndex = currentMakeStartIndex + (currentRow - 1) * itemsPerRow;
 

@@ -31,7 +31,11 @@ const focusSlice = createSlice({
   initialState,
   reducers: {
     handleKeyDown(state, action) {
+      console.log("currentFocusedElement:", state.currentFocusedElement)
+      console.log("focusedZone:", state.focusedZone)
+      
       const key = action.payload;
+      
       switch (state.focusedZone) {
         case FOCUS_ZONES.HEADER:
           if (key === 'ArrowUp') {
@@ -68,16 +72,23 @@ const focusSlice = createSlice({
             }
           }
           break;
-
+          
         case FOCUS_ZONES.PAGE:
           if (key === 'ArrowUp') {
-            if (state.currentFocusedElement === SETTINGS_DARK_MODE || state.currentFocusedElement === CARS_STORE_TOP_ITEM) {
+            if (state.currentFocusedElement === "") {
+              state.currentFocusedElement = CARS_STORE_TOP_ITEM;
+            } else if (state.currentFocusedElement === CARS_STORE_TOP_ITEM) {
               state.focusedZone = FOCUS_ZONES.HEADER;
               state.currentFocusedElement = HEADER_MAIN_MENU;
             }
           }
+          else if (key === 'ArrowDown') {
+            if (state.currentFocusedElement === CARS_STORE_TOP_ITEM) {
+              state.currentFocusedElement = "";
+            }
+          }
           break;
-
+          
         case FOCUS_ZONES.SETTINGS:
           if (key === 'ArrowUp') {
             if (state.currentSettingsElement === SETTINGS_DARK_MODE) {
@@ -97,14 +108,16 @@ const focusSlice = createSlice({
             }
           }
           break;
-
+          
         default:
           break;
       }
     },
+    
     setLocation: (state, action) => {
       state.currentRoute = action.payload;
     },
+    
     setFocusedZone: (state, action) => {
       state.focusedZone = action.payload;
       if (action.payload === FOCUS_ZONES.SETTINGS && !state.currentSettingsElement) {
@@ -114,6 +127,7 @@ const focusSlice = createSlice({
         state.currentFocusedElement = CARS_STORE_TOP_ITEM;
       }
     },
+    
     setCurrentFocusedElement: (state, action) => {
       state.currentFocusedElement = action.payload;
     }
