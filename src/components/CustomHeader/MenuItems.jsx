@@ -12,7 +12,7 @@ export const MenuItems = () => {
   return (
     <section className='customHeader__menu'>
       <Menu.Item 
-    key="carsStore" 
+    key="mainMenu" 
     style={{ 
       background: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_MAIN_MENU ? 'red' : "transparent",
       borderLeft: location.pathname === "/carsStore" ? '1px solid red' : 'none', 
