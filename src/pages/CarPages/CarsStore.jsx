@@ -56,6 +56,28 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     }
   }, [selectedCar, cars, focuseddCar, dispatch]);
 
+  useEffect(() => {
+    if (focusedZone === FOCUS_ZONES.PAGE && !focuseddCar) {
+      setFocuseddCar(cars[0]);
+      setSelectedCarIndex(0);
+    }
+    else if(focusedZone === FOCUS_ZONES.HEADER && focuseddCar) {
+      setFocuseddCar(null);
+    }
+  }, [focusedZone, focuseddCar, cars]);
+
+  useEffect(() => {
+    if (focuseddCar) {
+      const element = document.querySelector(`[data-car-id="${focuseddCar.id}"]`);
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
+      }
+    }
+  }, [focuseddCar]);
+
   const showCarDetailsModal = useCallback(() => {
     setCarDetailsVisible(true);
   }, []);

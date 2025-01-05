@@ -11,6 +11,7 @@ export default function CarCard({ focuseddCar, selectedCar, setSelectedCar, show
         setSelectedCar(car); // Set the selected car
         showCarDetailsModal();
     }}
+      data-car-id={car.id}
     className={focuseddCar?.id === car.id ? "carsPage__item carsPage__item_selected" : "carsPage__item"}>
 
             <Flex style={{ textAlign: 'center' }} align="center">
