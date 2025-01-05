@@ -3,22 +3,22 @@ import { Form, Input, Button, notification, Typography } from 'antd';
 import { LogoutOutlined } from '@ant-design/icons';
 import { generateClient } from 'aws-amplify/api';
 import * as mutations from '../../graphql/mutations';
-import avatar1 from "../../assets/images/avatars/avatar1.jpg"
-import avatar2 from "../../assets/images/avatars/avatar2.jpg"
-import avatar3 from "../../assets/images/avatars/avatar3.jpeg"
-import avatar4 from "../../assets/images/avatars/avatar4.jpeg"
-import avatar5 from "../../assets/images/avatars/avatar5.jpeg"
-import avatar6 from "../../assets/images/avatars/avatar6.jpeg"
-import avatar7 from "../../assets/images/avatars/avatar7.png"
-import avatar8 from "../../assets/images/avatars/avatar8.jpeg"
-import avatar9 from "../../assets/images/avatars/avatar9.png"
-import avatar10 from "../../assets/images/avatars/avatar10.png"
-import avatar11 from "../../assets/images/avatars/avatar11.jpeg"
-import avatar12 from "../../assets/images/avatars/avatar12.jpeg"
-import avatar13 from "../../assets/images/avatars/avatar13.png"
-import avatar14 from "../../assets/images/avatars/avatar14.png"
-import avatar15 from "../../assets/images/avatars/avatar15.png"
-import avatar16 from "../../assets/images/avatars/avatar16.png"
+import avatar1 from "../../assets/images/avatars/avatar1.jpg";
+import avatar2 from "../../assets/images/avatars/avatar2.jpg";
+import avatar3 from "../../assets/images/avatars/avatar3.jpeg";
+import avatar4 from "../../assets/images/avatars/avatar4.jpeg";
+import avatar5 from "../../assets/images/avatars/avatar5.jpeg";
+import avatar6 from "../../assets/images/avatars/avatar6.jpeg";
+import avatar7 from "../../assets/images/avatars/avatar7.png";
+import avatar8 from "../../assets/images/avatars/avatar8.jpeg";
+import avatar9 from "../../assets/images/avatars/avatar9.png";
+import avatar10 from "../../assets/images/avatars/avatar10.png";
+import avatar11 from "../../assets/images/avatars/avatar11.jpeg";
+import avatar12 from "../../assets/images/avatars/avatar12.jpeg";
+import avatar13 from "../../assets/images/avatars/avatar13.png";
+import avatar14 from "../../assets/images/avatars/avatar14.png";
+import avatar15 from "../../assets/images/avatars/avatar15.png";
+import avatar16 from "../../assets/images/avatars/avatar16.png";
 import "./styles.css";
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -48,6 +48,7 @@ const avatarMap = {
 };
 
 const avatars = Object.keys(avatarMap);
+const avatarsPerRow = 4; // Number of avatars in one row
 
 const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
   const [form] = Form.useForm();
@@ -55,20 +56,59 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   const [loading, setLoading] = useState(false);
   const [nickname, setNickname] = useState(playerInfo.nickname || "");
   const [bio, setBio] = useState(playerInfo.bio || "");
+  const [focusedAvatarIndex, setFocusedAvatarIndex] = useState(0);
 
-  // Access darkMode from Redux
   const darkMode = useSelector((state) => state.quickSettings.darkMode);
 
   useEffect(() => {
-    const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-
     if (playerInfo.nickname) setNickname(playerInfo.nickname);
     if (playerInfo.avatar) setSelectedAvatar(playerInfo.avatar);
     if (playerInfo.bio) setBio(playerInfo.bio);
   }, [playerInfo]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (document.activeElement.tagName === "TEXTAREA" || document.activeElement.tagName === "INPUT") {
+        return; // Skip handling when focus is on form fields
+      }
+
+      let newIndex = focusedAvatarIndex;
+
+      switch (event.key) {
+        case "ArrowRight":
+          newIndex = (focusedAvatarIndex + 1) % avatars.length;
+          break;
+        case "ArrowLeft":
+          newIndex = (focusedAvatarIndex - 1 + avatars.length) % avatars.length;
+          break;
+        case "ArrowDown":
+          newIndex =
+            focusedAvatarIndex + avatarsPerRow < avatars.length
+              ? focusedAvatarIndex + avatarsPerRow
+              : focusedAvatarIndex;
+          break;
+        case "ArrowUp":
+          newIndex =
+            focusedAvatarIndex - avatarsPerRow >= 0
+              ? focusedAvatarIndex - avatarsPerRow
+              : focusedAvatarIndex;
+          break;
+        case "Enter":
+        case " ":
+          setSelectedAvatar(avatars[focusedAvatarIndex]);
+          break;
+        default:
+          break;
+      }
+
+      setFocusedAvatarIndex(newIndex);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [focusedAvatarIndex]);
 
   const handleAvatarSelect = (avatarName) => {
     setSelectedAvatar(avatarName);
@@ -82,18 +122,10 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
         nickname,
         bio,
         avatar: selectedAvatar,
-        totalCarsOwned: playerInfo.totalCarsOwned,
-        totalAuctionsParticipated: playerInfo.totalAuctionsParticipated,
-        totalBidsPlaced: playerInfo.totalBidsPlaced,
-        totalSpent: playerInfo.totalSpent,
-        totalAuctionsWon: playerInfo.totalAuctionsWon,
-        totalProfitEarned: playerInfo.totalProfitEarned,
       };
       await client.graphql({
         query: mutations.updateUser,
-        variables: {
-          input: updatedUser,
-        },
+        variables: { input: updatedUser },
       });
       currentAuthenticatedUser();
       setLoading(false);
@@ -112,12 +144,12 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
     }
   };
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleSignOut = () => {
     setPlayerInfo(null);
     signOut();
-    navigate('/')
+    navigate('/');
     notification.info({
       message: 'Signed Out',
       description: 'You have been signed out successfully',
@@ -138,9 +170,11 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
                 <img
                   key={index}
                   src={avatarMap[avatarName]}
-                  className={`avatar-item ${selectedAvatar === avatarName ? 'selected' : ''}`}
-                  onClick={() => handleAvatarSelect(avatarName)}
+                  className={`avatar-item ${selectedAvatar === avatarName ? 'selected' : ''} ${
+                    index === focusedAvatarIndex ? 'focused' : ''
+                  }`}
                   alt={avatarName}
+                  onClick={() => handleAvatarSelect(avatarName)}
                 />
               ))}
             </div>
