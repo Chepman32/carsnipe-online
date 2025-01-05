@@ -89,10 +89,12 @@
 
 .storeLink {
   margin-right: 2vw;
+  padding: 4% 0;
   padding-left: 0.5vw;
   display: flex;
   align-items: center;
   transition: transform 0.3s ease;
+  border-radius: .5rem;
   color: var(--text-color);
 }
 
@@ -209,6 +211,10 @@
   }
 }
 
+.customHeader__avatar {
+  background: aqua;
+}
+
 .customHeader__avatar img, .drawer__avatar img {
   width: 40px;
   height: 40px;
@@ -219,6 +225,7 @@
 
 @media (min-width: 768px) {
   .customHeader__avatar {
+    padding: 5vh;
     display: flex;
     justify-content: center;
     align-items: center;

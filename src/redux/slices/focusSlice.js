@@ -1,3 +1,4 @@
+// focusSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 export const FOCUS_ZONES = {
@@ -35,13 +36,11 @@ const focusSlice = createSlice({
   initialState,
   reducers: {
     handleKeyDown(state, action) {
-      console.log("currentFocusedElement", state.currentFocusedElement);
-      console.log("focusedZone", state.focusedZone);
       const key = action.payload;
       switch (state.focusedZone) {
         case FOCUS_ZONES.HEADER:
           if (key === "ArrowUp") {
-            return;
+            // Handle ArrowUp if needed
           } else if (key === "ArrowLeft") {
             if (state.currentFocusedElement === HEADER_CARS_STORE) {
               state.currentFocusedElement = HEADER_MAIN_MENU;
@@ -79,6 +78,7 @@ const focusSlice = createSlice({
           break;
         case FOCUS_ZONES.PAGE:
           if (key === "ArrowUp") {
+            // Handle ArrowUp if needed
           } else if (key === "ArrowDown") {
             if (state.currentFocusedElement === TOP_CAR) {
               state.currentFocusedElement = "";
@@ -88,7 +88,7 @@ const focusSlice = createSlice({
         case FOCUS_ZONES.SETTINGS:
           if (key === "ArrowUp") {
             if (state.currentRoute === "/store") {
-              state.focusedZone = FOCUS_ZONES.HEADER
+              state.focusedZone = FOCUS_ZONES.HEADER;
               state.currentFocusedElement = HEADER_MAIN_MENU;
             }
             if (state.currentSettingsElement === SETTINGS_DARK_MODE) {
@@ -120,9 +120,8 @@ const focusSlice = createSlice({
             if (state.currentRoute === "/carsStore") {
               state.currentFocusedElement = TOP_CAR;
             }
-          } else if (key === "ArrowDown") {
-            // Define behavior for ArrowDown if needed
           } else if (key === "Enter") {
+            // Handle Enter key in STORE zone if needed
           }
           break;
         default:

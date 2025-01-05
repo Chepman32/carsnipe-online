@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Menu, Typography, Drawer, Button } from 'antd';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isMobile } from 'react-device-detect';
 import { MenuOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleMusic, toggleDarkMode, toggleSoundEffects } from '../../redux/slices/quickSettingsSlice';
 import { MenuItems } from './MenuItems';
 import plus_symbol from "../../assets/icons/plus_ymbol.png";
+import { FOCUS_ZONES, HEADER_PROFILE, HEADER_STORE, handleKeyDown } from '../../redux/slices/focusSlice';
 
 const { Text } = Typography;
 
@@ -17,8 +18,11 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   const menuRef = useRef(null);
   const closeMenuTimeout = useRef(null);
   const location = useLocation();
-  const { musicOn, soundEffectsOn, darkMode } = useSelector((state) => state.quickSettings);
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const { musicOn, soundEffectsOn, darkMode } = useSelector((state) => state.quickSettings);
+  const { focusedZone, currentFocusedElement } = useSelector((state) => state.focus);
 
   const toggleDrawer = () => {
     setDrawerVisible(!drawerVisible);
@@ -50,6 +54,41 @@ const CustomHeader = ({ nickname, avatar, money }) => {
       }
     }, 200);
   };
+
+  useEffect(() => {
+    const keyDownHandler = (event) => {
+      dispatch(handleKeyDown(event.key));
+      if (event.key === 'Enter') {
+        switch (currentFocusedElement) {
+          case 'HEADER_MAIN_MENU':
+            navigate('/');
+            break;
+          case 'HEADER_CARS_STORE':
+            navigate('/carsStore');
+            break;
+          case 'HEADER_MY_CARS':
+            navigate('/myCars');
+            break;
+          case 'HEADER_AUCTIONS':
+            navigate('/auctionsHub');
+            break;
+          case HEADER_STORE:
+            navigate('/store');
+            break;
+          case HEADER_PROFILE:
+            navigate('/profileEditPage');
+            break;
+          default:
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', keyDownHandler);
+    return () => {
+      window.removeEventListener('keydown', keyDownHandler);
+    };
+  }, [dispatch, navigate, currentFocusedElement]);
 
   useEffect(() => {
     return () => {
@@ -93,8 +132,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             style={{ display: isMobile ? 'block' : 'none' }}
           />
           {!isMobile && (
-            <MenuItems
-            />
+            <MenuItems />
           )}
           <section style={{ display: 'flex', alignItems: 'center' }}>
             <Link
@@ -103,13 +141,13 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               style={{
-                background: 'transparent',
-                borderLeft: location.pathname === "/store" ? '1px solid var(--border-color)' : '',
-                borderRight: location.pathname === "/store" ? '1px solid var(--border-color)' : ''
+                background: location.pathname === "/store" ? 'rgba(42, 72, 234, 0.57)' : "transparent",
+                border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_STORE ? '2px solid red' : 'none',
               }}
+              tabIndex={0}
             >
               <img src={plus_symbol} alt="plus_symbol" className="headerIcon" />
-              <Text style={{ marginRight: 15 }} type="warning">
+              <Text style={{ marginRight: 15, fontWeight: "bold", color: darkMode ? "#ffdd00" : "#000000" }} >
                 {"$" + money}
               </Text>
             </Link>
@@ -119,11 +157,13 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               to="/profileEditPage"
               className="customHeader__avatar"
               style={{
-                background: 'transparent',
-                borderLeft: location.pathname === "/profileEditPage" || location.pathname === "/achievements" ? '1px solid var(--border-color)' : '',
-                borderRight: location.pathname === "/profileEditPage" ? '1px solid var(--border-color)' : ''
+                padding: "0.45rem",
+                background: location.pathname === "/profileEditPage" || location.pathname === "/achievements" ? 'rgba(42, 72, 234, 0.57)' : "transparent",
+                border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_PROFILE ? '2px solid red' : 'none',
+                borderRadius: ".7rem"
               }}
               ref={menuRef}
+              tabIndex={0}
             >
               <Typography.Text style={{ marginRight: 15, color: "var(--text-color)", fontSize: "1.4rem", fontWeight: "bold" }}>
                 {nickname}
@@ -186,8 +226,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
         onClose={toggleDrawer}
         open={drawerVisible}
       >
-        <MenuItems
-        />
+        <MenuItems />
       </Drawer>
       <div className="headerPlaceholder"></div>
     </>
