@@ -4,12 +4,23 @@ import * as mutations from './graphql/mutations'
 import SwitchSound from "./assets/audio/light-switch.mp3"
 import OpeningSound from "./assets/audio/opening.MP3"
 import ClosingSound from "./assets/audio/closing.MP3"
-import avatar1 from "./assets/images/avatars/633acd8e-6641-4ad5-93a7-a2a4a7eedd2a.jpg"
-import avatar2 from "./assets/images/avatars/df6a476f-b3ca-42c9-ab86-d3a8f539e7d8.jpg"
-import avatar3 from "./assets/images/avatars/images (1).jpeg"
-import avatar4 from "./assets/images/avatars/images (2).jpeg"
-import avatar5 from "./assets/images/avatars/images (3).jpeg"
-import avatar6 from "./assets/images/avatars/images.jpeg"
+import avatar1 from "./assets/images/avatars/avatar1.jpg"
+import avatar2 from "./assets/images/avatars/avatar2.jpg"
+import avatar3 from "./assets/images/avatars/avatar3.jpeg"
+import avatar4 from "./assets/images/avatars/avatar4.jpeg"
+import avatar5 from "./assets/images/avatars/avatar5.jpeg"
+import avatar6 from "./assets/images/avatars/avatar6.jpeg"
+import avatar7 from "./assets/images/avatars/avatar7.png"
+import avatar8 from "./assets/images/avatars/avatar8.jpeg"
+import avatar9 from "./assets/images/avatars/avatar9.png"
+import avatar10 from "./assets/images/avatars/avatar10.png"
+import avatar11 from "./assets/images/avatars/avatar11.jpeg"
+import avatar12 from "./assets/images/avatars/avatar12.jpeg"
+import avatar13 from "./assets/images/avatars/avatar13.png"
+import avatar14 from "./assets/images/avatars/avatar14.png"
+import avatar15 from "./assets/images/avatars/avatar15.png"
+import avatar16 from "./assets/images/avatars/avatar16.png"
+
 import { message } from "antd";
 
 const client = generateClient();
@@ -424,6 +435,26 @@ export const selectAvatar = (avatar) => {
       return avatar5;
       case "avatar6":
       return avatar6;
+      case "avatar7":
+        return avatar7
+      case "avatar8":
+        return avatar8
+      case "avatar9":
+        return avatar9
+      case "avatar10":
+        return avatar10
+      case "avatar11":
+        return avatar11
+      case "avatar12":
+        return avatar12
+      case "avatar13":
+        return avatar13
+      case "avatar14":
+        return avatar14
+      case "avatar15":
+        return avatar15
+      case "avatar16":
+        return avatar16
     default:
       return avatar1;
   }
