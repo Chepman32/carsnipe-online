@@ -374,6 +374,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                       return (
                         <CarCard
                           key={car.id}
+                          focuseddCar={focuseddCar}
                           selectedCar={absoluteIndex === selectedCarIndex ? car : null}
                           setSelectedCar={(selectedCar) => {
                             setSelectedCar(selectedCar);

@@ -1,11 +1,10 @@
-// focusSlice.js
-
 import { createSlice } from "@reduxjs/toolkit";
 
 export const FOCUS_ZONES = {
   HEADER: "HEADER",
   PAGE: "PAGE",
-  SETTINGS: "SETTINGS"
+  SETTINGS: "SETTINGS",
+  STORE: "STORE"
 };
 
 export const HEADER_MAIN_MENU = "HEADER_MAIN_MENU";
@@ -26,7 +25,9 @@ const initialState = {
   currentFocusedElement: "PAGE_MAIN_CONTENT",
   currentSettingsElement: SETTINGS_DARK_MODE,
   currentRoute: "/",
-  isTopCar: false
+  isTopCar: false,
+  storeFocusedIndex: 0,
+  storeItemsCount: 6
 };
 
 const focusSlice = createSlice({
@@ -34,6 +35,8 @@ const focusSlice = createSlice({
   initialState,
   reducers: {
     handleKeyDown(state, action) {
+      console.log("currentFocusedElement", state.currentFocusedElement);
+      console.log("focusedZone", state.focusedZone);
       const key = action.payload;
       switch (state.focusedZone) {
         case FOCUS_ZONES.HEADER:
@@ -68,12 +71,14 @@ const focusSlice = createSlice({
               state.focusedZone = FOCUS_ZONES.PAGE;
               state.currentFocusedElement = TOP_CAR;
             }
+            if (state.currentRoute === "/store") {
+              state.focusedZone = FOCUS_ZONES.STORE;
+              state.storeFocusedIndex = 0;
+            }
           }
           break;
         case FOCUS_ZONES.PAGE:
           if (key === "ArrowUp") {
-            // no direct check of isTopCar here; we rely on the store logic
-            // to handle whether selectedCarIndex === 0 or not
           } else if (key === "ArrowDown") {
             if (state.currentFocusedElement === TOP_CAR) {
               state.currentFocusedElement = "";
@@ -82,6 +87,10 @@ const focusSlice = createSlice({
           break;
         case FOCUS_ZONES.SETTINGS:
           if (key === "ArrowUp") {
+            if (state.currentRoute === "/store") {
+              state.focusedZone = FOCUS_ZONES.HEADER
+              state.currentFocusedElement = HEADER_MAIN_MENU;
+            }
             if (state.currentSettingsElement === SETTINGS_DARK_MODE) {
               state.focusedZone = FOCUS_ZONES.HEADER;
               state.currentFocusedElement = HEADER_MAIN_MENU;
@@ -99,6 +108,23 @@ const focusSlice = createSlice({
             }
           }
           break;
+        case FOCUS_ZONES.STORE:
+          if (key === "ArrowLeft") {
+            state.storeFocusedIndex = Math.max(state.storeFocusedIndex - 1, 0);
+          } else if (key === "ArrowRight") {
+            state.storeFocusedIndex = Math.min(state.storeFocusedIndex + 1, state.storeItemsCount - 1);
+          } else if (key === "ArrowUp") {
+            state.focusedZone = FOCUS_ZONES.HEADER;
+            state.currentFocusedElement = HEADER_MAIN_MENU;
+            state.storeFocusedIndex = 0;
+            if (state.currentRoute === "/carsStore") {
+              state.currentFocusedElement = TOP_CAR;
+            }
+          } else if (key === "ArrowDown") {
+            // Define behavior for ArrowDown if needed
+          } else if (key === "Enter") {
+          }
+          break;
         default:
           break;
       }
@@ -114,12 +140,19 @@ const focusSlice = createSlice({
       if (state.currentRoute === "/carsStore" && state.focusedZone !== FOCUS_ZONES.HEADER) {
         state.currentFocusedElement = TOP_CAR;
       }
+      if (action.payload === FOCUS_ZONES.STORE) {
+        state.storeFocusedIndex = 0;
+        state.storeItemsCount = 6;
+      }
     },
     setCurrentFocusedElement: (state, action) => {
       state.currentFocusedElement = action.payload;
     },
     setIsTopCar: (state, action) => {
       state.isTopCar = action.payload;
+    },
+    setStoreItemsCount: (state, action) => {
+      state.storeItemsCount = action.payload;
     }
   }
 });
@@ -129,7 +162,8 @@ export const {
   setLocation,
   setFocusedZone,
   setCurrentFocusedElement,
-  setIsTopCar
+  setIsTopCar,
+  setStoreItemsCount
 } = focusSlice.actions;
 
 export default focusSlice.reducer;

@@ -3,7 +3,7 @@ import React from 'react'
 import "./carsPage.css";
 import { getCarTypeColor, playOpeningSound } from '../../functions';
 
-export default function CarCard({ selectedCar, setSelectedCar, showCarDetailsModal, car, getImageSource, showPrice }) {
+export default function CarCard({ focuseddCar, selectedCar, setSelectedCar, showCarDetailsModal, car, getImageSource, showPrice }) {
   return (
     <div
       onClick={() => {
@@ -11,7 +11,7 @@ export default function CarCard({ selectedCar, setSelectedCar, showCarDetailsMod
         setSelectedCar(car); // Set the selected car
         showCarDetailsModal();
     }}
-    className={selectedCar?.id === car.id ? "carsPage__item carsPage__item_selected" : "carsPage__item"}>
+    className={focuseddCar?.id === car.id ? "carsPage__item carsPage__item_selected" : "carsPage__item"}>
 
             <Flex style={{ textAlign: 'center' }} align="center">
               <h3 className="carsPage__model">{car.model} &nbsp;</h3>
