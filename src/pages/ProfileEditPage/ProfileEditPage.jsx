@@ -21,7 +21,8 @@ import avatar15 from "../../assets/images/avatars/avatar15.png";
 import avatar16 from "../../assets/images/avatars/avatar16.png";
 import "./styles.css";
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { FOCUS_ZONES, HEADER_MAIN_MENU, setCurrentFocusedElement, setFocusedZone } from '../../redux/slices/focusSlice';
 
 const client = generateClient();
 
@@ -60,6 +61,8 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
 
   const darkMode = useSelector((state) => state.quickSettings.darkMode);
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     if (playerInfo.nickname) setNickname(playerInfo.nickname);
     if (playerInfo.avatar) setSelectedAvatar(playerInfo.avatar);
@@ -88,6 +91,10 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
               : focusedAvatarIndex;
           break;
         case "ArrowUp":
+          if (focusedAvatarIndex < avatarsPerRow) {
+            dispatch(setFocusedZone(FOCUS_ZONES.HEADER))
+            dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU))
+          }
           newIndex =
             focusedAvatarIndex - avatarsPerRow >= 0
               ? focusedAvatarIndex - avatarsPerRow
@@ -108,7 +115,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [focusedAvatarIndex]);
+  }, [focusedAvatarIndex, dispatch]);
 
   const handleAvatarSelect = (avatarName) => {
     setSelectedAvatar(avatarName);

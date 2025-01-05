@@ -74,6 +74,10 @@ const focusSlice = createSlice({
               state.focusedZone = FOCUS_ZONES.STORE;
               state.storeFocusedIndex = 0;
             }
+            if (state.currentRoute === "/profileEditPage") {
+              state.focusedZone = FOCUS_ZONES.PAGE;
+              state.currentSettingsElement = null
+            }
           }
           break;
         case FOCUS_ZONES.PAGE:
