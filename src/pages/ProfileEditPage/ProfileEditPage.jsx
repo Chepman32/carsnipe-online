@@ -58,6 +58,8 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   const [nickname, setNickname] = useState(playerInfo.nickname || "");
   const [bio, setBio] = useState(playerInfo.bio || "");
   const [focusedAvatarIndex, setFocusedAvatarIndex] = useState(0);
+  const [focusedElement, setFocusedElement] = useState('avatars'); // avatars, nickname, bio, achievements, signout
+  const [isEditing, setIsEditing] = useState(false);
 
   const darkMode = useSelector((state) => state.quickSettings.darkMode);
   const { focusedZone } = useSelector((state) => state.focus);
@@ -66,7 +68,9 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
 
   useEffect(() => {
     if (focusedZone === FOCUS_ZONES.PAGE) {
+      setFocusedElement('avatars');
       setFocusedAvatarIndex(0);
+      setIsEditing(false);
     }
   }, [focusedZone]);
 
@@ -78,7 +82,15 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (document.activeElement.tagName === "TEXTAREA" || document.activeElement.tagName === "INPUT") {
+      if (isEditing && document.activeElement.tagName === "TEXTAREA" || document.activeElement.tagName === "INPUT") {
+        if (event.key === "Escape") {
+          document.activeElement.blur();
+          setIsEditing(false);
+          return;
+        }
+        if (event.key === "Tab") {
+          return;
+        }
         return;
       }
 
@@ -86,53 +98,98 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
 
       switch (event.key) {
         case "ArrowRight":
-          if (focusedZone === FOCUS_ZONES.PAGE) {
+          if (focusedElement === 'avatars') {
             newIndex = (focusedAvatarIndex + 1) % avatars.length;
+          } else if (focusedElement === 'signout') {
+            setFocusedElement('achievements');
           }
           break;
         case "ArrowLeft":
-          if (focusedZone === FOCUS_ZONES.PAGE) {
+          if (focusedElement === 'avatars') {
             newIndex = (focusedAvatarIndex - 1 + avatars.length) % avatars.length;
+          } else if (focusedElement === 'achievements') {
+            setFocusedElement('signout');
           }
           break;
         case "ArrowDown":
-          if (focusedZone === FOCUS_ZONES.PAGE) {
-            newIndex =
-              focusedAvatarIndex + avatarsPerRow < avatars.length
-                ? focusedAvatarIndex + avatarsPerRow
-                : focusedAvatarIndex;
+          if (focusedElement === 'avatars') {
+            if (focusedAvatarIndex + avatarsPerRow < avatars.length) {
+              newIndex = focusedAvatarIndex + avatarsPerRow;
+            } else {
+              setFocusedElement('nickname');
+              setFocusedAvatarIndex(-1);
+              return;
+            }
+          } else if (focusedElement === 'nickname') {
+            setFocusedElement('bio');
+            return;
+          } else if (focusedElement === 'bio') {
+            setFocusedElement('save');
+            return;
+          } else if (focusedElement === 'save') {
+            setFocusedElement('signout');
+            return;
           }
           break;
         case "ArrowUp":
-          if (focusedAvatarIndex < avatarsPerRow) {
+          if (focusedAvatarIndex < avatarsPerRow && focusedElement === 'avatars') {
             dispatch(setFocusedZone(FOCUS_ZONES.HEADER))
             dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU))
             setFocusedAvatarIndex(-1)
             return;
+          } else if (focusedElement === 'nickname') {
+            setFocusedElement('avatars');
+            setFocusedAvatarIndex(avatars.length - 1);
+            return;
+          } else if (focusedElement === 'bio') {
+            setFocusedElement('nickname');
+            return;
+          } else if (focusedElement === 'save') {
+            setFocusedElement('bio');
+            return;
+          } else if (focusedElement === 'signout') {
+            setFocusedElement('save');
+            return;
+          } else if (focusedElement === 'achievements') {
+            setFocusedElement('bio');
+            return;
           }
-          if (focusedZone === FOCUS_ZONES.PAGE) {
-            newIndex =
-              focusedAvatarIndex - avatarsPerRow >= 0
-                ? focusedAvatarIndex - avatarsPerRow
-                : focusedAvatarIndex;
+          if (focusedElement === 'avatars') {
+            newIndex = focusedAvatarIndex - avatarsPerRow >= 0 ? focusedAvatarIndex - avatarsPerRow : focusedAvatarIndex;
           }
           break;
         case "Enter":
         case " ":
-          setSelectedAvatar(avatars[focusedAvatarIndex]);
+          if (focusedElement === 'avatars') {
+            setSelectedAvatar(avatars[focusedAvatarIndex]);
+          } else if (focusedElement === 'achievements') {
+            window.location.href = '/achievements';
+          } else if (focusedElement === 'nickname' || focusedElement === 'bio') {
+            setIsEditing(true);
+            const element = focusedElement === 'nickname' ? 
+              document.querySelector('.input-field') : 
+              document.querySelector('.textarea-field');
+            if (element) {
+              element.focus();
+            }
+          } else if (focusedElement === 'signout') {
+            signOut();
+          }
           break;
         default:
           break;
       }
 
-      setFocusedAvatarIndex(newIndex);
+      if (focusedElement === 'avatars') {
+        setFocusedAvatarIndex(newIndex);
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [focusedAvatarIndex, dispatch, focusedZone]);
+  }, [focusedAvatarIndex, dispatch, focusedZone, focusedElement, isEditing]);
 
   const handleAvatarSelect = (avatarName) => {
     setSelectedAvatar(avatarName);
@@ -207,7 +264,8 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
                 placeholder="Enter your nickname" 
                 value={nickname} 
                 onChange={(event) => setNickname(event.target.value)}
-                className="input-field"
+                className={`input-field ${focusedElement === 'nickname' && !isEditing ? 'focused' : ''}`}
+                readOnly={!isEditing}
               />
             </Form.Item>
             <Form.Item>
@@ -216,7 +274,8 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
                 rows={4}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="textarea-field"
+                className={`textarea-field ${focusedElement === 'bio' && !isEditing ? 'focused' : ''}`}
+                readOnly={!isEditing}
               />
             </Form.Item>
             <Form.Item>
@@ -224,7 +283,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
                 type="primary" 
                 htmlType="submit"
                 block
-                className="save-button"
+                className={`save-button ${focusedElement === 'save' ? 'focused' : ''}`}
                 loading={loading}
               >
                 Save Changes
@@ -236,7 +295,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
             icon={<LogoutOutlined />}
             onClick={handleSignOut}
             block
-            className="signout-button"
+            className={`signout-button ${focusedElement === 'signout' ? 'focused' : ''}`}
           >
             Sign Out
           </Button>
@@ -245,7 +304,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
       <Link 
         to="/achievements"
         type="primary" 
-        className="achievementsButton"
+        className={`achievementsButton ${focusedElement === 'achievements' ? 'focused' : ''}`}
       >
         My achievements
       </Link>
