@@ -49,15 +49,20 @@
 
 .customHeader__menuItem {
   padding: 0 20px;
-  color: var(--menu-text);
+  color: var(--menu-text) !important;
   background: none; /* No background by default */
   border: none; /* Remove any existing borders */
   transition: background 0.3s, border 0.3s;
 }
 
 .customHeader__menuItem a {
-  color: inherit; /* Ensure link text color matches theme */
+  color: var(--menu-text) !important;
   text-decoration: none;
+}
+
+.customHeader__menuItem h2 {
+  color: var(--menu-text) !important;
+  margin: 0;
 }
 
 .customHeader__menuItem.active {

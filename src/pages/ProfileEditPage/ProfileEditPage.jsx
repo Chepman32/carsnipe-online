@@ -99,14 +99,33 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
       switch (event.key) {
         case "ArrowRight":
           if (focusedElement === 'avatars') {
-            newIndex = (focusedAvatarIndex + 1) % avatars.length;
+            // Check if we're at the end of a row
+            const currentRow = Math.floor(focusedAvatarIndex / avatarsPerRow);
+            const positionInRow = focusedAvatarIndex % avatarsPerRow;
+            
+            // Only move right if we're not at the end of the row
+            if (positionInRow < avatarsPerRow - 1 && focusedAvatarIndex + 1 < avatars.length) {
+              newIndex = focusedAvatarIndex + 1;
+            } else {
+              // Stay at current position if at end of row
+              newIndex = focusedAvatarIndex;
+            }
           } else if (focusedElement === 'signout') {
             setFocusedElement('achievements');
           }
           break;
         case "ArrowLeft":
           if (focusedElement === 'avatars') {
-            newIndex = (focusedAvatarIndex - 1 + avatars.length) % avatars.length;
+            // Check position in row
+            const positionInRow = focusedAvatarIndex % avatarsPerRow;
+            
+            // Only move left if we're not at the start of the row
+            if (positionInRow > 0) {
+              newIndex = focusedAvatarIndex - 1;
+            } else {
+              // Stay at current position if at start of row
+              newIndex = focusedAvatarIndex;
+            }
           } else if (focusedElement === 'achievements') {
             setFocusedElement('signout');
           }

@@ -145,7 +145,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       const { key } = event;
-      if (carDetailsVisible) return;
+      if (carDetailsVisible || focusedZone === FOCUS_ZONES.HEADER) return;
 
       const getItemsPerRow = () => {
         const windowWidth = window.innerWidth;
@@ -287,13 +287,9 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           break;
       }
     };
-    if (focusedZone !== FOCUS_ZONES.HEADER) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      if (focusedZone !== FOCUS_ZONES.HEADER) {
-        document.removeEventListener("keydown", handleKeyDown);
-      }
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [
     cars,

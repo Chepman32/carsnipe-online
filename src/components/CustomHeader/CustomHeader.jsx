@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toggleMusic, toggleDarkMode, toggleSoundEffects } from '../../redux/slices/quickSettingsSlice';
 import { MenuItems } from './MenuItems';
 import plus_symbol from "../../assets/icons/plus_ymbol.png";
-import { FOCUS_ZONES, HEADER_PROFILE, HEADER_STORE, handleKeyDown } from '../../redux/slices/focusSlice';
+import { FOCUS_ZONES, HEADER_PROFILE, HEADER_STORE, QUICK_MENU_DARK_MODE, QUICK_MENU_MUSIC, QUICK_MENU_SETTINGS, handleKeyDown, setIsQuickMenuOpen } from '../../redux/slices/focusSlice';
 
 const { Text } = Typography;
 
@@ -22,7 +22,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   const dispatch = useDispatch();
 
   const { musicOn, soundEffectsOn, darkMode } = useSelector((state) => state.quickSettings);
-  const { focusedZone, currentFocusedElement } = useSelector((state) => state.focus);
+  const { focusedZone, currentFocusedElement, isQuickMenuOpen } = useSelector((state) => state.focus);
 
   const toggleDrawer = () => {
     setDrawerVisible(!drawerVisible);
@@ -41,18 +41,15 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   };
 
   const handleMouseEnterMenu = () => {
-    if (closeMenuTimeout.current) {
-      clearTimeout(closeMenuTimeout.current);
-    }
     setIsMenuOpen(true);
+    dispatch(setIsQuickMenuOpen(true));
   };
 
   const handleMouseLeaveMenu = () => {
-    closeMenuTimeout.current = setTimeout(() => {
-      if (!menuRef.current || !menuRef.current.matches(':hover')) {
-        setIsMenuOpen(false);
-      }
-    }, 200);
+    setIsMenuOpen(false);
+    if (focusedZone !== FOCUS_ZONES.QUICK_MENU && currentFocusedElement !== HEADER_PROFILE) {
+      dispatch(setIsQuickMenuOpen(false));
+    }
   };
 
   useEffect(() => {
@@ -89,6 +86,14 @@ const CustomHeader = ({ nickname, avatar, money }) => {
       window.removeEventListener('keydown', keyDownHandler);
     };
   }, [dispatch, navigate, currentFocusedElement]);
+
+  useEffect(() => {
+    if (currentFocusedElement === HEADER_PROFILE) {
+      dispatch(setIsQuickMenuOpen(true));
+    } else if (focusedZone !== FOCUS_ZONES.QUICK_MENU) {
+      dispatch(setIsQuickMenuOpen(false));
+    }
+  }, [currentFocusedElement, focusedZone, dispatch]);
 
   useEffect(() => {
     return () => {
@@ -171,7 +176,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               <img src={avatar} alt="avatar" />
             </Link>
             <div
-              className={isMenuOpen ? "settings-menu open" : "settings-menu"}
+              className={isMenuOpen || isQuickMenuOpen || currentFocusedElement === HEADER_PROFILE || focusedZone === FOCUS_ZONES.QUICK_MENU ? "settings-menu open" : "settings-menu"}
               onClick={(e) => e.stopPropagation()}
               onMouseEnter={handleMouseEnterMenu}
               onMouseLeave={handleMouseLeaveMenu}
@@ -180,7 +185,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               aria-label="Settings Menu"
             >
               <div
-                className="settings-menu-item"
+                className={`settings-menu-item ${focusedZone === FOCUS_ZONES.QUICK_MENU && currentFocusedElement === QUICK_MENU_DARK_MODE ? "focused" : ""}`}
                 onClick={handleToggleDarkMode}
                 role="menuitem"
                 tabIndex={-1}
@@ -192,7 +197,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                 <span>Dark Mode: {darkMode ? "On" : "Off"}</span>
               </div>
               <div
-                className="settings-menu-item"
+                className={`settings-menu-item ${focusedZone === FOCUS_ZONES.QUICK_MENU && currentFocusedElement === QUICK_MENU_MUSIC ? "focused" : ""}`}
                 onClick={handleToggleMusic}
                 role="menuitem"
                 tabIndex={-1}
@@ -202,6 +207,18 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   alt="Music"
                 />
                 <span>Music: {musicOn ? "On" : "Off"}</span>
+              </div>
+              <div
+                className={`settings-menu-item ${focusedZone === FOCUS_ZONES.QUICK_MENU && currentFocusedElement === QUICK_MENU_SETTINGS ? "focused" : ""}`}
+                onClick={() => navigate("/settings")}
+                role="menuitem"
+                tabIndex={-1}
+              >
+                <img
+                  src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"
+                  alt="Settings"
+                />
+                <span>Settings</span>
               </div>
               <div
                 className="settings-menu-item"

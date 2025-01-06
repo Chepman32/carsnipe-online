@@ -12,15 +12,19 @@ import {
   SETTINGS_DARK_MODE,
   SETTINGS_SOUND_EFFECTS,
   SETTINGS_MUSIC_VOLUME,
-  handleKeyDown,
-  setFocusedZone
+  handleKeyDown as handleKeyDownAction,
+  setFocusedZone,
+  setCurrentFocusedElement,
+  setSettingsNeedsToggle,
+  setSettingsVolumeChange,
+  setCurrentSettingsElement
 } from '../../redux/slices/focusSlice';
 
 const GameSettings = () => {
   const dispatch = useDispatch();
   const { darkMode, musicOn, soundEffectsOn } = useSelector((state) => state.quickSettings);
   const { musicVolume } = useSelector((state) => state.mainSettings);
-  const { focusedZone, currentSettingsElement } = useSelector((state) => state.focus);
+  const { focusedZone, currentSettingsElement, settingsNeedsToggle, settingsVolumeChange } = useSelector((state) => state.focus);
 
   const options = [
     { label: 'Dark Mode', type: 'switch', value: darkMode, key: SETTINGS_DARK_MODE },
@@ -38,6 +42,43 @@ const GameSettings = () => {
       dispatch(setMusicVolume(previousVolumeRef.current));
     }
   }, [musicOn, musicVolume, dispatch]);
+
+  useEffect(() => {
+    if (settingsNeedsToggle === SETTINGS_DARK_MODE) {
+      handleDarkModeChange(!darkMode);
+      dispatch(setSettingsNeedsToggle(null));
+    } else if (settingsNeedsToggle === SETTINGS_SOUND_EFFECTS) {
+      handleSoundEffectsChange(!soundEffectsOn);
+      dispatch(setSettingsNeedsToggle(null));
+    }
+  }, [settingsNeedsToggle]);
+
+  useEffect(() => {
+    if (settingsVolumeChange !== 0) {
+      const newVolume = Math.min(Math.max(musicVolume + settingsVolumeChange, 0), 100);
+      handleMusicVolumeChange(newVolume);
+      dispatch(setSettingsVolumeChange(0));
+    }
+  }, [settingsVolumeChange]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (focusedZone === FOCUS_ZONES.SETTINGS) {
+        e.preventDefault();
+        dispatch(handleKeyDownAction(e.key));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [focusedZone, dispatch]);
+
+  useEffect(() => {
+    dispatch(setFocusedZone(FOCUS_ZONES.SETTINGS));
+    focusedZone !== FOCUS_ZONES.SETTINGS && dispatch(setCurrentFocusedElement(SETTINGS_DARK_MODE));
+    dispatch(setSettingsNeedsToggle(null));
+  }, [dispatch]);
 
   const handleDarkModeChange = (checked) => {
     dispatch(toggleDarkMode());
@@ -58,19 +99,13 @@ const GameSettings = () => {
     dispatch(setSoundEffectsOn(checked));
   };
 
-  useEffect(() => {
-    dispatch(setFocusedZone(FOCUS_ZONES.SETTINGS));
-  }, [dispatch]);
-
   return (
     <Card className="settings-container">
       {options.map((option) => (
         <Row
           key={option.label}
           className={`settings-row ${
-            currentSettingsElement === option.key
-              ? 'focused'
-              : ''
+            currentSettingsElement === option.key ? 'focused' : ''
           }`}
           align="middle"
           gutter={[16, 16]}
@@ -89,12 +124,20 @@ const GameSettings = () => {
                 }}
               />
             ) : (
-              <Slider
-                min={0}
-                max={100}
-                value={option.value}
-                onChange={(val) => handleMusicVolumeChange(val)}
-              />
+              <Row>
+                <Col span={6}>
+                  <span>{option.value}%</span>
+                </Col>
+                <Col span={18}>
+                  <Slider
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={option.value}
+                    onChange={(val) => handleMusicVolumeChange(val)}
+                  />
+                </Col>
+              </Row>
             )}
           </Col>
         </Row>

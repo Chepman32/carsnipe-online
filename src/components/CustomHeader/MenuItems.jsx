@@ -44,11 +44,13 @@ export const MenuItems = () => {
   };
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [currentFocusedElement]);
+    if (focusedZone === FOCUS_ZONES.HEADER) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [currentFocusedElement, focusedZone]);
 
   const getBackground = (path) => {
     if (path === '/') {
@@ -70,6 +72,7 @@ export const MenuItems = () => {
     <section className='customHeader__menu'>
       <Menu.Item
         key="mainMenu"
+        onFocus={(event) => event.preventDefault()}
         style={{
           background: getBackground('/'),
           border: getBorder(HEADER_MAIN_MENU),
@@ -88,6 +91,7 @@ export const MenuItems = () => {
 
       <Menu.Item
         key="carsStore"
+        onFocus={(event) => event.preventDefault()}
         style={{
           background: getBackground('/carsStore'),
           border: getBorder(HEADER_CARS_STORE),
@@ -99,6 +103,7 @@ export const MenuItems = () => {
 
       <Menu.Item
         key="myCars"
+        onFocus={(event) => event.preventDefault()}
         style={{
           background: getBackground('/myCars'),
           border: getBorder(HEADER_MY_CARS),
@@ -110,6 +115,7 @@ export const MenuItems = () => {
 
       <Menu.Item
         key="auctionsHub"
+        onFocus={(event) => event.preventDefault()}
         style={{
           background: getBackground('/auctionsHub'),
           border: getBorder(HEADER_AUCTIONS),
