@@ -1,4 +1,3 @@
-// src/redux/slices/mainSettingsSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const getBooleanFromLocalStorage = (key, defaultValue) => {

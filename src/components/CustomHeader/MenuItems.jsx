@@ -9,6 +9,7 @@ import {
   HEADER_CARS_STORE,
   HEADER_MY_CARS,
   HEADER_AUCTIONS,
+  HEADER_LAST_OPTION,
   handleKeyDown as handleKeyDownAction,
 } from '../../redux/slices/focusSlice';
 
@@ -36,6 +37,9 @@ export const MenuItems = () => {
           break;
         case HEADER_AUCTIONS:
           navigate('/auctionsHub');
+          break;
+        case HEADER_LAST_OPTION:
+          navigate('/desiredPage'); // Replace with the actual path of the page you want to focus on
           break;
         default:
           break;

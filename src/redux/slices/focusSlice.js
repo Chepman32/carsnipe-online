@@ -14,6 +14,7 @@ export const HEADER_MY_CARS = "HEADER_MY_CARS";
 export const HEADER_AUCTIONS = "HEADER_AUCTIONS";
 export const HEADER_STORE = "HEADER_STORE";
 export const HEADER_PROFILE = "HEADER_PROFILE";
+export const HEADER_LAST_OPTION = "HEADER_LAST_OPTION";
 
 export const SETTINGS_DARK_MODE = "SETTINGS_DARK_MODE";
 export const SETTINGS_SOUND_EFFECTS = "SETTINGS_SOUND_EFFECTS";
@@ -24,6 +25,7 @@ export const TOP_CAR = "TOP_CAR";
 export const QUICK_MENU_DARK_MODE = "QUICK_MENU_DARK_MODE";
 export const QUICK_MENU_MUSIC = "QUICK_MENU_MUSIC";
 export const QUICK_MENU_SETTINGS = "QUICK_MENU_SETTINGS";
+export const QUICK_MENU_SOUND = "QUICK_MENU_SOUND";
 
 const initialState = {
   focusedZone: FOCUS_ZONES.PAGE,
@@ -45,7 +47,7 @@ const focusSlice = createSlice({
   reducers: {
     handleKeyDown(state, action) {
       const key = action.payload;
-      console.log("currentSettingsElement", state.currentSettingsElement);
+      console.log("currentSettingsElement", state.focusedZone);
       console.log("currentFocusedElement", state.currentFocusedElement);
       switch (state.focusedZone) {
         case FOCUS_ZONES.HEADER:
@@ -76,10 +78,11 @@ const focusSlice = createSlice({
               state.currentFocusedElement = HEADER_PROFILE;
             }
           } else if (key === "ArrowDown") {
-            if (state.currentFocusedElement === HEADER_PROFILE && state.isQuickMenuOpen) {
+            if (state.isQuickMenuOpen) {
               state.focusedZone = FOCUS_ZONES.QUICK_MENU;
               state.currentFocusedElement = QUICK_MENU_DARK_MODE;
               state.currentQuickMenuItem = QUICK_MENU_DARK_MODE;
+              return;
             }
             if (state.currentRoute === "/carsStore") {
               state.focusedZone = FOCUS_ZONES.PAGE;
@@ -93,10 +96,10 @@ const focusSlice = createSlice({
               state.focusedZone = FOCUS_ZONES.PAGE;
               state.currentFocusedElement = "avatars";
             }
-            if (state.currentRoute === "/settings") {
-              state.focusedZone = FOCUS_ZONES.SETTINGS;
-              state.currentFocusedElement = SETTINGS_DARK_MODE;
-              state.currentSettingsElement = SETTINGS_DARK_MODE;
+            if (state.currentFocusedElement === HEADER_PROFILE && state.isQuickMenuOpen) {
+              state.focusedZone = FOCUS_ZONES.QUICK_MENU;
+              state.currentFocusedElement = QUICK_MENU_DARK_MODE;
+              state.currentQuickMenuItem = QUICK_MENU_DARK_MODE;
             }
           } else if (key === "Enter") {
             if (state.currentFocusedElement === HEADER_PROFILE) {

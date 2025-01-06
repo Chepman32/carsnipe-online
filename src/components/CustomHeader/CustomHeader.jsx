@@ -4,10 +4,28 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isMobile } from 'react-device-detect';
 import { MenuOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleMusic, toggleDarkMode, toggleSoundEffects } from '../../redux/slices/quickSettingsSlice';
-import { MenuItems } from './MenuItems';
-import plus_symbol from "../../assets/icons/plus_ymbol.png";
-import { FOCUS_ZONES, HEADER_PROFILE, HEADER_STORE, QUICK_MENU_DARK_MODE, QUICK_MENU_MUSIC, QUICK_MENU_SETTINGS, handleKeyDown, setIsQuickMenuOpen } from '../../redux/slices/focusSlice';
+import {
+  toggleMusic,
+  toggleDarkMode,
+  toggleSoundEffects,
+} from '../../redux/slices/quickSettingsSlice';
+import {
+  MenuItems
+} from './MenuItems';
+import plus_symbol from '../../assets/icons/plus_ymbol.png';
+import {
+  FOCUS_ZONES,
+  HEADER_PROFILE,
+  HEADER_STORE,
+  QUICK_MENU_DARK_MODE,
+  QUICK_MENU_MUSIC,
+  QUICK_MENU_SETTINGS,
+  /* 1) Add a QUICK_MENU_SOUND constant in focusSlice if it doesn't exist */
+  QUICK_MENU_SOUND,
+  handleKeyDown,
+  setIsQuickMenuOpen,
+} from '../../redux/slices/focusSlice';
+import { setMusicVolume } from '../../redux/slices/mainSettingsSlice';
 
 const { Text } = Typography;
 
@@ -22,6 +40,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   const dispatch = useDispatch();
 
   const { musicOn, soundEffectsOn, darkMode } = useSelector((state) => state.quickSettings);
+  const { musicVolume } = useSelector((state) => state.mainSettings);
   const { focusedZone, currentFocusedElement, isQuickMenuOpen } = useSelector((state) => state.focus);
 
   const toggleDrawer = () => {
@@ -29,6 +48,9 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   };
 
   const handleToggleMusic = () => {
+    if (musicVolume <= 0) {
+      dispatch(setMusicVolume(50));
+    }
     dispatch(toggleMusic());
   };
 
@@ -52,9 +74,15 @@ const CustomHeader = ({ nickname, avatar, money }) => {
     }
   };
 
+  /*
+   * 2) Consolidate key-down logic in a single useEffect instead of repeating
+   *    logic across multiple listeners. This way, pressing Enter will also
+   *    toggle sound effects (or other quick settings) if focused accordingly.
+   */
   useEffect(() => {
     const keyDownHandler = (event) => {
       dispatch(handleKeyDown(event.key));
+
       if (event.key === 'Enter') {
         switch (currentFocusedElement) {
           case 'HEADER_MAIN_MENU':
@@ -74,6 +102,19 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             break;
           case HEADER_PROFILE:
             navigate('/profileEditPage');
+            break;
+          case QUICK_MENU_DARK_MODE:
+            dispatch(toggleDarkMode());
+            break;
+          case QUICK_MENU_MUSIC:
+            dispatch(toggleMusic());
+            break;
+          /* 3) Add your new case for toggling sound effects */
+          case QUICK_MENU_SOUND:
+            dispatch(toggleSoundEffects());
+            break;
+          case QUICK_MENU_SETTINGS:
+            navigate('/settings');
             break;
           default:
             break;
@@ -103,30 +144,30 @@ const CustomHeader = ({ nickname, avatar, money }) => {
     };
   }, []);
 
-  if (location.pathname === "/") {
+  if (location.pathname === '/') {
     return null;
   }
 
   return (
     <>
       <Menu
-        theme={darkMode ? "dark" : "light"}
+        theme={darkMode ? 'dark' : 'light'}
         mode="horizontal"
-        className={darkMode ? "customHeader dark-mode" : "customHeader light-mode"}
+        className={darkMode ? 'customHeader dark-mode' : 'customHeader light-mode'}
         style={{
-          width: "100%",
+          width: '100%',
           lineHeight: '64px',
           display: 'flex',
-          justifyContent: "space-between",
-          alignItems: "center"
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
         <div
           style={{
-            width: "100%",
+            width: '100%',
             display: 'flex',
-            justifyContent: "space-between",
-            alignItems: "center"
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}
         >
           <Button
@@ -136,9 +177,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             onClick={toggleDrawer}
             style={{ display: isMobile ? 'block' : 'none' }}
           />
-          {!isMobile && (
-            <MenuItems />
-          )}
+          {!isMobile && <MenuItems />}
           <section style={{ display: 'flex', alignItems: 'center' }}>
             <Link
               to="/store"
@@ -146,14 +185,27 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               style={{
-                background: location.pathname === "/store" ? 'rgba(42, 72, 234, 0.57)' : "transparent",
-                border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_STORE ? '2px solid red' : 'none',
+                background:
+                  location.pathname === '/store'
+                    ? 'rgba(42, 72, 234, 0.57)'
+                    : 'transparent',
+                border:
+                  focusedZone === FOCUS_ZONES.HEADER &&
+                  currentFocusedElement === HEADER_STORE
+                    ? '2px solid red'
+                    : 'none',
               }}
               tabIndex={0}
             >
               <img src={plus_symbol} alt="plus_symbol" className="headerIcon" />
-              <Text style={{ marginRight: 15, fontWeight: "bold", color: darkMode ? "#ffdd00" : "#000000" }} >
-                {"$" + money}
+              <Text
+                style={{
+                  marginRight: 15,
+                  fontWeight: 'bold',
+                  color: darkMode ? '#ffdd00' : '#000000',
+                }}
+              >
+                {'$' + money}
               </Text>
             </Link>
             <Link
@@ -162,21 +214,43 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               to="/profileEditPage"
               className="customHeader__avatar"
               style={{
-                padding: "0.45rem",
-                background: location.pathname === "/profileEditPage" || location.pathname === "/achievements" ? 'rgba(42, 72, 234, 0.57)' : "transparent",
-                border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_PROFILE ? '2px solid red' : 'none',
-                borderRadius: ".7rem"
+                padding: '0.45rem',
+                background:
+                  location.pathname === '/profileEditPage' ||
+                  location.pathname === '/achievements'
+                    ? 'rgba(42, 72, 234, 0.57)'
+                    : 'transparent',
+                border:
+                  focusedZone === FOCUS_ZONES.HEADER &&
+                  currentFocusedElement === HEADER_PROFILE
+                    ? '2px solid red'
+                    : 'none',
+                borderRadius: '.7rem',
               }}
               ref={menuRef}
               tabIndex={0}
             >
-              <Typography.Text style={{ marginRight: 15, color: "var(--text-color)", fontSize: "1.4rem", fontWeight: "bold" }}>
+              <Typography.Text
+                style={{
+                  marginRight: 15,
+                  color: 'var(--text-color)',
+                  fontSize: '1.4rem',
+                  fontWeight: 'bold',
+                }}
+              >
                 {nickname}
               </Typography.Text>
               <img src={avatar} alt="avatar" />
             </Link>
             <div
-              className={isMenuOpen || isQuickMenuOpen || currentFocusedElement === HEADER_PROFILE || focusedZone === FOCUS_ZONES.QUICK_MENU ? "settings-menu open" : "settings-menu"}
+              className={
+                isMenuOpen ||
+                isQuickMenuOpen ||
+                currentFocusedElement === HEADER_PROFILE ||
+                focusedZone === FOCUS_ZONES.QUICK_MENU
+                  ? 'settings-menu open'
+                  : 'settings-menu'
+              }
               onClick={(e) => e.stopPropagation()}
               onMouseEnter={handleMouseEnterMenu}
               onMouseLeave={handleMouseLeaveMenu}
@@ -185,7 +259,12 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               aria-label="Settings Menu"
             >
               <div
-                className={`settings-menu-item ${focusedZone === FOCUS_ZONES.QUICK_MENU && currentFocusedElement === QUICK_MENU_DARK_MODE ? "focused" : ""}`}
+                className={`settings-menu-item ${
+                  focusedZone === FOCUS_ZONES.QUICK_MENU &&
+                  currentFocusedElement === QUICK_MENU_DARK_MODE
+                    ? 'focused'
+                    : ''
+                }`}
                 onClick={handleToggleDarkMode}
                 role="menuitem"
                 tabIndex={-1}
@@ -194,10 +273,15 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   src="https://cdn-icons-png.flaticon.com/512/5262/5262027.png"
                   alt="Dark Mode"
                 />
-                <span>Dark Mode: {darkMode ? "On" : "Off"}</span>
+                <span>Dark Mode: {darkMode ? 'On' : 'Off'}</span>
               </div>
               <div
-                className={`settings-menu-item ${focusedZone === FOCUS_ZONES.QUICK_MENU && currentFocusedElement === QUICK_MENU_MUSIC ? "focused" : ""}`}
+                className={`settings-menu-item ${
+                  focusedZone === FOCUS_ZONES.QUICK_MENU &&
+                  currentFocusedElement === QUICK_MENU_MUSIC
+                    ? 'focused'
+                    : ''
+                }`}
                 onClick={handleToggleMusic}
                 role="menuitem"
                 tabIndex={-1}
@@ -206,22 +290,15 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   src="https://static.vecteezy.com/system/resources/previews/011/934/413/non_2x/silver-music-note-icon-free-png.png"
                   alt="Music"
                 />
-                <span>Music: {musicOn ? "On" : "Off"}</span>
+                <span>Music: {musicOn ? 'On' : 'Off'}</span>
               </div>
               <div
-                className={`settings-menu-item ${focusedZone === FOCUS_ZONES.QUICK_MENU && currentFocusedElement === QUICK_MENU_SETTINGS ? "focused" : ""}`}
-                onClick={() => navigate("/settings")}
-                role="menuitem"
-                tabIndex={-1}
-              >
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png"
-                  alt="Settings"
-                />
-                <span>Settings</span>
-              </div>
-              <div
-                className="settings-menu-item"
+                className={`settings-menu-item ${
+                  focusedZone === FOCUS_ZONES.QUICK_MENU &&
+                  currentFocusedElement === QUICK_MENU_SOUND
+                    ? 'focused'
+                    : ''
+                }`}
                 onClick={handleToggleSoundEffects}
                 role="menuitem"
                 tabIndex={-1}
@@ -230,7 +307,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   src="https://cdn1.iconfinder.com/data/icons/ios-and-android-line-set-2/52/call__phone__volume__sound-512.png"
                   alt="Sound"
                 />
-                <span>Sound: {soundEffectsOn ? "On" : "Off"}</span>
+                <span>Sound: {soundEffectsOn ? 'On' : 'Off'}</span>
               </div>
             </div>
           </section>
