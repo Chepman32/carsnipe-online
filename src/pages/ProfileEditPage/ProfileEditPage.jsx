@@ -60,8 +60,15 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   const [focusedAvatarIndex, setFocusedAvatarIndex] = useState(0);
 
   const darkMode = useSelector((state) => state.quickSettings.darkMode);
+  const { focusedZone } = useSelector((state) => state.focus);
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (focusedZone === FOCUS_ZONES.PAGE) {
+      setFocusedAvatarIndex(0);
+    }
+  }, [focusedZone]);
 
   useEffect(() => {
     if (playerInfo.nickname) setNickname(playerInfo.nickname);
@@ -72,33 +79,43 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (document.activeElement.tagName === "TEXTAREA" || document.activeElement.tagName === "INPUT") {
-        return; // Skip handling when focus is on form fields
+        return;
       }
 
       let newIndex = focusedAvatarIndex;
 
       switch (event.key) {
         case "ArrowRight":
-          newIndex = (focusedAvatarIndex + 1) % avatars.length;
+          if (focusedZone === FOCUS_ZONES.PAGE) {
+            newIndex = (focusedAvatarIndex + 1) % avatars.length;
+          }
           break;
         case "ArrowLeft":
-          newIndex = (focusedAvatarIndex - 1 + avatars.length) % avatars.length;
+          if (focusedZone === FOCUS_ZONES.PAGE) {
+            newIndex = (focusedAvatarIndex - 1 + avatars.length) % avatars.length;
+          }
           break;
         case "ArrowDown":
-          newIndex =
-            focusedAvatarIndex + avatarsPerRow < avatars.length
-              ? focusedAvatarIndex + avatarsPerRow
-              : focusedAvatarIndex;
+          if (focusedZone === FOCUS_ZONES.PAGE) {
+            newIndex =
+              focusedAvatarIndex + avatarsPerRow < avatars.length
+                ? focusedAvatarIndex + avatarsPerRow
+                : focusedAvatarIndex;
+          }
           break;
         case "ArrowUp":
           if (focusedAvatarIndex < avatarsPerRow) {
             dispatch(setFocusedZone(FOCUS_ZONES.HEADER))
             dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU))
+            setFocusedAvatarIndex(-1)
+            return;
           }
-          newIndex =
-            focusedAvatarIndex - avatarsPerRow >= 0
-              ? focusedAvatarIndex - avatarsPerRow
-              : focusedAvatarIndex;
+          if (focusedZone === FOCUS_ZONES.PAGE) {
+            newIndex =
+              focusedAvatarIndex - avatarsPerRow >= 0
+                ? focusedAvatarIndex - avatarsPerRow
+                : focusedAvatarIndex;
+          }
           break;
         case "Enter":
         case " ":
@@ -115,7 +132,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [focusedAvatarIndex, dispatch]);
+  }, [focusedAvatarIndex, dispatch, focusedZone]);
 
   const handleAvatarSelect = (avatarName) => {
     setSelectedAvatar(avatarName);
