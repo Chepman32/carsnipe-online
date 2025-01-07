@@ -94,8 +94,9 @@
 }
 
 .focused {
+  box-sizing: border-box;
   filter: brightness(0.8);
-  border: 3px solid rgb(180, 50, 50);
+  outline: 3px solid rgb(180, 50, 50);
 }
 
 .mainActionsModal__row {
