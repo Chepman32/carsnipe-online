@@ -15,6 +15,7 @@ import {
 import plus_symbol from '../../assets/icons/plus_ymbol.png';
 import {
   FOCUS_ZONES,
+  HEADER_MAIN_MENU,
   HEADER_PROFILE,
   HEADER_STORE,
   QUICK_MENU_DARK_MODE,
@@ -23,6 +24,7 @@ import {
   /* 1) Add a QUICK_MENU_SOUND constant in focusSlice if it doesn't exist */
   QUICK_MENU_SOUND,
   handleKeyDown,
+  setCurrentFocusedElement,
   setIsQuickMenuOpen,
 } from '../../redux/slices/focusSlice';
 import { setMusicVolume } from '../../redux/slices/mainSettingsSlice';
@@ -74,11 +76,6 @@ const CustomHeader = ({ nickname, avatar, money }) => {
     }
   };
 
-  /*
-   * 2) Consolidate key-down logic in a single useEffect instead of repeating
-   *    logic across multiple listeners. This way, pressing Enter will also
-   *    toggle sound effects (or other quick settings) if focused accordingly.
-   */
   useEffect(() => {
     const keyDownHandler = (event) => {
       dispatch(handleKeyDown(event.key));
@@ -107,19 +104,20 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             dispatch(toggleDarkMode());
             break;
           case QUICK_MENU_MUSIC:
-            dispatch(toggleMusic());
+            handleToggleMusic()
             break;
           /* 3) Add your new case for toggling sound effects */
           case QUICK_MENU_SOUND:
             dispatch(toggleSoundEffects());
             break;
-          case QUICK_MENU_SETTINGS:
-            navigate('/settings');
-            break;
           default:
             break;
         }
       }
+      else if(event.key === 'Escape') {
+        dispatch(setIsQuickMenuOpen(false));
+        dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU))
+      };
     };
 
     window.addEventListener('keydown', keyDownHandler);

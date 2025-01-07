@@ -101,11 +101,6 @@ const focusSlice = createSlice({
               state.currentFocusedElement = QUICK_MENU_DARK_MODE;
               state.currentQuickMenuItem = QUICK_MENU_DARK_MODE;
             }
-          } else if (key === "Enter") {
-            if (state.currentFocusedElement === HEADER_PROFILE) {
-              state.focusedZone = FOCUS_ZONES.QUICK_MENU;
-              state.currentFocusedElement = state.currentQuickMenuItem || QUICK_MENU_DARK_MODE;
-            }
           }
           break;
         case FOCUS_ZONES.PAGE:
@@ -162,7 +157,7 @@ const focusSlice = createSlice({
             if (state.currentFocusedElement === QUICK_MENU_MUSIC) {
               state.currentFocusedElement = QUICK_MENU_DARK_MODE;
               state.currentQuickMenuItem = QUICK_MENU_DARK_MODE;
-            } else if (state.currentFocusedElement === QUICK_MENU_SETTINGS) {
+            } else if (state.currentFocusedElement === QUICK_MENU_SOUND) {
               state.currentFocusedElement = QUICK_MENU_MUSIC;
               state.currentQuickMenuItem = QUICK_MENU_MUSIC;
             } else if (state.currentFocusedElement === QUICK_MENU_DARK_MODE) {
@@ -174,17 +169,12 @@ const focusSlice = createSlice({
               state.currentFocusedElement = QUICK_MENU_MUSIC;
               state.currentQuickMenuItem = QUICK_MENU_MUSIC;
             } else if (state.currentFocusedElement === QUICK_MENU_MUSIC) {
-              state.currentFocusedElement = QUICK_MENU_SETTINGS;
-              state.currentQuickMenuItem = QUICK_MENU_SETTINGS;
-            } else if (state.currentFocusedElement === QUICK_MENU_SETTINGS) {
+              state.currentFocusedElement = QUICK_MENU_SOUND;
+              state.currentQuickMenuItem = QUICK_MENU_SOUND;
+            } else if (state.currentFocusedElement === QUICK_MENU_SOUND) {
               state.focusedZone = FOCUS_ZONES.PAGE;
-              state.currentFocusedElement = "PAGE_MAIN_CONTENT";
-            }
-          } else if (key === "Enter") {
-            if (state.currentFocusedElement === QUICK_MENU_SETTINGS) {
-              state.focusedZone = FOCUS_ZONES.SETTINGS;
-              state.currentFocusedElement = SETTINGS_DARK_MODE;
-              state.currentSettingsElement = SETTINGS_DARK_MODE;
+              state.currentFocusedElement = state.currentRoute === "/carsStore" ? TOP_CAR : state.currentRoute === "/profileEditPage" ? "avatars" : state.currentRoute === "/store" ? "store" : state.currentRoute === "/settings" ? SETTINGS_DARK_MODE : "PAGE_MAIN_CONTENT";
+              state.currentQuickMenuItem = null;
             }
           } else if (key === "Escape") {
             state.focusedZone = FOCUS_ZONES.HEADER;
