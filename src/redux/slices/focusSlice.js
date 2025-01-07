@@ -46,8 +46,6 @@ const focusSlice = createSlice({
   reducers: {
     handleKeyDown(state, action) {
       const key = action.payload;
-      console.log("currentSettingsElement", state.focusedZone);
-      console.log("currentFocusedElement", state.currentFocusedElement);
       switch (state.focusedZone) {
         case FOCUS_ZONES.HEADER:
           if (key === "ArrowUp") {
@@ -95,7 +93,10 @@ const focusSlice = createSlice({
               state.focusedZone = FOCUS_ZONES.PAGE;
               state.currentFocusedElement = "avatars";
             }
-            if (state.currentFocusedElement === HEADER_PROFILE && state.isQuickMenuOpen) {
+            if (
+              state.currentFocusedElement === HEADER_PROFILE &&
+              state.isQuickMenuOpen
+            ) {
               state.focusedZone = FOCUS_ZONES.QUICK_MENU;
               state.currentFocusedElement = QUICK_MENU_DARK_MODE;
               state.currentQuickMenuItem = QUICK_MENU_DARK_MODE;
@@ -172,7 +173,16 @@ const focusSlice = createSlice({
               state.currentQuickMenuItem = QUICK_MENU_SOUND;
             } else if (state.currentFocusedElement === QUICK_MENU_SOUND) {
               state.focusedZone = FOCUS_ZONES.PAGE;
-              state.currentFocusedElement = state.currentRoute === "/carsStore" ? TOP_CAR : state.currentRoute === "/profileEditPage" ? "avatars" : state.currentRoute === "/store" ? "store" : state.currentRoute === "/settings" ? SETTINGS_DARK_MODE : "PAGE_MAIN_CONTENT";
+              state.currentFocusedElement =
+                state.currentRoute === "/carsStore"
+                  ? TOP_CAR
+                  : state.currentRoute === "/profileEditPage"
+                  ? "avatars"
+                  : state.currentRoute === "/store"
+                  ? "store"
+                  : state.currentRoute === "/settings"
+                  ? SETTINGS_DARK_MODE
+                  : "PAGE_MAIN_CONTENT";
               state.currentQuickMenuItem = null;
             }
           } else if (key === "Escape") {

@@ -58,9 +58,19 @@
   color: white;
 }
 
+.column:nth-child(2) .darkTile {
+  background: url(../../assets/images/auctionsHub\ -\ dark\ mode.jpeg);
+  background-size: cover;
+  background-repeat: no-repeat;
+  width: 50vw;
+  height: 100%;
+  color: white;
+}
+
 .column:last-child .tile:first-child {
   background: rgb(192, 108, 55);
   height: 45%;
+
 }
 
 .column:last-child .tile:nth-child(2) {
@@ -84,6 +94,7 @@
 }
 
 .focused {
+  filter: brightness(0.8);
   border: 3px solid rgb(180, 50, 50);
 }
 
