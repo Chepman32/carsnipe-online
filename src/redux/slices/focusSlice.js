@@ -24,7 +24,6 @@ export const TOP_CAR = "TOP_CAR";
 
 export const QUICK_MENU_DARK_MODE = "QUICK_MENU_DARK_MODE";
 export const QUICK_MENU_MUSIC = "QUICK_MENU_MUSIC";
-export const QUICK_MENU_SETTINGS = "QUICK_MENU_SETTINGS";
 export const QUICK_MENU_SOUND = "QUICK_MENU_SOUND";
 
 const initialState = {

@@ -20,7 +20,6 @@ import {
   HEADER_STORE,
   QUICK_MENU_DARK_MODE,
   QUICK_MENU_MUSIC,
-  QUICK_MENU_SETTINGS,
   /* 1) Add a QUICK_MENU_SOUND constant in focusSlice if it doesn't exist */
   QUICK_MENU_SOUND,
   handleKeyDown,
