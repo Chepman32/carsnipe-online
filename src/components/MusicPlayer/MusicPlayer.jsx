@@ -34,7 +34,7 @@ const MusicPlayer = () => {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = musicOn ? musicVolume /100 : 0;
+      audioRef.current.volume = musicOn ? musicVolume / 100 : 0;
       if (audioRef.current.paused) {
         audioRef.current.play().catch((err) => console.error('Playback error:', err));
       }

@@ -1,3 +1,5 @@
+// File: src/components/CustomHeader/CustomHeader.js
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Menu, Typography, Drawer, Button } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -7,7 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   toggleMusic,
   toggleDarkMode,
-  toggleSoundEffects,
+  toggleSoundEffects
 } from '../../redux/slices/quickSettingsSlice';
 import {
   MenuItems
@@ -20,15 +22,18 @@ import {
   HEADER_STORE,
   QUICK_MENU_DARK_MODE,
   QUICK_MENU_MUSIC,
-  /* 1) Add a QUICK_MENU_SOUND constant in focusSlice if it doesn't exist */
   QUICK_MENU_SOUND,
   handleKeyDown,
   setCurrentFocusedElement,
-  setIsQuickMenuOpen,
+  setIsQuickMenuOpen
 } from '../../redux/slices/focusSlice';
 import { setMusicVolume } from '../../redux/slices/mainSettingsSlice';
+import {
+  playNextStation,
+  playPreviousStation
+} from '../../redux/slices/musicPlayerSlice';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const CustomHeader = ({ nickname, avatar, money }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -43,6 +48,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   const { musicOn, soundEffectsOn, darkMode } = useSelector((state) => state.quickSettings);
   const { musicVolume } = useSelector((state) => state.mainSettings);
   const { focusedZone, currentFocusedElement, isQuickMenuOpen } = useSelector((state) => state.focus);
+  const { currentStation } = useSelector((state) => state.musicPlayer);
 
   const toggleDrawer = () => {
     setDrawerVisible(!drawerVisible);
@@ -78,7 +84,6 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   useEffect(() => {
     const keyDownHandler = (event) => {
       dispatch(handleKeyDown(event.key));
-
       if (event.key === 'Enter') {
         switch (currentFocusedElement) {
           case 'HEADER_MAIN_MENU':
@@ -103,9 +108,8 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             dispatch(toggleDarkMode());
             break;
           case QUICK_MENU_MUSIC:
-            handleToggleMusic()
+            handleToggleMusic();
             break;
-          /* 3) Add your new case for toggling sound effects */
           case QUICK_MENU_SOUND:
             dispatch(toggleSoundEffects());
             break;
@@ -115,15 +119,19 @@ const CustomHeader = ({ nickname, avatar, money }) => {
       }
       else if(event.key === 'Escape') {
         dispatch(setIsQuickMenuOpen(false));
-        dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU))
-      };
+        dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU));
+      }
     };
 
     window.addEventListener('keydown', keyDownHandler);
     return () => {
       window.removeEventListener('keydown', keyDownHandler);
     };
-  }, [dispatch, navigate, currentFocusedElement]);
+  }, [
+    dispatch,
+    navigate,
+    currentFocusedElement
+  ]);
 
   useEffect(() => {
     if (currentFocusedElement === HEADER_PROFILE) {
@@ -156,7 +164,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
           lineHeight: '64px',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: 'center'
         }}
       >
         <div
@@ -164,7 +172,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             width: '100%',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: 'center'
           }}
         >
           <Button
@@ -190,7 +198,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   focusedZone === FOCUS_ZONES.HEADER &&
                   currentFocusedElement === HEADER_STORE
                     ? '2px solid red'
-                    : 'none',
+                    : 'none'
               }}
               tabIndex={0}
             >
@@ -199,7 +207,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                 style={{
                   marginRight: 15,
                   fontWeight: 'bold',
-                  color: darkMode ? '#ffdd00' : '#000000',
+                  color: darkMode ? '#ffdd00' : '#000000'
                 }}
               >
                 {'$' + money}
@@ -222,21 +230,21 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   currentFocusedElement === HEADER_PROFILE
                     ? '2px solid red'
                     : 'none',
-                borderRadius: '.7rem',
+                borderRadius: '.7rem'
               }}
               ref={menuRef}
               tabIndex={0}
             >
-              <Typography.Text
+              <Text
                 style={{
                   marginRight: 15,
                   color: 'var(--text-color)',
                   fontSize: '1.4rem',
-                  fontWeight: 'bold',
+                  fontWeight: 'bold'
                 }}
               >
                 {nickname}
-              </Typography.Text>
+              </Text>
               <img src={avatar} alt="avatar" />
             </Link>
             <div
@@ -305,6 +313,48 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   alt="Sound"
                 />
                 <span>Sound: {soundEffectsOn ? 'On' : 'Off'}</span>
+              </div>
+              <Title
+                level={5}
+                style={{
+                  margin: '8px 0',
+                  textAlign: 'center',
+                  color: 'var(--text-color)',
+                  fontWeight: 800
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {currentStation && (
+                    <img
+                      src={currentStation.icon}
+                      alt={currentStation.name}
+                      style={{ width: '24px', height: '24px', marginRight: '8px' }}
+                    />
+                  )}
+                  {currentStation ? currentStation.name : ''}
+                </div>
+              </Title>
+              <div className="settings-menu-item station-controls">
+                <button
+                  onClick={() => dispatch(playPreviousStation())}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  <img
+                    src="https://cdn2.vectorstock.com/i/1000x1000/90/36/back-play-button-icon-fast-backward-vector-46459036.jpg"
+                    alt="Previous Station"
+                    style={{ width: '24px', height: '24px' }}
+                  />
+                </button>
+                <button
+                  onClick={() => dispatch(playNextStation())}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/10279/10279033.png"
+                    alt="Next Station"
+                    style={{ width: '24px', height: '24px' }}
+                  />
+                </button>
               </div>
             </div>
           </section>

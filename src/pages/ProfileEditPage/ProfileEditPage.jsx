@@ -182,7 +182,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
           if (focusedElement === 'avatars') {
             setSelectedAvatar(avatars[focusedAvatarIndex]);
           } else if (focusedElement === 'achievements') {
-            window.location.href = '/achievements';
+            window.location.href = '/achievements#/achievements';
           } else if (focusedElement === 'nickname' || focusedElement === 'bio') {
             setIsEditing(true);
             const element = focusedElement === 'nickname' ? 
@@ -321,7 +321,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
         </div>
       </div>
       <Link 
-        to="/achievements"
+        to="/achievements#/achievements"
         type="primary" 
         className={`achievementsButton ${focusedElement === 'achievements' ? 'focused' : ''}`}
       >

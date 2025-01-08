@@ -7,8 +7,8 @@
   --header-background: #ffffff;
   --header-text: #000000;
   --link-hover: #f0f0f0;
-  --active-background: red; /* Red background for active items */
-  --focused-border: 2px solid red; /* Red border for focused items */
+  --active-background: red;
+  --focused-border: 2px solid red;
 }
 
 .dark-mode {
@@ -17,14 +17,13 @@
   --border-color: #444444;
   --menu-background: #141414;
   --menu-text: #ffffff;
-  --header-background: #001529; /* Ant Design dark theme color */
+  --header-background: #001529;
   --header-text: #ffffff;
   --link-hover: #333333;
-  --active-background: darkred; /* Adjust active background for dark mode */
-  --focused-border: 2px solid darkred; /* Adjust focused border for dark mode */
+  --active-background: darkred;
+  --focused-border: 2px solid darkred;
 }
 
-/* Apply CSS variables */
 .customHeader {
   position: fixed;
   top: 0;
@@ -33,11 +32,11 @@
   z-index: 1000;
   background-color: var(--header-background);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  height: 64px; /* Set height explicitly */
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px; /* Adds padding to avoid content touching edges */
+  padding: 0 20px;
   color: var(--header-text);
 }
 
@@ -50,8 +49,8 @@
 .customHeader__menuItem {
   padding: 0 20px;
   color: var(--menu-text) !important;
-  background: none; /* No background by default */
-  border: none; /* Remove any existing borders */
+  background: none;
+  border: none;
   transition: background 0.3s, border 0.3s;
 }
 
@@ -66,24 +65,22 @@
 }
 
 .customHeader__menuItem.active {
-  background: var(--active-background); /* Red background when active */
+  background: var(--active-background);
 }
 
 .customHeader__menuItem.focused {
-  border: var(--focused-border); /* Red border when focused */
+  border: var(--focused-border);
 }
 
 .customHeader__menuItem:hover {
-  border: var(--focused-border); /* Red border on hover */
+  border: var(--focused-border);
 }
 
-/* Remove default focus outline and add custom styling */
 .customHeader__menuItem:focus {
   outline: none;
-  border: var(--focused-border); /* Red border when focused via keyboard */
+  border: var(--focused-border);
 }
 
-/* Rest of your existing CSS remains unchanged */
 .burgerMenuButton {
   margin-left: 2vw;
 }
@@ -104,11 +101,11 @@
 }
 
 .storeLink.scale-up {
-  animation: scale-up-center 0.3s cubic-bezier(0.390, 0.575, 0.565, 1.000) both; /* Shortened duration */
+  animation: scale-up-center 0.3s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
 }
 
 .storeLink.scale-down {
-  animation: scale-down-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; /* Shortened duration */
+  animation: scale-down-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 
 @-webkit-keyframes scale-up-center {
@@ -117,41 +114,35 @@
             transform: scale(1);
   }
   100% {
-    -webkit-transform: scale(1.3); /* Increased scale size */
+    -webkit-transform: scale(1.3);
             transform: scale(1.3);
   }
 }
 
 @keyframes scale-up-center {
   0% {
-    -webkit-transform: scale(1);
-            transform: scale(1);
+    transform: scale(1);
   }
   100% {
-    -webkit-transform: scale(1.3); /* Increased scale size */
-            transform: scale(1.3);
+    transform: scale(1.3);
   }
 }
 
 @-webkit-keyframes scale-down-center {
   0% {
-    -webkit-transform: scale(1.3); /* Scale down starts from 1.3 */
-            transform: scale(1.3);
+    transform: scale(1.3);
   }
   100% {
-    -webkit-transform: scale(1); /* Scales back to 1 */
-            transform: scale(1);
+    transform: scale(1);
   }
 }
 
 @keyframes scale-down-center {
   0% {
-    -webkit-transform: scale(1.3); /* Scale down starts from 1.3 */
-            transform: scale(1.3);
+    transform: scale(1.3);
   }
   100% {
-    -webkit-transform: scale(1); /* Scales back to 1 */
-            transform: scale(1);
+    transform: scale(1);
   }
 }
 
@@ -164,10 +155,10 @@
 .header__drawer__item {
   display: flex;
   align-items: center;
-  padding: 12px 16px; /* Add padding for better spacing */
-  color: var(--text-color); /* Change text color based on theme */
-  font-weight: 500; /* Medium font weight */
-  transition: background-color 0.3s; /* Smooth background transition */
+  padding: 12px 16px;
+  color: var(--text-color);
+  font-weight: 500;
+  transition: background-color 0.3s;
   font-size: 4vw;
   font-weight: 600;
 }
@@ -187,18 +178,17 @@
 }
 
 .header__drawer__item:hover {
-  background-color: var(--link-hover); /* Light background on hover */
-  border-radius: 4px; /* Rounded corners */
+  background-color: var(--link-hover);
+  border-radius: 4px;
 }
 
 @media (max-width: 512px) {
   .customHeader {
-    padding: 0 10px; /* Reduced padding for smaller screens */
-    height: 56px; /* Adjusted height for smaller screens */
+    padding: 0 10px;
+    height: 56px;
   }
-
   .storeLink {
-    margin-right: 0.5vw; /* Adjusted margin for store link */
+    margin-right: 0.5vw;
   }
 }
 
@@ -206,13 +196,11 @@
   .burgerMenuButton {
     display: block;
   }
-
   .customHeader {
-    height: 60px; /* Slightly adjusted height for medium screens */
+    height: 60px;
   }
-
   .customHeader__menuItem {
-    padding: 0 12px; /* Adjusted padding for menu items */
+    padding: 0 12px;
   }
 }
 
@@ -242,7 +230,7 @@
 
 @media (min-width: 1100px) {
   .customHeader {
-    padding: 0 30px; /* Increased padding for larger screens */
-    height: 70px; /* Increased height for larger screens */
+    padding: 0 30px;
+    height: 70px;
   }
 }
