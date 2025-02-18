@@ -1,39 +1,22 @@
 {
-  "main": {
+  "dev": {
     "awscloudformation": {
-      "AuthRoleName": "amplify-carsnipeonline-main-9dee2-authRole",
-      "UnauthRoleArn": "arn:aws:iam::162721372843:role/amplify-carsnipeonline-main-9dee2-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::162721372843:role/amplify-carsnipeonline-main-9dee2-authRole",
+      "AuthRoleName": "amplify-carsnipe-dev-baa77-authRole",
+      "UnauthRoleArn": "arn:aws:iam::235494793518:role/amplify-carsnipe-dev-baa77-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::235494793518:role/amplify-carsnipe-dev-baa77-authRole",
       "Region": "us-east-2",
-      "DeploymentBucketName": "amplify-carsnipeonline-main-9dee2-deployment",
-      "UnauthRoleName": "amplify-carsnipeonline-main-9dee2-unauthRole",
-      "StackName": "amplify-carsnipeonline-main-9dee2",
-      "StackId": "arn:aws:cloudformation:us-east-2:162721372843:stack/amplify-carsnipeonline-main-9dee2/d4401080-abea-11ef-8581-0628db0f7d23",
-      "AmplifyAppId": "d35lko9d4avsrc"
+      "DeploymentBucketName": "amplify-carsnipe-dev-baa77-deployment",
+      "UnauthRoleName": "amplify-carsnipe-dev-baa77-unauthRole",
+      "StackName": "amplify-carsnipe-dev-baa77",
+      "StackId": "arn:aws:cloudformation:us-east-2:235494793518:stack/amplify-carsnipe-dev-baa77/4e353ae0-edf0-11ef-94f0-0a46ef2a628d",
+      "AmplifyAppId": "d2nlu8r3h4tt2s"
     },
     "categories": {
       "auth": {
-        "carsnipeonline80e1a7fb": {
-          "userPoolId": "us-east-2_1nSkWV3rS",
-          "userPoolName": "carsnipee8a5937b_userpool_e8a5937b-dev",
-          "webClientId": "58kasgbt6bd86tlegvtqi8gmdm",
-          "nativeClientId": "hi1akgtfntj8ghdqsqasaghmm"
-        },
-        "carsnipeonlinea9a53f6c": {}
+        "carsnipe50771918": {}
       },
       "api": {
-        "carsnipeonline": {},
-        "paymentsAPI": {}
-      },
-      "function": {
-        "paymentsHandler": {
-          "deploymentBucketName": "amplify-carsnipeonline-main-9dee2-deployment",
-          "s3Key": "amplify-builds/paymentsHandler-75706a494b4651434e49-build.zip"
-        },
-        "auctionsManager": {
-          "deploymentBucketName": "amplify-carsnipeonline-main-9dee2-deployment",
-          "s3Key": "amplify-builds/auctionsManager-494a696d2b6c2f324645-build.zip"
-        }
+        "carsnipe": {}
       }
     }
   }

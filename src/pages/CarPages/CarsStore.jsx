@@ -1,5 +1,3 @@
-// CarsStore.js
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Button, Modal, Form, Input, message, Select, Spin } from "antd";
 import { generateClient } from "aws-amplify/api";

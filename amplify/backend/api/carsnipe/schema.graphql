@@ -1,4 +1,7 @@
-type User @model @auth(rules: [{allow: public}]) {
+type User @model
+  @auth(rules: [
+    { allow: public, operations: [create, update, delete, read] }
+  ]) {
   id: ID!
   nickname: String
   money: Int
@@ -18,7 +21,10 @@ type User @model @auth(rules: [{allow: public}]) {
   totalProfitEarned: Int
 }
 
-type Car @model @auth(rules: [{allow: public}]) {
+type Car @model
+  @auth(rules: [
+    { allow: public, operations: [create, update, delete, read] }
+  ]) {
   id: ID!
   make: String!
   model: String!
@@ -27,16 +33,14 @@ type Car @model @auth(rules: [{allow: public}]) {
   type: String
   purchasePrice: Int
   sellPrice: Int
-  inAuction: Boolean # New field to track if a car is in an auction
+  inAuction: Boolean
   users: [User] @manyToMany(relationName: "UserCar")
 }
 
-type Achievement {
-  name: String!
-  date: String!
-}
-
-type Auction @model @auth(rules: [{allow: public, operations: [read, create, update]}]) {
+type Auction @model
+  @auth(rules: [
+    { allow: public, operations: [create, update, delete, read] }
+  ]) {
   id: ID!
   make: String!
   model: String!
@@ -52,6 +56,11 @@ type Auction @model @auth(rules: [{allow: public, operations: [read, create, upd
   type: String!
   user: [User] @manyToMany(relationName: "AuctionUser")
   bidsCount: Int
+}
+
+type Achievement {
+  name: String!
+  date: String!
 }
 
 type BidInfo {

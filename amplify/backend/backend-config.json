@@ -1,10 +1,25 @@
 {
   "api": {
-    "carsnipeonline": {
-      "dependsOn": [],
+    "carsnipe": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "UserPoolId"
+          ],
+          "category": "auth",
+          "resourceName": "carsnipe50771918"
+        }
+      ],
       "output": {
         "authConfig": {
-          "additionalAuthenticationProviders": [],
+          "additionalAuthenticationProviders": [
+            {
+              "authenticationType": "AMAZON_COGNITO_USER_POOLS",
+              "userPoolConfig": {
+                "userPoolId": "authcarsnipe50771918"
+              }
+            }
+          ],
           "defaultAuthentication": {
             "apiKeyConfig": {
               "apiKeyExpirationDays": 7
@@ -15,31 +30,10 @@
       },
       "providerPlugin": "awscloudformation",
       "service": "AppSync"
-    },
-    "paymentsAPI": {
-      "dependsOn": [
-        {
-          "attributes": [
-            "Name",
-            "Arn"
-          ],
-          "category": "function",
-          "resourceName": "paymentsHandler"
-        }
-      ],
-      "providerPlugin": "awscloudformation",
-      "service": "API Gateway"
     }
   },
   "auth": {
-    "carsnipeonline80e1a7fb": {
-      "customAuth": false,
-      "dependsOn": [],
-      "providerPlugin": "awscloudformation",
-      "service": "Cognito",
-      "serviceType": "imported"
-    },
-    "carsnipeonlinea9a53f6c": {
+    "carsnipe50771918": {
       "customAuth": false,
       "dependsOn": [],
       "frontendAuthConfig": {
@@ -64,84 +58,6 @@
       },
       "providerPlugin": "awscloudformation",
       "service": "Cognito"
-    }
-  },
-  "function": {
-    "auctionsManager": {
-      "build": true,
-      "providerPlugin": "awscloudformation",
-      "service": "Lambda"
-    },
-    "paymentsHandler": {
-      "build": true,
-      "providerPlugin": "awscloudformation",
-      "service": "Lambda"
-    }
-  },
-  "parameters": {
-    "AMPLIFY_auth_carsnipeonline80e1a7fb_nativeClientId": {
-      "usedBy": [
-        {
-          "category": "auth",
-          "resourceName": "carsnipeonline80e1a7fb"
-        }
-      ]
-    },
-    "AMPLIFY_auth_carsnipeonline80e1a7fb_userPoolId": {
-      "usedBy": [
-        {
-          "category": "auth",
-          "resourceName": "carsnipeonline80e1a7fb"
-        }
-      ]
-    },
-    "AMPLIFY_auth_carsnipeonline80e1a7fb_userPoolName": {
-      "usedBy": [
-        {
-          "category": "auth",
-          "resourceName": "carsnipeonline80e1a7fb"
-        }
-      ]
-    },
-    "AMPLIFY_auth_carsnipeonline80e1a7fb_webClientId": {
-      "usedBy": [
-        {
-          "category": "auth",
-          "resourceName": "carsnipeonline80e1a7fb"
-        }
-      ]
-    },
-    "AMPLIFY_function_auctionsManager_deploymentBucketName": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "auctionsManager"
-        }
-      ]
-    },
-    "AMPLIFY_function_auctionsManager_s3Key": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "auctionsManager"
-        }
-      ]
-    },
-    "AMPLIFY_function_paymentsHandler_deploymentBucketName": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "paymentsHandler"
-        }
-      ]
-    },
-    "AMPLIFY_function_paymentsHandler_s3Key": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "paymentsHandler"
-        }
-      ]
     }
   }
 }

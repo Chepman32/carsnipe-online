@@ -55,7 +55,8 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "resources/appIcon.icns"
+      "icon": "resources/appIcon.icns",
+      "identity": null
     },
     "win": {
       "target": "nsis",

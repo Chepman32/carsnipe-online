@@ -1,8 +1,6 @@
 {
-  "providers": [
-    "awscloudformation"
-  ],
-  "projectName": "carsnipeonline",
+  "whyContinueWithGen1": "Prefer not to answer",
+  "projectName": "carsnipe",
   "version": "3.1",
   "frontend": "javascript",
   "javascript": {
@@ -13,5 +11,8 @@
       "BuildCommand": "npm run-script build",
       "StartCommand": "npm run-script start"
     }
-  }
+  },
+  "providers": [
+    "awscloudformation"
+  ]
 }
