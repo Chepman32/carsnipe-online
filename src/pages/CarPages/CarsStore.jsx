@@ -302,7 +302,161 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   return (
     <div className="cars">
        <Button type="primary" onClick={() => setVisible(true)}>New Car</Button>
-      
+      {carsLoading ? (
+        <Spin size="large" />
+      ) : (
+        <div className="cars__container">
+          {(() => {
+            // Lists are now managed by the useEffect
+            return Object.entries(groupCarsByMake(cars)).map(([make, makeCars], makeIndex) => {
+              const sortedMakeCars = makeCars.sort((a, b) => {
+                const nameA = `${a?.make || ""} ${a.model || ""}`.trim();
+                const nameB = `${b?.make || ""} ${b.model || ""}`.trim();
+                return nameA.localeCompare(nameB);
+              });
+              // Split cars into two rows
+              const topRowCars = [];
+              const bottomRowCars = [];
+              sortedMakeCars.forEach((car, index) => {
+                if (index % 2 === 0) {
+                  topRowCars.push(car);
+                } else {
+                  bottomRowCars.push(car);
+                }
+              });
+
+              return (
+                <div key={make} className="make-section" data-make-index={makeIndex} data-focused={focusedMake === make}>
+                  <h2 className="make-name" data-make={make}>{make}</h2>
+                  <div className="make-grid">
+                    <div className="make-row">
+                      {topRowCars.map((car) => {
+                        return (
+                          <CarCard
+                            key={car.id}
+                            focusedCar={focusedCar}
+                            selectedCar={cars.indexOf(car) === selectedCarIndex ? car : null}
+                            setSelectedCar={(selectedCar) => {
+                              setSelectedCar(selectedCar);
+                              setSelectedCarIndex(cars.indexOf(car));
+                              showCarDetailsModal();
+                            }}
+                            showCarDetailsModal={showCarDetailsModal}
+                            car={car}
+                            getImageSource={getImageSource}
+                            showPrice={true}
+                            setFocusedCar={setFocusedCar}
+                            cars={cars}
+                            setFocusPosition={() => { }}
+                            column={allTopRowCars.indexOf(car)}
+                            row={2}
+                          />
+                        );
+                      })}
+                    </div>
+                    <div className="make-row">
+                      {bottomRowCars.map((car) => {
+                        const absoluteIndex = cars.indexOf(car);
+                        return (
+                          <CarCard
+                            key={car.id}
+                            focusedCar={focusedCar}
+                            selectedCar={absoluteIndex === selectedCarIndex ? car : null}
+                            setSelectedCar={(selectedCar) => {
+                              setSelectedCar(selectedCar);
+                              setSelectedCarIndex(absoluteIndex);
+                              showCarDetailsModal();
+                            }}
+                            showCarDetailsModal={showCarDetailsModal}
+                            car={car}
+                            getImageSource={getImageSource}
+                            showPrice={true}
+                            setFocusedCar={setFocusedCar}
+                            cars={cars}
+                            setFocusPosition={() => { }}
+                            column={allBottomRowCars.indexOf(car)}
+                            row={3}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            });
+          })()}
+        </div>
+      )}
+      <Modal
+        visible={true}
+        title="Create a New Car"
+        okText="Create"
+        cancelText="Cancel"
+        onCancel={handleCancel}
+        onOk={() => {
+          form.validateFields().then((values) => {
+            createNewCar(values);
+          });
+        }}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{ remember: true }}
+          onFinish={(values) => createNewCar(values)}
+        >
+          <Form.Item
+            name="make"
+            label="Make"
+            rules={[{ required: true, message: "Please enter the make!" }]}
+          >
+            <Input autoFocus />
+          </Form.Item>
+          <Form.Item
+            name="model"
+            label="Model"
+            rules={[{ required: true, message: "Please enter the model!" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="year"
+            label="Year"
+            rules={[{ required: true, message: "Please enter the year!" }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="price"
+            label="Price"
+            rules={[{ required: true, message: "Please enter the price!" }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="type"
+            label="Type"
+            rules={[{ required: true, message: "Please select the type!" }]}
+          >
+            <Select>
+              <Option value="regular">Regular</Option>
+              <Option value="epic">Epic</Option>
+              <Option value="legendary">Legendary</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+      <CarDetailsModal
+        visible={carDetailsVisible && selectedCar !== null}
+        handleCancel={handleCarDetailsCancel}
+        selectedCar={selectedCar}
+        buyCar={buyCar}
+        loadingBuy={loadingBuy}
+      />
+      <CreditWarningModal
+        isModalVisible={creditWarningModalvisible}
+        setIsModalVisible={setCreditWarningModalvisible}
+      />
     </div>
   );
 };
