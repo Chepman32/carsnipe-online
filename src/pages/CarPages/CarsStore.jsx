@@ -301,6 +301,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
   return (
     <div className="cars">
+       <Button type="primary" onClick={() => setVisible(true)}>New Car</Button>
       {carsLoading ? (
         <Spin size="large" />
       ) : (
