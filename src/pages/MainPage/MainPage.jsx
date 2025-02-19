@@ -6,8 +6,6 @@ import MainPageLeftBottom from "./MainPageCards/MainPageLeftBottom";
 import MainPageCenter from "./MainPageCards/MainPageCenter";
 import MainPageRightTop from "./MainPageCards/MainPageRightTop";
 import MainPageRightBottom from "./MainPageCards/MainPageRightBottom";
-import MainPageExit from "./MainPageCards/MainPageExit";
-import { QuickSettingsMenu } from "../../components/QuickSettings/QuickSettingsMenu";
 import { playOpeningSound, playSwitchSound } from "../../functions";
 import MainPageSettings from "./MainPageCards/MainPageSettings";
 
@@ -33,7 +31,7 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
           setFocusedTile(lastFocusedRightTile);
         }
       } else if (key === "ArrowLeft") {
-        if (focusedTile === "rightTop" || focusedTile === "rightBottom" || focusedTile === "settingsBtn" || focusedTile === "exitBtn") {
+        if (focusedTile === "rightTop" || focusedTile === "rightBottom" || focusedTile === "settingsBtn") {
           setLastFocusedRightTile(focusedTile);
           playSwitchSound();
           setFocusedTile("center");
@@ -51,9 +49,6 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
         } else if (focusedTile === "rightBottom") {
           playSwitchSound();
           setFocusedTile("settingsBtn");
-        } else if (focusedTile === "settingsBtn") {
-          playSwitchSound();
-          setFocusedTile("exitBtn");
         }
       } else if (key === "ArrowUp") {
         if (focusedTile === "leftBottom") {
@@ -65,9 +60,6 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
         } else if (focusedTile === "settingsBtn") {
           playSwitchSound();
           setFocusedTile("rightBottom");
-        } else if (focusedTile === "exitBtn") {
-          playSwitchSound();
-          setFocusedTile("settingsBtn");
         }
       } else if (key === "Enter" && !settingsMenuOpen) {
         playOpeningSound();
@@ -91,9 +83,6 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
             break;
           case "settingsBtn":
             navigate("/settings");
-            break;
-          case "exitBtn":
-            navigate("/profileEditPage");
             break;
           default:
             break;
@@ -166,11 +155,6 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
           <MainPageSettings
             focused={focusedTile === "settingsBtn"}
             handleMouseEnter={handleMouseEnter}
-          />
-          <MainPageExit
-            focused={focusedTile === "exitBtn"}
-            handleMouseEnter={handleMouseEnter}
-            onClick={handleTileClick}
           />
         </div>
       </div>
