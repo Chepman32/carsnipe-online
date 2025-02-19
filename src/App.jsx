@@ -5,7 +5,7 @@ import { generateClient } from "aws-amplify/api";
 import { getCurrentUser } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 import { Authenticator } from "@aws-amplify/ui-react";
-import { HashRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { HashRouter, BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { Spin } from 'antd';
 import { Provider } from 'react-redux';
 import store from './redux/store';
@@ -175,7 +175,7 @@ export default function App() {
   }
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <BackspaceHandler />
       <div className={playerInfo == null || playerInfo === undefined ? "auth-container" : ""}>
         <div className={playerInfo == null || playerInfo === undefined ? "auth-left" : ""} />
@@ -311,6 +311,6 @@ export default function App() {
           }
         </div>
       </div>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
