@@ -29,7 +29,14 @@ const awsmobile = {
     "aws_appsync_graphqlEndpoint": "https://npez7zzu35el5as4sssolpfisy.appsync-api.us-east-2.amazonaws.com/graphql",
     "aws_appsync_region": "us-east-2",
     "aws_appsync_authenticationType": "API_KEY",
-    "aws_appsync_apiKey": "da2-6yvui3jg5jc3rlziud37ftlfhu"
+    "aws_appsync_apiKey": "da2-6yvui3jg5jc3rlziud37ftlfhu",
+    "aws_cloud_logic_custom": [
+        {
+            "name": "paymentsREST",
+            "endpoint": "https://pc27tu68t0.execute-api.us-east-2.amazonaws.com/dev",
+            "region": "us-east-2"
+        }
+    ]
 };
 
 
