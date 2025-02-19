@@ -97,6 +97,7 @@
   box-sizing: border-box;
   filter: brightness(0.8);
   outline: 3px solid rgb(180, 50, 50);
+  cursor: pointer;
 }
 
 .mainActionsModal__row {

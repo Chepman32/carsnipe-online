@@ -6,6 +6,7 @@ import MainPageLeftBottom from "./MainPageCards/MainPageLeftBottom";
 import MainPageCenter from "./MainPageCards/MainPageCenter";
 import MainPageRightTop from "./MainPageCards/MainPageRightTop";
 import MainPageRightBottom from "./MainPageCards/MainPageRightBottom";
+import { QuickSettingsMenu } from "../../components/QuickSettings/QuickSettingsMenu";
 import { playOpeningSound, playSwitchSound } from "../../functions";
 import MainPageSettings from "./MainPageCards/MainPageSettings";
 
@@ -89,13 +90,7 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
         }
       }
     },
-    [
-      focusedTile,
-      lastFocusedLeftTile,
-      lastFocusedRightTile,
-      navigate,
-      settingsMenuOpen
-    ]
+    [focusedTile, lastFocusedLeftTile, lastFocusedRightTile, navigate, settingsMenuOpen]
   );
 
   useEffect(() => {
@@ -151,7 +146,6 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
             handleMouseEnter={handleMouseEnter}
             onClick={handleTileClick}
           />
-          {/* 3) Insert Settings tile above the Exit tile */}
           <MainPageSettings
             focused={focusedTile === "settingsBtn"}
             handleMouseEnter={handleMouseEnter}
