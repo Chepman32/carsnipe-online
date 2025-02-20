@@ -305,7 +305,6 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         <Spin size="large" />
       ) : (
           <div className="cars__container">
-            <Button onClick={() => setVisible(true)}>Create a car</Button>
           {(() => {
             // Lists are now managed by the useEffect
             return Object.entries(groupCarsByMake(cars)).map(([make, makeCars], makeIndex) => {
