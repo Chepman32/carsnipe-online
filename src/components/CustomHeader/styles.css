@@ -85,6 +85,13 @@
   margin-left: 2vw;
 }
 
+.burgerMenuIcon {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  padding-bottom: 1rem;
+}
+
 .headerPlaceholder {
   height: 64px;
 }
@@ -204,16 +211,32 @@
   }
 }
 
-.customHeader__avatar {
-  background: aqua;
-}
-
 .customHeader__avatar img, .drawer__avatar img {
   width: 40px;
   height: 40px;
   margin-left: 2vw !important;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.ant-btn.ant-btn-icon-only {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.ant-btn.ant-btn-icon-only:focus,
+.ant-btn.ant-btn-icon-only:active,
+.ant-btn.ant-btn-icon-only:hover {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+@media(max-width: 768px) {
+  .customHeader__menu {
+    flex-direction: column;
+  }
 }
 
 @media (min-width: 768px) {

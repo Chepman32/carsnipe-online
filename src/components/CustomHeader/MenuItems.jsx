@@ -73,7 +73,7 @@ export const MenuItems = () => {
   };
 
   return (
-    <>
+    <section className='customHeader__menu'>
       <Menu.Item
         key="mainMenu"
         style={{
@@ -124,6 +124,6 @@ export const MenuItems = () => {
       >
         <Link to="/auctionsHub">Auctions</Link>
       </Menu.Item>
-    </>
+    </section>
   );
 };

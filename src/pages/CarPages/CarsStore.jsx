@@ -305,15 +305,12 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         <Spin size="large" />
       ) : (
           <div className="cars__container">
-          {(() => {
-            // Lists are now managed by the useEffect
-            return Object.entries(groupCarsByMake(cars)).map(([make, makeCars], makeIndex) => {
+          {Object.entries(groupCarsByMake(cars)).map(([make, makeCars], makeIndex) => {
               const sortedMakeCars = makeCars.sort((a, b) => {
                 const nameA = `${a?.make || ""} ${a.model || ""}`.trim();
                 const nameB = `${b?.make || ""} ${b.model || ""}`.trim();
                 return nameA.localeCompare(nameB);
               });
-              // Split cars into two rows
               const topRowCars = [];
               const bottomRowCars = [];
               sortedMakeCars.forEach((car, index) => {
@@ -382,8 +379,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                   </div>
                 </div>
               );
-            });
-          })()}
+            })}
         </div>
       )}
       <Modal

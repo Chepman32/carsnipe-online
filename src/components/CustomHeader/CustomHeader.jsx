@@ -10,6 +10,7 @@ import {
   toggleSoundEffects
 } from '../../redux/slices/quickSettingsSlice';
 import { MenuItems } from './MenuItems';
+import drawer from "../../assets/icons/drawer.png";
 import plus_symbol from '../../assets/icons/plus_ymbol.png';
 import {
   FOCUS_ZONES,
@@ -176,7 +177,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
           <Button
             aria-label="Open Menu"
             className="burgerMenuButton"
-            icon={<MenuOutlined />}
+            icon={<img src={drawer} className='burgerMenuIcon' alt="drawer" />}
             onClick={toggleDrawer}
             style={{ display: window.innerWidth < 768 ? 'block' : 'none' }}
           />
