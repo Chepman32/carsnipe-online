@@ -39,7 +39,7 @@ export const MenuItems = () => {
           navigate('/auctionsHub');
           break;
         case HEADER_LAST_OPTION:
-          navigate('/desiredPage'); // Replace with the actual path of the page you want to focus on
+          navigate('/desiredPage');
           break;
         default:
           break;
@@ -54,7 +54,7 @@ export const MenuItems = () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
     }
-  }, [currentFocusedElement, focusedZone]);
+  }, [currentFocusedElement, focusedZone, dispatch, navigate]);
 
   const getBackground = (path) => {
     if (path === '/') {
@@ -73,10 +73,9 @@ export const MenuItems = () => {
   };
 
   return (
-    <section className='customHeader__menu'>
+    <>
       <Menu.Item
         key="mainMenu"
-        onFocus={(event) => event.preventDefault()}
         style={{
           background: getBackground('/'),
           border: getBorder(HEADER_MAIN_MENU),
@@ -86,7 +85,7 @@ export const MenuItems = () => {
               ? '2px solid red'
               : 'none',
         }}
-        className='customHeader__menuItem'
+        className="customHeader__menuItem"
       >
         <Link to="/">
           <h2 style={{ fontWeight: 'bold' }}>Main Menu</h2>
@@ -95,39 +94,36 @@ export const MenuItems = () => {
 
       <Menu.Item
         key="carsStore"
-        onFocus={(event) => event.preventDefault()}
         style={{
           background: getBackground('/carsStore'),
           border: getBorder(HEADER_CARS_STORE),
         }}
-        className='customHeader__menuItem'
+        className="customHeader__menuItem"
       >
         <Link to="/carsStore">Cars Store</Link>
       </Menu.Item>
 
       <Menu.Item
         key="myCars"
-        onFocus={(event) => event.preventDefault()}
         style={{
           background: getBackground('/myCars'),
           border: getBorder(HEADER_MY_CARS),
         }}
-        className='customHeader__menuItem'
+        className="customHeader__menuItem"
       >
         <Link to="/myCars">My Cars</Link>
       </Menu.Item>
 
       <Menu.Item
         key="auctionsHub"
-        onFocus={(event) => event.preventDefault()}
         style={{
           background: getBackground('/auctionsHub'),
           border: getBorder(HEADER_AUCTIONS),
         }}
-        className='customHeader__menuItem'
+        className="customHeader__menuItem"
       >
         <Link to="/auctionsHub">Auctions</Link>
       </Menu.Item>
-    </section>
+    </>
   );
 };

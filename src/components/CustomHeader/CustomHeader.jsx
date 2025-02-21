@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Menu, Typography, Drawer, Button } from 'antd';
+import { Menu, Typography, Drawer, Button, ConfigProvider } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isMobile } from 'react-device-detect';
 import { MenuOutlined } from '@ant-design/icons';
@@ -9,9 +9,7 @@ import {
   toggleDarkMode,
   toggleSoundEffects
 } from '../../redux/slices/quickSettingsSlice';
-import {
-  MenuItems
-} from './MenuItems';
+import { MenuItems } from './MenuItems';
 import plus_symbol from '../../assets/icons/plus_ymbol.png';
 import {
   FOCUS_ZONES,
@@ -30,8 +28,8 @@ import {
   playNextStation,
   playPreviousStation
 } from '../../redux/slices/musicPlayerSlice';
-import fastForward from "../../assets/icons/fast-forward.png"
-import rewind from "../../assets/icons/rewind.png"
+import fastForward from "../../assets/icons/fast-forward.png";
+import rewind from "../../assets/icons/rewind.png";
 
 const { Text, Title } = Typography;
 
@@ -154,7 +152,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   }
 
   return (
-    <>
+    <ConfigProvider>
       <Menu
         theme={darkMode ? 'dark' : 'light'}
         mode="horizontal"
@@ -180,9 +178,9 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             className="burgerMenuButton"
             icon={<MenuOutlined />}
             onClick={toggleDrawer}
-            style={{ display: isMobile ? 'block' : 'none' }}
+            style={{ display: window.innerWidth < 768 ? 'block' : 'none' }}
           />
-          {!isMobile && <MenuItems />}
+          {window.innerWidth >= 768 && <MenuItems />}
           <section style={{ display: 'flex', alignItems: 'center' }}>
             <Link
               to="/store"
@@ -367,10 +365,12 @@ const CustomHeader = ({ nickname, avatar, money }) => {
         onClose={toggleDrawer}
         open={drawerVisible}
       >
-        <MenuItems />
+        <Menu mode="vertical">
+          <MenuItems />
+        </Menu>
       </Drawer>
       <div className="headerPlaceholder"></div>
-    </>
+    </ConfigProvider>
   );
 };
 
