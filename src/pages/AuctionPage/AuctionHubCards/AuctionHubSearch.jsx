@@ -9,12 +9,7 @@ export default function AuctionHubSearch({ focused }) {
   const [hovered, setHovered] = useState(false);
   
   return (
-    <Col
-      style={{ height: '100%', width: isMobile ? '100%' : '50%' }}
-      className={focused ? "activeCard" : "hubCard"}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <Col xs={24} md={12} style={{ height: '100%' }} className={!isMobile && focused ? "activeCard" : "hubCard"}>
       <Link to="/auctions">
         <Card
           style={{
@@ -45,7 +40,7 @@ export default function AuctionHubSearch({ focused }) {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                transform: hovered || focused ? 'scale(1.05)' : 'scale(1)',
+                transform: (!isMobile && (hovered || focused)) ? 'scale(1.05)' : 'scale(1)',
               }}
             />
           </div>

@@ -2,15 +2,16 @@ import { Card, Row, Typography } from 'antd'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import icon from "../../../assets/icons/auctions.png"
+import { isMobile } from 'react-device-detect'
 
 export default function AuctionHubMyBids({ focused, onClick }) {
   const [hovered, setHovered] = useState(false)
 
   return (
-    <Link to="/myBids">
-      <Row style={{ height: '25%' }}>
+    <Link to="/myBids" style={{ width: '100%', height: '100%' }}>
+      <Row style={{ width: '100%', height: '100%' }}>
         <Card
-          className={`cardZoom ${focused ? "activeCard" : "hubCard"}`}
+          className={`cardZoom ${!isMobile && focused ? "activeCard" : "hubCard"}`}
           style={{
             width: '100%',
             height: '100%',

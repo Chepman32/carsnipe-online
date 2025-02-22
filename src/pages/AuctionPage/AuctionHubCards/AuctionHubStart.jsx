@@ -7,8 +7,8 @@ export default function AuctionHubStart({ focused, onClick }) {
   const [hovered, setHovered] = useState(false)
 
   return (
-    <Link to="/myCars" style={{ width: isMobile ? '100%' : '50%', height: '50%' }}>
-      <Row style={{ width: '100%', height: '50%' }}>
+    <Link to="/myCars" style={{ width: '100%', height: '100%' }}>
+      <Row style={{ width: '100%', height: '100%' }}>
         <Card
           style={{
             width: '100%',
@@ -22,7 +22,7 @@ export default function AuctionHubStart({ focused, onClick }) {
           onMouseOver={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
           onClick={onClick}
-          className={focused ? "activeCard" : "hubCard"}
+          className={!isMobile && focused ? "activeCard" : "hubCard"}
         >
           <div className="cardContent">
             <Typography.Text className="auctionHub__cardText">
