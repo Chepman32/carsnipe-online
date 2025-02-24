@@ -47,6 +47,8 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn);
   const { focusedZone, currentFocusedElement } = useSelector((state) => state.focus);
 
+  const isMobile = window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent);
+
   useEffect(() => {
     const carsContainer = document.querySelector('.cars');
     if (carsContainer) {
@@ -97,6 +99,12 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     }
   }, [focusedCar]);
 
+  useEffect(() => {
+    if (cars.length > 0 && !focusedCar) {
+      setFocusedCar(cars[0]);
+    }
+  }, [cars]);
+
   const showCarDetailsModal = useCallback(() => setCarDetailsVisible(true), []);
 
   const fetchCars = useCallback(async () => {
@@ -106,7 +114,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       console.log("Car data received:", carData);
       
       const sortedCars = carData.data.listCars.items.sort((a, b) => 
-        `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`)
+        `${a.make} ${a?.model}`.localeCompare(`${b?.make} ${b?.model}`)
       );
       setCars(sortedCars);
     } catch (error) {
@@ -128,14 +136,61 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     return Object.fromEntries(Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0])));
   };
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      const { key } = event;
-      if (carDetailsVisible || focusedZone === FOCUS_ZONES.HEADER) return;
+  const chunkCars = (cars, size) => {
+    const chunks = [];
+    for (let i = 0; i < cars.length; i += size) {
+      chunks.push(cars.slice(i, i + size));
+    }
+    return chunks;
+  };
 
-      const carsByMake = groupCarsByMake(cars);
-      const makes = Object.keys(carsByMake);
+  const handleKeyDown = (event) => {
+    const { key } = event;
+    if (carDetailsVisible || focusedZone === FOCUS_ZONES.HEADER) return;
 
+    const carsByMake = groupCarsByMake(cars);
+    const makes = Object.keys(carsByMake);
+
+    if (isMobile) {
+      const allCarsFlat = cars.sort((a, b) => 
+        `${a?.make} ${a.model}`.localeCompare(`${b?.make} ${b?.model}`)
+      );
+      const currentIndex = focusedCar ? allCarsFlat.findIndex(c => c.id === focusedCar.id) : -1;
+
+      switch (key) {
+        case "ArrowRight":
+          event.preventDefault();
+          if (currentIndex < allCarsFlat.length - 1) {
+            setFocusedCar(allCarsFlat[currentIndex + 1]);
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          }
+          break;
+
+        case "ArrowLeft":
+          event.preventDefault();
+          if (currentIndex > 0) {
+            setFocusedCar(allCarsFlat[currentIndex - 1]);
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          }
+          break;
+
+        case "ArrowUp":
+          event.preventDefault();
+          dispatch(setFocusedZone(FOCUS_ZONES.HEADER));
+          dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU));
+          setFocusedCar(null);
+          if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          break;
+
+        case "Enter":
+          if (focusedCar) {
+            setSelectedCar(focusedCar);
+            showCarDetailsModal();
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
+          }
+          break;
+      }
+    } else {
       switch (key) {
         case "ArrowRight": {
           event.preventDefault();
@@ -220,7 +275,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
             return;
           }
 
-          const currentMake = focusedCar.make?.trim().toUpperCase();
+          const currentMake = focusedCar?.make?.trim().toUpperCase();
           const makeCars = carsByMake[currentMake] || [];
           const bottomRowIndex = makeCars.filter((_, i) => i % 2 === 1).findIndex(c => c.id === focusedCar.id);
           if (bottomRowIndex !== -1) {
@@ -246,11 +301,13 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           break;
         }
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [carDetailsVisible, cars, focusedZone, focusedCar, focusedMake, allTopRowCars, allBottomRowCars]);
+  }, [handleKeyDown]);
 
   const buyCar = async (car) => {
     if (money >= car.price) {
@@ -304,8 +361,41 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       {carsLoading ? (
         <Spin size="large" />
       ) : (
-          <div className="cars__container">
-          {Object.entries(groupCarsByMake(cars)).map(([make, makeCars], makeIndex) => {
+        <div className={`cars__container ${isMobile ? 'mobile-vertical' : ''}`}>
+          {isMobile ? (
+            Object.entries(groupCarsByMake(cars)).map(([make, makeCars]) => (
+              <div key={make} className="mobile-maker-section">
+                <h2 className="mobile-make-title">{make}</h2>
+                <div className="mobile-car-grid">
+                  {chunkCars(makeCars, 2).map((row, rowIndex) => (
+                    <div key={rowIndex} className="mobile-car-row">
+                      {row.map((car) => (
+                        <div key={car.id} className="mobile-car-wrapper">
+                          <CarCard
+                            car={car}
+                            focusedCar={focusedCar}
+                            selectedCar={cars.indexOf(car) === selectedCarIndex ? car : null}
+                            setSelectedCar={(selectedCar) => {
+                              setSelectedCar(selectedCar);
+                              setSelectedCarIndex(cars.indexOf(car));
+                              showCarDetailsModal();
+                            }}
+                            showCarDetailsModal={showCarDetailsModal}
+                            getImageSource={getImageSource}
+                            showPrice={true}
+                            setFocusedCar={setFocusedCar}
+                            cars={cars}
+                            setFocusPosition={() => {}}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          ) : (
+            Object.entries(groupCarsByMake(cars)).map(([make, makeCars], makeIndex) => {
               const sortedMakeCars = makeCars.sort((a, b) => {
                 const nameA = `${a?.make || ""} ${a.model || ""}`.trim();
                 const nameB = `${b?.make || ""} ${b.model || ""}`.trim();
@@ -326,29 +416,27 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                   <h2 className="make-name" data-make={make}>{make}</h2>
                   <div className="make-grid">
                     <div className="make-row">
-                      {topRowCars.map((car) => {
-                        return (
-                          <CarCard
-                            key={car.id}
-                            focusedCar={focusedCar}
-                            selectedCar={cars.indexOf(car) === selectedCarIndex ? car : null}
-                            setSelectedCar={(selectedCar) => {
-                              setSelectedCar(selectedCar);
-                              setSelectedCarIndex(cars.indexOf(car));
-                              showCarDetailsModal();
-                            }}
-                            showCarDetailsModal={showCarDetailsModal}
-                            car={car}
-                            getImageSource={getImageSource}
-                            showPrice={true}
-                            setFocusedCar={setFocusedCar}
-                            cars={cars}
-                            setFocusPosition={() => { }}
-                            column={allTopRowCars.indexOf(car)}
-                            row={2}
-                          />
-                        );
-                      })}
+                      {topRowCars.map((car) => (
+                        <CarCard
+                          key={car.id}
+                          focusedCar={focusedCar}
+                          selectedCar={cars.indexOf(car) === selectedCarIndex ? car : null}
+                          setSelectedCar={(selectedCar) => {
+                            setSelectedCar(selectedCar);
+                            setSelectedCarIndex(cars.indexOf(car));
+                            showCarDetailsModal();
+                          }}
+                          showCarDetailsModal={showCarDetailsModal}
+                          car={car}
+                          getImageSource={getImageSource}
+                          showPrice={true}
+                          setFocusedCar={setFocusedCar}
+                          cars={cars}
+                          setFocusPosition={() => { }}
+                          column={allTopRowCars.indexOf(car)}
+                          row={2}
+                        />
+                      ))}
                     </div>
                     <div className="make-row">
                       {bottomRowCars.map((car) => {
@@ -379,7 +467,8 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                   </div>
                 </div>
               );
-            })}
+            })
+          )}
         </div>
       )}
       <Modal

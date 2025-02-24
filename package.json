@@ -53,6 +53,18 @@
     "extraMetadata": {
       "main": "main.js"
     },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility",
+      "desktop": {
+        "Name": "Carsnipe",
+        "Comment": "Your application description here",
+        "Icon": "carsnipe",
+        "Type": "Application",
+        "Categories": "Utility;"
+      },
+      "icon": "resources/carsnipe.png"
+    },
     "mac": {
       "target": "dmg",
       "icon": "resources/appIcon.icns",
