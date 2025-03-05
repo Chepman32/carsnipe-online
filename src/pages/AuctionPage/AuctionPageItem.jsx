@@ -36,7 +36,7 @@ export default function AuctionPageItem({ playerInfo, auction, isSelected, index
                 <Flex>
                     <div style={{ display: 'flex', flexDirection: "column", alignItems: "flex-end" }}>
                         <Typography.Text className='subText'>
-                            {auction.currentBid > auction.minBid ? 'HIGHEST' : 'START'} BID
+                            {auction.currentBid >= auction.minBid ? 'HIGHEST' : 'START'} BID
                         </Typography.Text>
                         <Typography.Text className='price' >
                             {auction.currentBid || auction.minBid}

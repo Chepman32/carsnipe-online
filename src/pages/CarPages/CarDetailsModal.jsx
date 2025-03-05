@@ -145,14 +145,6 @@ const CarDetailsModal = ({
           style={{ color: "red" }}
         />
       )}
-      {forAuction && (
-        <CarDetailsModalRow
-          text="Remove car"
-          selected={focusedRow === 5}
-          handler={() => { handleCancel(); removeCar(selectedCar.id, true); }}
-          style={{ color: "red" }}
-        />
-      )}
     </Modal>
   );
 };

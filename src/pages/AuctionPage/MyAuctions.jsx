@@ -65,7 +65,7 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
     try {
       setLoadingBid(true);
       const increasedBidValue = Math.floor(auction.currentBid * 1.1) || Math.round(auction.minBid * 1.1)
-      setMoney(auction.lastBidPlayer === playerInfo.nickname ? money - (increasedBidValue - auction.currentBid) : money - increasedBidValue)
+      setMoney(auction.lastBidPlayer === playerInfo?.nickname ? money - (increasedBidValue - auction.currentBid) : money - increasedBidValue)
       const updatedAuction = {
         id: auction.id,
         carName: auction.carName,
@@ -86,7 +86,7 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
         variables: {
           input: {
             id: playerInfo.id,
-            money: auction.lastBidPlayer === playerInfo.nickname ? money - (increasedBidValue - auction.currentBid) : money - increasedBidValue
+            money: auction.lastBidPlayer === playerInfo?.nickname ? money - (increasedBidValue - auction.currentBid) : money - increasedBidValue
           }
         },
       });
@@ -127,7 +127,7 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
 
         setMoney(prevMoney => {
             const bidDifference =
-                selectedAuction.lastBidPlayer === playerInfo.nickname
+                selectedAuction.lastBidPlayer === playerInfo?.nickname
                     ? selectedAuction.buy - selectedAuction.currentBid
                     : increasedBidValue;
 
@@ -152,7 +152,7 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
                     input: {
                         id: playerInfo.id,
                         money:
-                            selectedAuction.lastBidPlayer === playerInfo.nickname
+                            selectedAuction.lastBidPlayer === playerInfo?.nickname
                                 ? money - (selectedAuction.buy - selectedAuction.currentBid)
                                 : money - increasedBidValue,
                     },

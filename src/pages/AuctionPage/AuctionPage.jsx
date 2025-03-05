@@ -56,7 +56,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
           timeLeft
         };
       });
-      const filtered = auctions.filter(auction => auction.player !== playerInfo.nickname)
+      const filtered = auctions.filter(auction => auction.player !== playerInfo?.nickname)
 
       setAuctions(filtered);
       if (filtered.length > 0) {
@@ -71,94 +71,101 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
     } catch (error) {
       console.error("Error fetching auctions:", error);
     }
-  }, [playerInfo.nickname]);
+  }, [playerInfo?.nickname]);
 
   const increaseBid = async (auction) => {
     try {
       if (money < auction.buy) {
         setCreditWarningModalvisible(true);
         return;
+      }
+  
+      setLoadingBid(true);
+  
+      const userBidded = await fetchUserBiddedList(playerInfo.id);
+      if (userBidded.length === 0) {
+        await checkAndUpdateAchievements(playerInfo);
+      }
+  
+      let increasedBidValue;
+      if (!auction.currentBid || auction.currentBid === auction.minBid) {
+        increasedBidValue = auction.minBid;
       } else {
-        setLoadingBid(true);
+        increasedBidValue = Math.floor(auction.currentBid * 1.1);
+      }
   
-        const userBidded = await fetchUserBiddedList(playerInfo.id);
-        
-        // Check for and award "First One" achievement if this is the first bid
-        if (userBidded.length === 0) {
-          await checkAndUpdateAchievements(playerInfo); // Award achievements if applicable
-        }
-        
-        let increasedBidValue;
-        if (!auction.currentBid || auction.currentBid === auction.minBid) {
-          increasedBidValue = auction.minBid;
-        } else {
-          increasedBidValue = Math.floor(auction.currentBid * 1.1);
-        }
+      console.log("Increasing bid from", auction.currentBid, "to", increasedBidValue);
   
-        if (increasedBidValue >= auction.buy) {
-          await buyItem();
-          return;
-        }
+      if (increasedBidValue >= auction.buy) {
+        await buyItem();
+        return;
+      }
   
-        const newMoney = auction.lastBidPlayer === playerInfo.nickname
-          ? money - (increasedBidValue - auction.currentBid)
-          : money - increasedBidValue;
+      const newMoney = auction.lastBidPlayer === playerInfo?.nickname
+        ? money - (increasedBidValue - auction.currentBid)
+        : money - increasedBidValue;
   
-        setMoney(newMoney);
+      setMoney(newMoney);
   
-        const bidObject = {
-          auctionId: auction.id,
-          bidValue: increasedBidValue,
-          timestamp: new Date().toISOString(),
-        };
+      const bidObject = {
+        auctionId: auction.id,
+        bidValue: increasedBidValue,
+        timestamp: new Date().toISOString(),
+      };
   
-        const updatedBiddedList = [...userBidded, bidObject];
-        const bidInputs = updatedBiddedList.map(({ auctionId, bidValue, timestamp }) => ({ auctionId, bidValue, timestamp }));
+      const updatedBiddedList = [...userBidded, bidObject];
+      const bidInputs = updatedBiddedList.map(({ auctionId, bidValue, timestamp }) => ({ auctionId, bidValue, timestamp }));
   
-        const updatedUser = {
-          id: playerInfo.id,
-          money: newMoney,
-          bidded: bidInputs,
-        };
+      const updatedUser = {
+        id: playerInfo.id,
+        money: newMoney,
+        bidded: bidInputs,
+      };
   
+      await client.graphql({
+        query: mutations.updateUser,
+        variables: { input: updatedUser },
+      });
+  
+      const updatedAuction = {
+        id: auction.id,
+        currentBid: increasedBidValue,
+        lastBidPlayer: playerInfo?.nickname,
+        bidsCount: auction.bidsCount + 1,
+        status: increasedBidValue < auction.buy ? "Active" : "Finished",
+      };
+  
+      // Optimistic update
+      setAuctions(prevAuctions =>
+        prevAuctions.map(a =>
+          a.id === auction.id ? { ...a, currentBid: increasedBidValue } : a
+        )
+      );
+  
+      const response = await client.graphql({
+        query: mutations.updateAuction,
+        variables: { input: updatedAuction },
+      });
+      console.log("Update Auction Response:", response);
+  
+      message.success('Bid successfully increased!');
+  
+      const currentIndex = auctions.findIndex(a => a.id === auction.id);
+      await listAuctions(currentIndex);
+  
+      if (auction.player !== playerInfo?.nickname) {
         await client.graphql({
           query: mutations.updateUser,
           variables: {
-            input: updatedUser,
-          },
-        });
-  
-        const updatedAuction = {
-          id: auction.id,
-          currentBid: increasedBidValue,
-          lastBidPlayer: playerInfo.nickname,
-          bidsCount: auction.bidsCount + 1,
-          status: increasedBidValue < auction.buy ? "Active" : "Finished",
-        };
-  
-        await client.graphql({
-          query: mutations.updateAuction,
-          variables: { input: updatedAuction },
-        });
-  
-        message.success('Bid successfully increased!');
-        const currentIndex = auctions.indexOf(auction);
-        await listAuctions(currentIndex);
-  
-        if (auction.player !== playerInfo.nickname) {
-          await client.graphql({
-            query: mutations.updateUser,
-            variables: {
-              input: {
-                id: playerInfo.id,
-                totalAuctionsParticipated: (playerInfo.totalAuctionsParticipated || 0) + 1,
-              }
+            input: {
+              id: playerInfo.id,
+              totalAuctionsParticipated: (playerInfo.totalAuctionsParticipated || 0) + 1,
             }
-          });
-        }
+          }
+        });
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error in increaseBid:", error);
     } finally {
       setLoadingBid(false);
       setAuctionActionsVisible(false);
@@ -220,7 +227,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
             const updatedAuctionInput = {
                 id: selectedAuction.id,
                 currentBid: selectedAuction.buy,
-                lastBidPlayer: playerInfo.nickname,
+                lastBidPlayer: playerInfo?.nickname,
                 status: "Finished",
             };
             await client.graphql({
