@@ -34,12 +34,12 @@ exports.handler = async (event) => {
         let paymentAmount = eventBody?.data?.object?.amount_total;
 
         switch (paymentAmount) {
-            case 19900: paymentAmount = 50000; break;
-            case 39900: paymentAmount = 100000; break;
-            case 69900: paymentAmount = 200000; break;
-            case 109900: paymentAmount = 300000; break;
-            case 159900: paymentAmount = 500000; break;
-            case 259900: paymentAmount = 1000000; break;
+            case 199: paymentAmount = 50000; break;
+            case 399: paymentAmount = 100000; break;
+            case 699: paymentAmount = 200000; break;
+            case 1099: paymentAmount = 300000; break;
+            case 1599: paymentAmount = 500000; break;
+            case 2599: paymentAmount = 1000000; break;
             default: paymentAmount = 0;
         }
 
@@ -51,7 +51,7 @@ exports.handler = async (event) => {
             });
             return {
                 statusCode: 400,
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     message: 'Email or payment amount missing or invalid',
                     debug: {
                         receivedEmail: email,
@@ -102,7 +102,7 @@ exports.handler = async (event) => {
                         console.log(`Found user in ${tableName}:`, user);
 
                         const newMoneyValue = (user.money || 0) + paymentAmount;
-                        
+
                         const updateCommand = new UpdateItemCommand({
                             TableName: tableName,
                             Key: marshall({ id: user.id }),
@@ -111,10 +111,14 @@ exports.handler = async (event) => {
                             ReturnValues: 'ALL_NEW'
                         });
 
-                        const updateResult = await dynamoDBClient.send(updateCommand);
-                        console.log(`Updated user in ${tableName}. New money value: ${newMoneyValue}`);
-                        
-                        usersUpdated.push({ ...user, money: newMoneyValue });
+                        try {
+                             const updateResult = await dynamoDBClient.send(updateCommand);
+                             console.log(`Updated user in ${tableName}. New money value: ${newMoneyValue}`);
+                             usersUpdated.push({ ...user, money: newMoneyValue });
+                         } catch(error){
+                             console.error(`Error updating user in ${tableName}:`, error)
+                             throw error;
+                         }
                     }
                 } else {
                     console.log(`No matching users found in ${tableName}`);
@@ -129,9 +133,9 @@ exports.handler = async (event) => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 
-                    message: 'Users money updated successfully', 
-                    users: usersUpdated 
+                body: JSON.stringify({
+                    message: 'Users money updated successfully',
+                    users: usersUpdated
                 })
             };
         } else {
@@ -141,20 +145,21 @@ exports.handler = async (event) => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     message: 'No matching user found',
                     debug: { searchedEmail: email }
                 })
             };
+            // now it will not go to the end of the function and not throw an error
         }
     } catch (error) {
         console.error('Error processing webhook:', error);
         return {
             statusCode: 500,
-            headers: {
+             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 message: 'Internal server error',
                 error: error.message
             })
