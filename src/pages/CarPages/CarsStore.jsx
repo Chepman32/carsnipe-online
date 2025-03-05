@@ -9,7 +9,6 @@ import CarCard from "./CarCard";
 import {
   createNewUserCar,
   checkAndUpdateAchievements,
-  playSwitchSound,
   playOpeningSound,
   playClosingSound
 } from "../../functions";
@@ -23,6 +22,7 @@ import {
   setIsTopCar,
   TOP_CAR
 } from "../../redux/slices/focusSlice";
+import useSoundEffects from "../../hooks/useSoundEffects";
 
 const { Option } = Select;
 const client = generateClient();
@@ -42,6 +42,8 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   const [carsLoading, setCarsLoading] = useState(true);
   const [allTopRowCars, setAllTopRowCars] = useState([]);
   const [allBottomRowCars, setAllBottomRowCars] = useState([]);
+
+  const { playSwitchSound } = useSoundEffects();
 
   const soundEffectsOnQuickSettings = useSelector((state) => state.quickSettings.soundEffectsOn);
   const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn);

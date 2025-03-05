@@ -1,16 +1,25 @@
-import { Flex } from 'antd'
-import React from 'react'
+import React from "react";
 import "./carsPage.css";
-import { getCarTypeColor, playOpeningSound } from '../../functions';
-import { useDispatch } from 'react-redux';
-import { FOCUS_ZONES, setCurrentFocusedElement, setFocusedZone } from '../../redux/slices/focusSlice';
+import { playOpeningSound } from "../../functions";
+import { useDispatch } from "react-redux";
+import { FOCUS_ZONES, setCurrentFocusedElement, setFocusedZone } from "../../redux/slices/focusSlice";
 
-export default function CarCard({ focusedCar, selectedCar, setSelectedCar, showCarDetailsModal, car, getImageSource, showPrice, cars, setFocusPosition, setFocusedCar, column, row }) {
+export default function CarCard({
+  focusedCar,
+  selectedCar,
+  setSelectedCar,
+  showCarDetailsModal,
+  car,
+  getImageSource,
+  showPrice,
+  setFocusedCar,
+  setFocusPosition,
+  column,
+  row,
+}) {
   const dispatch = useDispatch();
 
   const handleClick = () => {
-    console.log("row:", row)
-    console.log("column:", column)
     playOpeningSound();
     setSelectedCar(car);
     setFocusedCar(car);
@@ -37,16 +46,17 @@ export default function CarCard({ focusedCar, selectedCar, setSelectedCar, showC
         <img
           src={getImageSource(car.make, car.model)}
           alt={`${car.make} ${car.model}`}
-          className='carsPage__item__image'
+          className="carsPage__item__image"
         />
+        {showPrice && <div className="carCard__price">{car.price}</div>}
       </div>
       <div className={`carsPage__type ${car.type.toLowerCase()}`}>
-          {car.type === 'COMMON' && 'B'}
-          {car.type === 'RARE' && 'A'}
-          {car.type === 'EPIC' && 'S'}
-          {car.type === 'LEGENDARY' && 'S1'}
-          <span className="carsPage__rating">{car.type}</span>
-        </div>
+        {car.type === "COMMON" && "B"}
+        {car.type === "RARE" && "A"}
+        {car.type === "EPIC" && "S"}
+        {car.type === "LEGENDARY" && "S1"}
+        <span className="carsPage__rating">{car.type}</span>
+      </div>
     </div>
-  )
+  );
 }

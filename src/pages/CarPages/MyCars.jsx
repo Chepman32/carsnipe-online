@@ -1,29 +1,29 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Form, message, Typography, Spin } from "antd";
-import { generateClient } from 'aws-amplify/api';
-import { listCars as listCarsQuery } from '../../graphql/queries';
-import * as mutations from '../../graphql/mutations';
+import { generateClient } from "aws-amplify/api";
+import { listCars as listCarsQuery } from "../../graphql/queries";
+import * as mutations from "../../graphql/mutations";
 import "./carsPage.css";
 import CarDetailsModal from "./CarDetailsModal";
 import CarCard from "./CarCard";
-import { 
-  fetchUserCarsRequest, 
-  getUserCar, 
-  deleteUserCar, 
-  createNewAuctionUser, 
-  playSwitchSound, 
-  playOpeningSound, 
-  playClosingSound 
+import {
+  fetchUserCarsRequest,
+  getUserCar,
+  deleteUserCar,
+  createNewAuctionUser,
+  playSwitchSound,
+  playOpeningSound,
+  playClosingSound,
 } from "../../functions";
 import NewAuctionModal from "./NewAuctionModal";
 import { useSelector, useDispatch } from "react-redux";
-import { 
+import {
   FOCUS_ZONES,
   HEADER_MAIN_MENU,
   setCurrentFocusedElement,
   setFocusedZone,
   setIsTopCar,
-  TOP_CAR
+  TOP_CAR,
 } from "../../redux/slices/focusSlice";
 
 const client = generateClient();
@@ -31,7 +31,7 @@ const client = generateClient();
 const MyCars = ({ playerInfo }) => {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [newAuctionvisible, setNewAuctionVisible] = useState(false);
+  const [newAuctionVisible, setNewAuctionVisible] = useState(false);
   const [auctionDuration, setAuctionDuration] = useState(1);
   const [minBid, setMinBid] = useState(0);
   const [buy, setBuy] = useState(0);
@@ -55,15 +55,15 @@ const MyCars = ({ playerInfo }) => {
 
   const isMobile = window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent);
 
-  const groupedCars = React.useMemo(() => {
-    const grouped = {};
-    cars.forEach((item) => {
-      const mk = item?.car?.make?.trim().toUpperCase() || "UNKNOWN";
-      if (!grouped[mk]) grouped[mk] = [];
-      grouped[mk].push(item.car);
-    });
-    return Object.fromEntries(Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0])));
-  }, [cars]);
+  const groupCarsByMake = (cars) => {
+    const groups = cars.reduce((acc, item) => {
+      const make = item?.car?.make?.trim().toUpperCase() || "UNKNOWN";
+      if (!acc[make]) acc[make] = [];
+      acc[make].push(item.car);
+      return acc;
+    }, {});
+    return Object.fromEntries(Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0])));
+  };
 
   useEffect(() => {
     const carsContainer = scroller.current;
@@ -74,8 +74,8 @@ const MyCars = ({ playerInfo }) => {
           carsContainer.scrollLeft -= e.deltaY * 1.5;
         }
       };
-      carsContainer.addEventListener('wheel', handleWheel, { passive: false });
-      return () => carsContainer.removeEventListener('wheel', handleWheel);
+      carsContainer.addEventListener("wheel", handleWheel, { passive: false });
+      return () => carsContainer.removeEventListener("wheel", handleWheel);
     }
   }, []);
 
@@ -83,7 +83,7 @@ const MyCars = ({ playerInfo }) => {
     if (cars.length > 0) {
       const topRowCars = [];
       const bottomRowCars = [];
-      Object.entries(groupedCars).forEach(([make, makeCars]) => {
+      Object.entries(groupCarsByMake(cars)).forEach(([make, makeCars]) => {
         makeCars.forEach((car, index) => {
           if (index % 2 === 0) topRowCars.push(car);
           else bottomRowCars.push(car);
@@ -92,7 +92,7 @@ const MyCars = ({ playerInfo }) => {
       setAllTopRowCars(topRowCars);
       setAllBottomRowCars(bottomRowCars);
     }
-  }, [cars, groupedCars]);
+  }, [cars]);
 
   useEffect(() => {
     dispatch(setFocusedZone(FOCUS_ZONES.PAGE));
@@ -112,7 +112,7 @@ const MyCars = ({ playerInfo }) => {
   useEffect(() => {
     if (focusedCar) {
       const element = document.querySelector(`[data-car-id="${focusedCar.id}"]`);
-      if (element) element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (element) element.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [focusedCar]);
 
@@ -128,7 +128,7 @@ const MyCars = ({ playerInfo }) => {
       const userCars = await fetchUserCarsRequest(playerInfo.id);
       setCars(userCars || []);
     } catch (error) {
-      console.error('Error fetching cars:', error);
+      console.error("Error fetching cars:", error);
     } finally {
       setLoading(false);
     }
@@ -142,15 +142,16 @@ const MyCars = ({ playerInfo }) => {
 
   const handleKeyDown = (event) => {
     const { key } = event;
-    if (carDetailsVisible || newAuctionvisible || focusedZone === FOCUS_ZONES.HEADER) return;
+    if (carDetailsVisible || newAuctionVisible || focusedZone === FOCUS_ZONES.HEADER) return;
 
-    const makes = Object.keys(groupedCars);
+    const carsByMake = groupCarsByMake(cars);
+    const makes = Object.keys(carsByMake);
 
     if (isMobile) {
-      const allCarsFlat = cars.map(item => item.car).sort((a, b) => 
-        `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`)
-      );
-      const currentIndex = focusedCar ? allCarsFlat.findIndex(c => c.id === focusedCar.id) : -1;
+      const allCarsFlat = cars
+        .map((item) => item.car)
+        .sort((a, b) => `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`));
+      const currentIndex = focusedCar ? allCarsFlat.findIndex((c) => c.id === focusedCar.id) : -1;
 
       switch (key) {
         case "ArrowRight":
@@ -182,7 +183,7 @@ const MyCars = ({ playerInfo }) => {
         case "Enter":
           if (focusedCar) {
             setSelectedCar(focusedCar);
-            setSelectedCarIndex(allCarsFlat.findIndex(c => c.id === focusedCar.id));
+            setSelectedCarIndex(allCarsFlat.findIndex((c) => c.id === focusedCar.id));
             showCarDetailsModal();
             if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
           }
@@ -197,9 +198,9 @@ const MyCars = ({ playerInfo }) => {
             if (currentIndex < makes.length - 1) {
               const nextMake = makes[currentIndex + 1];
               setFocusedMake(nextMake);
-              document.querySelector(`[data-make="${nextMake}"]`)?.scrollIntoView({ 
-                behavior: 'smooth', block: 'center', inline: 'center' 
-              });
+              document
+                .querySelector(`[data-make="${nextMake}"]`)
+                ?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
             return;
@@ -209,7 +210,7 @@ const MyCars = ({ playerInfo }) => {
           const currentIndex = currentArray.indexOf(focusedCar);
           if (currentIndex < currentArray.length - 1) {
             setFocusedCar(currentArray[currentIndex + 1]);
-            setSelectedCarIndex(cars.findIndex(c => c.car.id === currentArray[currentIndex + 1].id));
+            setSelectedCarIndex(cars.findIndex((c) => c.car.id === currentArray[currentIndex + 1].id));
             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           }
           break;
@@ -222,9 +223,9 @@ const MyCars = ({ playerInfo }) => {
             if (currentIndex > 0) {
               const prevMake = makes[currentIndex - 1];
               setFocusedMake(prevMake);
-              document.querySelector(`[data-make="${prevMake}"]`)?.scrollIntoView({ 
-                behavior: 'smooth', block: 'center', inline: 'center' 
-              });
+              document
+                .querySelector(`[data-make="${prevMake}"]`)
+                ?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
             return;
@@ -234,7 +235,7 @@ const MyCars = ({ playerInfo }) => {
           const currentIndex = currentArray.indexOf(focusedCar);
           if (currentIndex > 0) {
             setFocusedCar(currentArray[currentIndex - 1]);
-            setSelectedCarIndex(cars.findIndex(c => c.car.id === currentArray[currentIndex - 1].id));
+            setSelectedCarIndex(cars.findIndex((c) => c.car.id === currentArray[currentIndex - 1].id));
             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           }
           break;
@@ -243,24 +244,26 @@ const MyCars = ({ playerInfo }) => {
         case "ArrowDown": {
           event.preventDefault();
           if (focusedMake) {
-            const makeCars = groupedCars[focusedMake]?.filter((_, i) => i % 2 === 0);
+            const makeCars = carsByMake[focusedMake]?.filter((_, i) => i % 2 === 0);
             if (makeCars?.length) {
               setFocusedCar(makeCars[0]);
               setFocusedMake(null);
-              setSelectedCarIndex(cars.findIndex(c => c.car.id === makeCars[0].id));
+              setSelectedCarIndex(cars.findIndex((c) => c.car.id === makeCars[0].id));
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
             return;
           }
 
           const currentMake = focusedCar?.make?.trim().toUpperCase();
-          const makeCars = groupedCars[currentMake] || [];
-          const topRowIndex = makeCars.filter((_, i) => i % 2 === 0).findIndex(c => c.id === focusedCar.id);
+          const makeCars = carsByMake[currentMake] || [];
+          const topRowIndex = makeCars
+            .filter((_, i) => i % 2 === 0)
+            .findIndex((c) => c.id === focusedCar.id);
           if (topRowIndex !== -1) {
             const bottomCar = makeCars.filter((_, i) => i % 2 === 1)[topRowIndex];
             if (bottomCar) {
               setFocusedCar(bottomCar);
-              setSelectedCarIndex(cars.findIndex(c => c.car.id === bottomCar.id));
+              setSelectedCarIndex(cars.findIndex((c) => c.car.id === bottomCar.id));
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
           }
@@ -278,13 +281,15 @@ const MyCars = ({ playerInfo }) => {
           }
 
           const currentMake = focusedCar?.make?.trim().toUpperCase();
-          const makeCars = groupedCars[currentMake] || [];
-          const bottomRowIndex = makeCars.filter((_, i) => i % 2 === 1).findIndex(c => c.id === focusedCar.id);
+          const makeCars = carsByMake[currentMake] || [];
+          const bottomRowIndex = makeCars
+            .filter((_, i) => i % 2 === 1)
+            .findIndex((c) => c.id === focusedCar.id);
           if (bottomRowIndex !== -1) {
             const topCar = makeCars.filter((_, i) => i % 2 === 0)[bottomRowIndex];
             if (topCar) {
               setFocusedCar(topCar);
-              setSelectedCarIndex(cars.findIndex(c => c.car.id === topCar.id));
+              setSelectedCarIndex(cars.findIndex((c) => c.car.id === topCar.id));
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
           } else {
@@ -298,7 +303,7 @@ const MyCars = ({ playerInfo }) => {
         case "Enter": {
           if (focusedCar) {
             setSelectedCar(focusedCar);
-            setSelectedCarIndex(cars.findIndex(c => c.car.id === focusedCar.id));
+            setSelectedCarIndex(cars.findIndex((c) => c.car.id === focusedCar.id));
             showCarDetailsModal();
             if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
           }
@@ -316,7 +321,7 @@ const MyCars = ({ playerInfo }) => {
     focusedCar,
     focusedMake,
     carDetailsVisible,
-    newAuctionvisible,
+    newAuctionVisible,
     focusedZone,
     soundEffectsOn,
     soundEffectsOnQuickSettings,
@@ -324,7 +329,6 @@ const MyCars = ({ playerInfo }) => {
     isMobile,
     allTopRowCars,
     allBottomRowCars,
-    groupedCars
   ]);
 
   const createNewAuction = async () => {
@@ -338,8 +342,8 @@ const MyCars = ({ playerInfo }) => {
       type: selectedCar.type,
       carId: selectedCar.id,
       endTime,
-      status: 'Active',
-      lastBidPlayer: '',
+      status: "Active",
+      lastBidPlayer: "",
       player: playerInfo?.nickname,
       buy: selectedCar.price,
       minBid,
@@ -362,13 +366,13 @@ const MyCars = ({ playerInfo }) => {
           throw new Error("Car not found or invalid ID for deletion");
         }
         if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
-        message.success('Auction created successfully!');
+        message.success("Auction created successfully!");
       } else {
-        throw new Error('Failed to retrieve the ID of the created auction.');
+        throw new Error("Failed to retrieve the ID of the created auction.");
       }
     } catch (error) {
-      console.error('Error creating auction:', error);
-      message.error('Failed to create auction.');
+      console.error("Error creating auction:", error);
+      message.error("Failed to create auction.");
     } finally {
       setLoadingNewAuction(false);
       setNewAuctionVisible(false);
@@ -399,21 +403,39 @@ const MyCars = ({ playerInfo }) => {
     return chunks;
   };
 
+  const removeCar = async (carId, permanent = false) => {
+    try {
+      const carToDelete = await getUserCar(playerInfo.id, carId);
+      if (carToDelete && carToDelete.id) {
+        await deleteUserCar(carToDelete.id);
+        setCars((prevCars) => prevCars.filter((c) => c.car.id !== carId));
+        setSelectedCar(null);
+        setCarDetailsVisible(false);
+        message.success(permanent ? "Car permanently removed!" : "Car removed from garage!");
+      } else {
+        throw new Error("Car not found or invalid ID for deletion");
+      }
+    } catch (error) {
+      console.error("Error deleting car:", error);
+      message.error("Failed to remove car.");
+    }
+  };
+
   return (
-    <div className={`cars ${isMobile ? 'mobile-vertical' : ''}`} ref={scroller}>
+    <div className={`cars ${isMobile ? "mobile-vertical" : ""}`} ref={scroller}>
       {loading ? (
         <Spin size="large" />
       ) : cars && cars.length ? (
         <div className="cars__container">
           {isMobile ? (
-            Object.entries(groupedCars).map(([make, makeCars]) => (
+            Object.entries(groupCarsByMake(cars)).map(([make, makeCars]) => (
               <div key={make} className="mobile-maker-section">
                 <h2 className="mobile-make-title">{make}</h2>
                 <div className="mobile-car-grid">
                   {chunkCars(makeCars, 2).map((row, rowIndex) => (
                     <div key={rowIndex} className="mobile-car-row">
                       {row.map((car) => {
-                        const realIndex = cars.findIndex(c => c.car.id === car.id);
+                        const realIndex = cars.findIndex((c) => c.car.id === car.id);
                         return (
                           <div key={car.id} className="mobile-car-wrapper">
                             <CarCard
@@ -429,7 +451,8 @@ const MyCars = ({ playerInfo }) => {
                               getImageSource={getImageSource}
                               showPrice={false}
                               setFocusedCar={setFocusedCar}
-                              cars={cars.map(c => c.car)}
+                              cars={cars.map((c) => c.car)}
+                              setFocusPosition={() => {}}
                             />
                           </div>
                         );
@@ -440,7 +463,7 @@ const MyCars = ({ playerInfo }) => {
               </div>
             ))
           ) : (
-            Object.entries(groupedCars).map(([make, makeCars], makeIndex) => {
+            Object.entries(groupCarsByMake(cars)).map(([make, makeCars], makeIndex) => {
               const topRowCars = [];
               const bottomRowCars = [];
               makeCars.forEach((car, index) => {
@@ -449,12 +472,19 @@ const MyCars = ({ playerInfo }) => {
               });
 
               return (
-                <div key={make} className="make-section" data-make-index={makeIndex} data-focused={focusedMake === make}>
-                  <h2 className="make-name" data-make={make}>{make}</h2>
+                <div
+                  key={make}
+                  className="make-section"
+                  data-make-index={makeIndex}
+                  data-focused={focusedMake === make}
+                >
+                  <h2 className="make-name" data-make={make}>
+                    {make}
+                  </h2>
                   <div className="make-grid">
                     <div className="make-row">
                       {topRowCars.map((car) => {
-                        const realIndex = cars.findIndex(c => c.car.id === car.id);
+                        const realIndex = cars.findIndex((c) => c.car.id === car.id);
                         return (
                           <CarCard
                             key={car.id}
@@ -470,7 +500,8 @@ const MyCars = ({ playerInfo }) => {
                             getImageSource={getImageSource}
                             showPrice={false}
                             setFocusedCar={setFocusedCar}
-                            cars={cars.map(c => c.car)}
+                            cars={cars.map((c) => c.car)}
+                            setFocusPosition={() => {}}
                             column={allTopRowCars.indexOf(car)}
                             row={2}
                           />
@@ -479,7 +510,7 @@ const MyCars = ({ playerInfo }) => {
                     </div>
                     <div className="make-row">
                       {bottomRowCars.map((car) => {
-                        const realIndex = cars.findIndex(c => c.car.id === car.id);
+                        const realIndex = cars.findIndex((c) => c.car.id === car.id);
                         return (
                           <CarCard
                             key={car.id}
@@ -495,7 +526,8 @@ const MyCars = ({ playerInfo }) => {
                             getImageSource={getImageSource}
                             showPrice={false}
                             setFocusedCar={setFocusedCar}
-                            cars={cars.map(c => c.car)}
+                            cars={cars.map((c) => c.car)}
+                            setFocusPosition={() => {}}
                             column={allBottomRowCars.indexOf(car)}
                             row={3}
                           />
@@ -523,10 +555,11 @@ const MyCars = ({ playerInfo }) => {
           if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           setNewAuctionVisible(true);
         }}
+        removeCar={removeCar}
       />
-      {newAuctionvisible && selectedCar && (
+      {newAuctionVisible && selectedCar && (
         <NewAuctionModal
-          visible={newAuctionvisible}
+          visible={newAuctionVisible}
           handleCancel={cancelNewAuction}
           handleOk={createNewAuction}
           form={form}

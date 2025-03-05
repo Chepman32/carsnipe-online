@@ -14,9 +14,9 @@ const CarDetailsModal = ({
   loadingBuy,
   forAuction,
   showNewAuction,
-  deleteCar,
+  removeCar,
 }) => {
-  const totalRows = 5;
+  const totalRows = 6;
   const [focusedRow, setFocusedRow] = useState(0);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -44,14 +44,16 @@ const CarDetailsModal = ({
             case 1:
               break;
             case 2:
-              // Row 2 functionality goes here
               break;
             case 3:
-              // Row 3 functionality goes here
               break;
             case 4:
               handleCancel();
-              deleteCar(selectedCar.id);
+              removeCar(selectedCar.id);
+              break;
+            case 5:
+              handleCancel();
+              removeCar(selectedCar.id, true);
               break;
             default:
               break;
@@ -67,7 +69,7 @@ const CarDetailsModal = ({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [visible, focusedRow, selectedCar, buyCar, showNewAuction, forAuction, totalRows, deleteCar]);
+  }, [visible, focusedRow, selectedCar, buyCar, showNewAuction, forAuction, totalRows, removeCar, handleCancel]);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -110,7 +112,7 @@ const CarDetailsModal = ({
       {!forAuction && visible && selectedCar && (
         <>
           <CarDetailsModalRow
-            focused={focusedRow === 0}
+            selected={focusedRow === 0}
             title="Buy car"
             handler={() => buyCar(selectedCar)}
             text={loadingBuy ? <Spin /> : "Buy"}
@@ -136,7 +138,20 @@ const CarDetailsModal = ({
       <CarDetailsModalRow text="Choose color" selected={focusedRow === 2} />
       <CarDetailsModalRow text="Buy as a gift" selected={focusedRow === 3} />
       {forAuction && (
-        <CarDetailsModalRow text="Remove the car from garage" selected={focusedRow === 4} />
+        <CarDetailsModalRow
+          text="Remove the car from garage"
+          selected={focusedRow === 4}
+          handler={() => { handleCancel(); removeCar(selectedCar.id); }}
+          style={{ color: "red" }}
+        />
+      )}
+      {forAuction && (
+        <CarDetailsModalRow
+          text="Remove car"
+          selected={focusedRow === 5}
+          handler={() => { handleCancel(); removeCar(selectedCar.id, true); }}
+          style={{ color: "red" }}
+        />
       )}
     </Modal>
   );
