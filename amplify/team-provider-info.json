@@ -23,6 +23,10 @@
         "payments": {
           "deploymentBucketName": "amplify-carsnipe-dev-baa77-deployment",
           "s3Key": "amplify-builds/payments-5867583033477a2b7164-build.zip"
+        },
+        "automaticalyAuctionCreation": {
+          "deploymentBucketName": "amplify-carsnipe-dev-baa77-deployment",
+          "s3Key": "amplify-builds/automaticalyAuctionCreation-67784939746147414c48-build.zip"
         }
       }
     }

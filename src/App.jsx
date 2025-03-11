@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useCallback, useEffect, useState } from "react";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/api";
@@ -32,6 +31,7 @@ import MusicUploadPage from "./pages/MusicUploadPage/MusicUploadPage";
 import MusicLibraryPage from "./pages/MusicLibraryPage/MusicLibraryPage";
 import GameSettings from "./pages/GameSettings/GameSettings";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
+import VideoBackground from "./assets/inro-background.MP4";
 
 const client = generateClient();
 Amplify.configure(awsExports);
@@ -178,7 +178,13 @@ export default function App() {
     <BrowserRouter>
       <BackspaceHandler />
       <div className={playerInfo == null || playerInfo === undefined ? "auth-container" : ""}>
-        <div className={playerInfo == null || playerInfo === undefined ? "auth-left" : ""} />
+        {playerInfo == null || playerInfo === undefined ? (
+          <div className="auth-left">
+            <video className="video-background" autoPlay muted loop>
+              <source src={VideoBackground} type="video/mp4" />
+            </video>
+          </div>
+        ) : null}
         <div className={playerInfo == null || playerInfo === undefined ? "auth-right" : ""}>
           <div className={playerInfo == null || playerInfo === undefined ? "authenticator-wrapper" : ""}>
             <Authenticator>

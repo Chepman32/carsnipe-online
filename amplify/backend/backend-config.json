@@ -75,6 +75,11 @@
     }
   },
   "function": {
+    "automaticalyAuctionCreation": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
     "payments": {
       "build": true,
       "providerPlugin": "awscloudformation",
@@ -82,6 +87,22 @@
     }
   },
   "parameters": {
+    "AMPLIFY_function_automaticalyAuctionCreation_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "automaticalyAuctionCreation"
+        }
+      ]
+    },
+    "AMPLIFY_function_automaticalyAuctionCreation_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "automaticalyAuctionCreation"
+        }
+      ]
+    },
     "AMPLIFY_function_payments_deploymentBucketName": {
       "usedBy": [
         {
