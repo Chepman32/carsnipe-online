@@ -2,7 +2,7 @@
   "AppSyncApiName": "carsnipe",
   "DynamoDBBillingMode": "PAY_PER_REQUEST",
   "DynamoDBEnableServerSideEncryption": false,
-  "APIKeyExpirationEpoch": "17150400000",
+  "APIKeyExpirationEpoch": -1,
   "AuthCognitoUserPoolId": {
     "Fn::GetAtt": [
       "authcarsnipe50771918",

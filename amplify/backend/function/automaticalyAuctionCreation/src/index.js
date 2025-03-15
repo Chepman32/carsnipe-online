@@ -137,8 +137,8 @@ async function createNewAuction(user, car) {
         updatedAt: timestamp,
     };
 
-    const auctionTableName = "Auction-d6zkh67iufdejfmae42vhabyoq-dev";
-    const auctionUserTableName = "AuctionUser-d6zkh67iufdejfmae42vhabyoq-dev";
+    const auctionTableName = "Auction-d6zkh67iufdejfmae42vhabyoq-staging";
+    const auctionUserTableName = "AuctionUser-d6zkh67iufdejfmae42vhabyoq-staging";
     console.log("Creating auction in table:", auctionTableName); // Log table name for debugging
     console.log("Creating auction user in table:", auctionUserTableName); // Log table name for debugging
 
