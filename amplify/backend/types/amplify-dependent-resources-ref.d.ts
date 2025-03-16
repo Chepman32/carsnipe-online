@@ -23,13 +23,6 @@ export type AmplifyDependentResourcesAttributes = {
     }
   },
   "function": {
-    "automaticalyAuctionCreation": {
-      "Arn": "string",
-      "LambdaExecutionRole": "string",
-      "LambdaExecutionRoleArn": "string",
-      "Name": "string",
-      "Region": "string"
-    },
     "payments": {
       "Arn": "string",
       "LambdaExecutionRole": "string",

@@ -50,7 +50,7 @@ exports.handler = async (event) => {
 
 async function getRandomUser() {
     try {
-        const userTableName = "User-d6zkh67iufdejfmae42vhabyoq-dev";
+        const userTableName = "User-d6zkh67iufdejfmae42vhabyoq-destagingv";
         console.log("Scanning user table:", userTableName); // Log table name for debugging
         const scanParams = {
             TableName: userTableName,
@@ -77,7 +77,7 @@ async function getRandomUser() {
 
 async function getRandomCar() {
     try {
-        const carTableName = "Car-d6zkh67iufdejfmae42vhabyoq-dev";
+        const carTableName = "Car-d6zkh67iufdejfmae42vhabyoq-staging";
         console.log("Scanning car table:", carTableName); // Log table name for debugging
         const scanParams = {
             TableName: carTableName,

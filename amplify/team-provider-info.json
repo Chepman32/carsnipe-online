@@ -1,4 +1,32 @@
 {
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-carsnipe-staging-43d19-authRole",
+      "UnauthRoleArn": "arn:aws:iam::235494793518:role/amplify-carsnipe-staging-43d19-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::235494793518:role/amplify-carsnipe-staging-43d19-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-carsnipe-staging-43d19-deployment",
+      "UnauthRoleName": "amplify-carsnipe-staging-43d19-unauthRole",
+      "StackName": "amplify-carsnipe-staging-43d19",
+      "StackId": "arn:aws:cloudformation:us-east-2:235494793518:stack/amplify-carsnipe-staging-43d19/09cc2d60-eeb2-11ef-8608-063731a449a1",
+      "AmplifyAppId": "d2nlu8r3h4tt2s"
+    },
+    "categories": {
+      "auth": {
+        "carsnipe50771918": {}
+      },
+      "function": {
+        "payments": {
+          "deploymentBucketName": "amplify-carsnipe-staging-43d19-deployment",
+          "s3Key": "amplify-builds/payments-5867583033477a2b7164-build.zip"
+        }
+      },
+      "api": {
+        "carsnipe": {},
+        "paymentsREST": {}
+      }
+    }
+  },
   "dev": {
     "awscloudformation": {
       "AuthRoleName": "amplify-carsnipe-dev-baa77-authRole",

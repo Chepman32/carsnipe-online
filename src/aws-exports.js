@@ -3,10 +3,21 @@
 
 const awsmobile = {
     "aws_project_region": "us-east-2",
-    "aws_cognito_identity_pool_id": "us-east-2:744ef550-d1b3-4c4a-a7f3-dddb24ac7ffa",
+    "aws_appsync_graphqlEndpoint": "https://zc3zqbj5tvcddja5apcksmufby.appsync-api.us-east-2.amazonaws.com/graphql",
+    "aws_appsync_region": "us-east-2",
+    "aws_appsync_authenticationType": "API_KEY",
+    "aws_appsync_apiKey": "da2-3bt4qu554be7be25uryvhxko4m",
+    "aws_cloud_logic_custom": [
+        {
+            "name": "paymentsREST",
+            "endpoint": "https://yknmw1s780.execute-api.us-east-2.amazonaws.com/staging",
+            "region": "us-east-2"
+        }
+    ],
+    "aws_cognito_identity_pool_id": "us-east-2:d4f98f82-6989-4b2c-8a8d-1eb3e1c84756",
     "aws_cognito_region": "us-east-2",
-    "aws_user_pools_id": "us-east-2_Tqr74ERys",
-    "aws_user_pools_web_client_id": "1860193e1o725he2m88j793egs",
+    "aws_user_pools_id": "us-east-2_R4DooXxdR",
+    "aws_user_pools_web_client_id": "5ellneg4ngl8b9jm39g9cml6eb",
     "oauth": {},
     "aws_cognito_username_attributes": [
         "EMAIL"
@@ -25,17 +36,6 @@ const awsmobile = {
     },
     "aws_cognito_verification_mechanisms": [
         "EMAIL"
-    ],
-    "aws_appsync_graphqlEndpoint": "https://npez7zzu35el5as4sssolpfisy.appsync-api.us-east-2.amazonaws.com/graphql",
-    "aws_appsync_region": "us-east-2",
-    "aws_appsync_authenticationType": "API_KEY",
-    "aws_appsync_apiKey": "da2-6yvui3jg5jc3rlziud37ftlfhu",
-    "aws_cloud_logic_custom": [
-        {
-            "name": "paymentsREST",
-            "endpoint": "https://pc27tu68t0.execute-api.us-east-2.amazonaws.com/dev",
-            "region": "us-east-2"
-        }
     ]
 };
 

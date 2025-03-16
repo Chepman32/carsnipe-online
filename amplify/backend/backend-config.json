@@ -22,7 +22,9 @@
           ],
           "defaultAuthentication": {
             "apiKeyConfig": {
-              "apiKeyExpirationDays": 7
+              "apiKeyExpirationDate": "2026-03-16T11:23:33.828Z",
+              "apiKeyExpirationDays": 365,
+              "description": "15March"
             },
             "authenticationType": "API_KEY"
           }
@@ -75,11 +77,6 @@
     }
   },
   "function": {
-    "automaticalyAuctionCreation": {
-      "build": true,
-      "providerPlugin": "awscloudformation",
-      "service": "Lambda"
-    },
     "payments": {
       "build": true,
       "providerPlugin": "awscloudformation",
@@ -87,22 +84,6 @@
     }
   },
   "parameters": {
-    "AMPLIFY_function_automaticalyAuctionCreation_deploymentBucketName": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "automaticalyAuctionCreation"
-        }
-      ]
-    },
-    "AMPLIFY_function_automaticalyAuctionCreation_s3Key": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "automaticalyAuctionCreation"
-        }
-      ]
-    },
     "AMPLIFY_function_payments_deploymentBucketName": {
       "usedBy": [
         {
