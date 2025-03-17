@@ -31,7 +31,7 @@ import MusicUploadPage from "./pages/MusicUploadPage/MusicUploadPage";
 import MusicLibraryPage from "./pages/MusicLibraryPage/MusicLibraryPage";
 import GameSettings from "./pages/GameSettings/GameSettings";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
-import VideoBackground from "./assets/inro-background.mp4";
+import VideoBackground from "./assets/intro-background.mp4";
 
 const client = generateClient();
 Amplify.configure(awsExports);
