@@ -18,13 +18,16 @@
               "userPoolConfig": {
                 "userPoolId": "authcarsnipe50771918"
               }
+            },
+            {
+              "authenticationType": "AWS_IAM"
             }
           ],
           "defaultAuthentication": {
             "apiKeyConfig": {
-              "apiKeyExpirationDate": "2026-03-16T11:23:33.828Z",
+              "apiKeyExpirationDate": "2026-03-17T11:34:30.018Z",
               "apiKeyExpirationDays": 365,
-              "description": "15March"
+              "description": "17March"
             },
             "authenticationType": "API_KEY"
           }
@@ -77,6 +80,11 @@
     }
   },
   "function": {
+    "automaticalyAuctionCreation": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
     "payments": {
       "build": true,
       "providerPlugin": "awscloudformation",
@@ -84,6 +92,22 @@
     }
   },
   "parameters": {
+    "AMPLIFY_function_automaticalyAuctionCreation_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "automaticalyAuctionCreation"
+        }
+      ]
+    },
+    "AMPLIFY_function_automaticalyAuctionCreation_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "automaticalyAuctionCreation"
+        }
+      ]
+    },
     "AMPLIFY_function_payments_deploymentBucketName": {
       "usedBy": [
         {
