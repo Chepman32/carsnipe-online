@@ -35,39 +35,24 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   const [selectedAuctionDetailsModalVisible, setSelectedAuctionDetailsModalVisible] = useState(false);
   const auctionContainerRef = useRef(null);
 
-  const handleAuctionActionsShow = () => {
-    setAuctionActionsVisible(true);
-  };
-
-  const handleAuctionActionsCancel = () => {
-    setAuctionActionsVisible(false);
-  };
-
   const listAuctions = useCallback(async (previousIndex = null) => {
     try {
+      console.log("Fetching auctions...");
       const auctionData = await client.graphql({ query: listAuctionsQuery });
-      const auctions = auctionData.data.listAuctions.items.map(auction => {
+      console.log("Raw auction data:", auctionData);
+
+      const auctions = auctionData.data.listAuctions.items.map((auction) => {
         const endTime = new Date(parseInt(auction.endTime) * 1000);
         const timeLeft = calculateTimeDifference(endTime);
-
-        return {
-          ...auction,
-          endTime,
-          timeLeft
-        };
+        return { ...auction, endTime, timeLeft };
       });
-      const filtered = auctions.filter(auction => auction.player !== playerInfo?.nickname)
+      console.log("Processed auctions:", auctions);
+
+      const filtered = auctions; // No filtering for now
+      console.log("Filtered auctions:", filtered, "Player nickname:", playerInfo?.nickname);
 
       setAuctions(filtered);
-      if (filtered.length > 0) {
-        if (previousIndex !== null && filtered[previousIndex]) {
-          setSelectedAuction(filtered[previousIndex]);
-        } else {
-          setSelectedAuction(filtered[0]);
-        }
-      } else {
-        setSelectedAuction(null);
-      }
+      console.log("Auctions state set:", filtered);
     } catch (error) {
       console.error("Error fetching auctions:", error);
     }
@@ -293,50 +278,20 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
     }
 };
 
+  const handleAuctionActionsShow = () => {
+    setAuctionActionsVisible(true);
+  };
+
+  const handleAuctionActionsCancel = () => {
+    setAuctionActionsVisible(false);
+  };
+
   useEffect(() => {
+    console.log("useEffect triggered, calling listAuctions...");
     listAuctions();
-  }, [listAuctions]);
+  }, []); // Run only once on mount
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!auctionActionsVisible && auctions.length > 0) {
-        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-          e.preventDefault();
-          playSwitchSound();
-          setSelectedAuction((prevAuction) => {
-            const currentIndex = auctions.indexOf(prevAuction);
-            let newIndex;
-            if (e.key === "ArrowUp") {
-              newIndex = currentIndex > 0 ? currentIndex - 1 : auctions.length - 1;
-            } else {
-              newIndex = currentIndex < auctions.length - 1 ? currentIndex + 1 : 0;
-            }
-            const newAuction = auctions[newIndex];
-
-            if (auctionContainerRef.current) {
-              const auctionElement = auctionContainerRef.current.children[newIndex];
-              if (auctionElement) {
-                auctionElement.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'nearest',
-                });
-              }
-            }
-
-            return newAuction;
-          });
-        } else if (e.key === "Enter") {
-          setAuctionActionsVisible(true);
-          playOpeningSound();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [auctions, auctionActionsVisible]);
+  console.log("Rendering with auctions state:", auctions);
 
   const handleItemClick = (clickedAuction) => {
     setSelectedAuction(clickedAuction);
