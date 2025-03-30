@@ -67,6 +67,13 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
 
   const increaseBid = async (auction) => {
     try {
+      // Validate auction object
+      if (!auction || !auction.id) {
+        console.error("Invalid auction object:", auction);
+        message.error('Cannot increase bid: Invalid auction data');
+        return;
+      }
+
       if (money < auction.buy) {
         setCreditWarningModalvisible(true);
         return;
@@ -157,6 +164,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       }
     } catch (error) {
       console.error("Error in increaseBid:", error);
+      message.error('Failed to increase bid');
     } finally {
       setLoadingBid(false);
       setAuctionActionsVisible(false);
@@ -165,6 +173,12 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   
   const buyItem = async () => {
     try {
+        if (!selectedAuction || !selectedAuction.id) {
+          console.error("Invalid selected auction:", selectedAuction);
+          message.error('Cannot buy item: No valid auction selected');
+          return;
+        }
+
         if (money < selectedAuction.buy) {
             setCreditWarningModalvisible(true);
             return;
@@ -277,6 +291,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         }
     } catch (error) {
         console.error(error);
+        message.error('Failed to buy item');
     } finally {
         setLoadingBuy(false);
         setAuctionActionsVisible(false);
