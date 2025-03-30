@@ -2,17 +2,19 @@ const {
   DynamoDBClient,
   ScanCommand,
   PutItemCommand,
+  DeleteItemCommand,
 } = require("@aws-sdk/client-dynamodb");
 const { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
 const { v4: uuidv4 } = require("uuid");
 
-// Initialize DynamoDB client with explicit region
 const dynamoDBClient = new DynamoDBClient({ region: "us-east-2" });
 
 exports.handler = async (event) => {
   console.log("Automated auction creation triggered");
 
   try {
+    await deleteExpiredAuctions();
+
     const randomUser = await getRandomUser();
     if (!randomUser) {
       console.error("No users found in the database");
@@ -55,7 +57,6 @@ exports.handler = async (event) => {
 async function getRandomUser() {
   try {
     const userTableName = "User-d5sbvamfrnfcdkuamsf6bannaa-staging";
-    console.log("Scanning user table:", userTableName); // Log table name for debugging
     const scanParams = {
       TableName: userTableName,
     };
@@ -64,15 +65,11 @@ async function getRandomUser() {
     const tableContent = await dynamoDBClient.send(scanCommand);
 
     if (!tableContent.Items || tableContent.Items.length === 0) {
-      console.log("No users found in table");
       return null;
     }
 
     const randomIndex = Math.floor(Math.random() * tableContent.Items.length);
-    const randomUser = unmarshall(tableContent.Items[randomIndex]);
-
-    console.log("Selected random user:", randomUser);
-    return randomUser;
+    return unmarshall(tableContent.Items[randomIndex]);
   } catch (error) {
     console.error("Error fetching users:", error);
     throw error;
@@ -82,7 +79,6 @@ async function getRandomUser() {
 async function getRandomCar() {
   try {
     const carTableName = "Car-d5sbvamfrnfcdkuamsf6bannaa-staging";
-    console.log("Scanning car table:", carTableName); // Log table name for debugging
     const scanParams = {
       TableName: carTableName,
     };
@@ -91,15 +87,11 @@ async function getRandomCar() {
     const tableContent = await dynamoDBClient.send(scanCommand);
 
     if (!tableContent.Items || tableContent.Items.length === 0) {
-      console.log("No cars found in table");
       return null;
     }
 
     const randomIndex = Math.floor(Math.random() * tableContent.Items.length);
-    const randomCar = unmarshall(tableContent.Items[randomIndex]);
-
-    console.log("Selected random car:", randomCar);
-    return randomCar;
+    return unmarshall(tableContent.Items[randomIndex]);
   } catch (error) {
     console.error("Error fetching cars:", error);
     throw error;
@@ -155,8 +147,6 @@ async function createNewAuction(user, car) {
     const putCommand = new PutItemCommand(putParams);
     await dynamoDBClient.send(putCommand);
 
-    console.log("Auction created successfully:", auction);
-
     const auctionUser = {
       id: uuidv4(),
       auctionId: auctionId,
@@ -173,11 +163,68 @@ async function createNewAuction(user, car) {
     const auctionUserCommand = new PutItemCommand(auctionUserParams);
     await dynamoDBClient.send(auctionUserCommand);
 
-    console.log("AuctionUser relationship created:", auctionUser);
-
     return auction;
   } catch (error) {
     console.error("Error creating auction:", error);
     throw error;
+  }
+}
+
+async function deleteExpiredAuctions() {
+  try {
+    const auctionTableName = "Auction-d5sbvamfrnfcdkuamsf6bannaa-staging";
+    const scanParams = {
+      TableName: auctionTableName,
+    };
+
+    const scanCommand = new ScanCommand(scanParams);
+    const tableContent = await dynamoDBClient.send(scanCommand);
+
+    if (!tableContent.Items || tableContent.Items.length === 0) {
+      return;
+    }
+
+    const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+    const oneMinuteInSeconds = 60;
+
+    for (const item of tableContent.Items) {
+      const auction = unmarshall(item);
+
+      if (parseInt(auction.endTime) < currentTimeInSeconds) {
+        if (auction.status !== "Finished") {
+          // Mark the auction as "Finished" and set finishedAt timestamp
+          const updateParams = {
+            TableName: auctionTableName,
+            Key: { id: { S: auction.id } },
+            UpdateExpression: "SET #status = :status, #finishedAt = :finishedAt",
+            ExpressionAttributeNames: {
+              "#status": "status",
+              "#finishedAt": "finishedAt",
+            },
+            ExpressionAttributeValues: {
+              ":status": { S: "Finished" },
+              ":finishedAt": { N: currentTimeInSeconds.toString() },
+            },
+          };
+
+          const updateCommand = new PutItemCommand(updateParams);
+          await dynamoDBClient.send(updateCommand);
+        } else if (
+          auction.finishedAt &&
+          parseInt(auction.finishedAt) + oneMinuteInSeconds < currentTimeInSeconds
+        ) {
+          // Delete the auction if it has been finished for over a minute
+          const deleteParams = {
+            TableName: auctionTableName,
+            Key: { id: { S: auction.id } },
+          };
+
+          const deleteCommand = new DeleteItemCommand(deleteParams);
+          await dynamoDBClient.send(deleteCommand);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error handling expired auctions:", error);
   }
 }
