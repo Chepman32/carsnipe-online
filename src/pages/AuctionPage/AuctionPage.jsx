@@ -34,6 +34,8 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   const [creditWarningModalvisible, setCreditWarningModalvisible] = useState(false);
   const [selectedAuctionDetailsModalVisible, setSelectedAuctionDetailsModalVisible] = useState(false);
   const auctionContainerRef = useRef(null);
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const itemRefs = useRef({});
 
   const listAuctions = useCallback(async (previousIndex = null) => {
     try {
@@ -48,15 +50,20 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       });
       console.log("Processed auctions:", auctions);
 
-      const filtered = auctions; // No filtering for now
+      const filtered = auctions;
       console.log("Filtered auctions:", filtered, "Player nickname:", playerInfo?.nickname);
 
       setAuctions(filtered);
       console.log("Auctions state set:", filtered);
+
+      if (filtered.length > 0 && !selectedAuction) {
+        setSelectedAuction(filtered[0]);
+        setFocusedIndex(0);
+      }
     } catch (error) {
       console.error("Error fetching auctions:", error);
     }
-  }, [playerInfo?.nickname]);
+  }, [playerInfo?.nickname, selectedAuction]);
 
   const increaseBid = async (auction) => {
     try {
@@ -120,7 +127,6 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         status: increasedBidValue < auction.buy ? "Active" : "Finished",
       };
   
-      // Optimistic update
       setAuctions(prevAuctions =>
         prevAuctions.map(a =>
           a.id === auction.id ? { ...a, currentBid: increasedBidValue } : a
@@ -224,7 +230,6 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
 
             await checkAndUpdateAchievements();
 
-            // Check if the user has acquired 5 cars and award "Starter Pack" achievement
             const userCars = await fetchUserCarsRequest(playerInfo.id);
             const userAchievements = await fetchUserAchievementsList(playerInfo.id);
 
@@ -286,49 +291,111 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
     setAuctionActionsVisible(false);
   };
 
+  const scrollToFocusedItem = (index) => {
+    if (itemRefs.current[index] && itemRefs.current[index].current) {
+      itemRefs.current[index].current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'start'
+      });
+    }
+  };
+
+  const handleKeyDown = useCallback((event) => {
+    if (!auctions.length) return;
+
+    switch (event.key) {
+      case 'ArrowUp':
+        event.preventDefault();
+        setFocusedIndex(prev => {
+          const newIndex = prev === 0 ? auctions.length - 1 : prev - 1;
+          setSelectedAuction(auctions[newIndex]);
+          playSwitchSound();
+          scrollToFocusedItem(newIndex);
+          return newIndex;
+        });
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        setFocusedIndex(prev => {
+          const newIndex = prev === auctions.length - 1 ? 0 : prev + 1;
+          setSelectedAuction(auctions[newIndex]);
+          playSwitchSound();
+          scrollToFocusedItem(newIndex);
+          return newIndex;
+        });
+        break;
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        if (selectedAuction) {
+          playOpeningSound();
+          isMobile ? setSelectedAuctionDetailsModalVisible(true) : handleAuctionActionsShow();
+        }
+        break;
+      default:
+        break;
+    }
+  }, [auctions, selectedAuction]);
+
   useEffect(() => {
     console.log("useEffect triggered, calling listAuctions...");
     listAuctions();
-  }, []); // Run only once on mount
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   console.log("Rendering with auctions state:", auctions);
 
   const handleItemClick = (clickedAuction) => {
+    const newIndex = auctions.findIndex(auction => auction.id === clickedAuction.id);
+    setFocusedIndex(newIndex);
     setSelectedAuction(clickedAuction);
+    scrollToFocusedItem(newIndex);
     playOpeningSound();
     isMobile === false ? handleAuctionActionsShow() : setSelectedAuctionDetailsModalVisible(true);
   };
 
   return (
-    <div className="auctionPage">
+    <div className="auctionPage" tabIndex={0}>
       <div style={{ flex: 1 }}>
         <div className="auction-items-container" ref={auctionContainerRef}>
-          {auctions.map((auction) =>
-            !isMobile ? (
-              <AuctionPageItem
-                key={auction.id}
-                setSelectedAuction={setSelectedAuction}
-                auction={auction}
-                index={auctions.indexOf(auction)}
-                increaseBid={increaseBid}
-                isSelected={auction === selectedAuction}
-                handleAuctionActionsShow={handleAuctionActionsShow}
-                handleItemClick={handleItemClick}
-                playerInfo={playerInfo}
-              />
+          {auctions.map((auction, index) => {
+            itemRefs.current[index] = itemRefs.current[index] || React.createRef();
+            return !isMobile ? (
+              <div ref={itemRefs.current[index]} key={auction.id}>
+                <AuctionPageItem
+                  setSelectedAuction={setSelectedAuction}
+                  auction={auction}
+                  index={index}
+                  increaseBid={increaseBid}
+                  isSelected={auction === selectedAuction}
+                  isFocused={index === focusedIndex}
+                  handleAuctionActionsShow={handleAuctionActionsShow}
+                  handleItemClick={handleItemClick}
+                  playerInfo={playerInfo}
+                />
+              </div>
             ) : (
-              <AuctionMobilePageItem
-                key={auction.id}
-                setSelectedAuction={setSelectedAuction}
-                auction={auction}
-                index={auctions.indexOf(auction)}
-                increaseBid={increaseBid}
-                isSelected={auction === selectedAuction}
-                handleAuctionActionsShow={handleAuctionActionsShow}
-                handleItemClick={handleItemClick}
-              />
-            )
-          )}
+              <div ref={itemRefs.current[index]} key={auction.id}>
+                <AuctionMobilePageItem
+                  setSelectedAuction={setSelectedAuction}
+                  auction={auction}
+                  index={index}
+                  increaseBid={increaseBid}
+                  isSelected={auction === selectedAuction}
+                  isFocused={index === focusedIndex}
+                  handleAuctionActionsShow={handleAuctionActionsShow}
+                  handleItemClick={handleItemClick}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
       {!isMobile && <SelectedAuctionDetails selectedAuction={selectedAuction} />}

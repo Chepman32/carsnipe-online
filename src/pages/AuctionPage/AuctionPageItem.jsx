@@ -16,7 +16,7 @@ export default function AuctionPageItem({ playerInfo, auction, isSelected, index
             handleItemClick(auction);
             console.log("auction info:", auction)
         }} >
-            <Flex justify="space-between" align="flex-end" style={{width: "100%", paddingRight: "1vw", border: isSelected ? '2px solid #ff69b4' : 'none'}} >
+            <Flex justify="space-between" align="flex-end" style={{width: "100%", paddingRight: "1vw", outline: isSelected ? '3px solid #ff69b4' : 'none'}} >
                 <div>
                     <img
                         src={getImageSource(auction.make, auction.model)}

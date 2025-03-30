@@ -1,5 +1,5 @@
 import { Card, Col, Typography } from 'antd';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import BackImage from '../../../assets/images/Forza-Horizon-5-Playlist-Cars.png';
 import { isMobile } from 'react-device-detect';
@@ -7,7 +7,16 @@ import '../auctionPage.css';
 
 export default function AuctionHubSearch({ focused }) {
   const [hovered, setHovered] = useState(false);
-  
+  const [initialScale, setInitialScale] = useState(true); // New state for initial scaling
+
+  // Trigger initial scale on mount, then disable it after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialScale(false); // Stop initial scaling after 1-2 seconds
+    }, 1500); // Adjust duration as needed
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <Col xs={24} md={24} style={{ height: '100%' }} className={!isMobile && focused ? "activeCard" : "hubCard"}>
       <Link to="/auctions">
@@ -21,6 +30,8 @@ export default function AuctionHubSearch({ focused }) {
             overflow: 'hidden',
             backgroundColor: "#fff",
           }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
         >
           <div 
             style={{ 
@@ -40,7 +51,7 @@ export default function AuctionHubSearch({ focused }) {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                transform: (!isMobile && (hovered || focused)) ? 'scale(1.05)' : 'scale(1)',
+                transform: (!isMobile && (initialScale || hovered || focused)) ? 'scale(1.05)' : 'scale(1)',
               }}
             />
           </div>

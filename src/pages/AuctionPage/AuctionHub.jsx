@@ -9,14 +9,15 @@ import AuctionHubSearch from "./AuctionHubCards/AuctionHubSearch";
 import { playOpeningSound, playSwitchSound } from "../../functions";
 
 export default function AuctionsHub() {
-  const [focusedTile, setFocusedTile] = useState("search");
+  const [focusedTile, setFocusedTile] = useState(""); // No initial focus
   const navigate = useNavigate();
 
-  // Restore last focused tile from sessionStorage on component mount
+  // Optionally, keep sessionStorage logic but only apply it on explicit user action, not page load
+  // Remove this useEffect if you don't want any persistence
   useEffect(() => {
     const savedTile = sessionStorage.getItem("lastFocusedTile");
     if (savedTile) {
-      setFocusedTile(savedTile);
+      setFocusedTile(savedTile); // Comment this out to disable initial focus entirely
     }
   }, []);
 
@@ -41,10 +42,7 @@ export default function AuctionsHub() {
         playSwitchSound();
       } else if (key === "Enter") {
         playOpeningSound();
-        
-        // Store the focused tile before navigating away
-        sessionStorage.setItem("lastFocusedTile", focusedTile);
-
+        sessionStorage.setItem("lastFocusedTile", focusedTile); // Store only on navigation
         switch (focusedTile) {
           case "search":
             navigate("/auctions");
@@ -80,7 +78,7 @@ export default function AuctionsHub() {
           <AuctionHubSearch focused={focusedTile === "search"} />
         </Col>
         <Col xs={24} md={12} style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-          <div style={{ flex: 2 }}> {/* Increased height for "Start" tile on mobile */}
+          <div style={{ flex: 2 }}>
             <AuctionHubStart focused={focusedTile === "start"} />
           </div>
           <div style={{ flex: 1 }}>

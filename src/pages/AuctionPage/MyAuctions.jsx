@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Hub } from 'aws-amplify/utils';
 import "@aws-amplify/ui-react/styles.css";
 import { Form, Typography, Select, message } from "antd";
@@ -26,6 +26,8 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
   const [form] = Form.useForm();
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [auctionActionsVisible, setAuctionActionsVisible] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const itemRefs = useRef({});
 
   const handleAuctionActionsShow = () => {
     setAuctionActionsVisible(true);
@@ -102,142 +104,165 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
   };
   
   const buyItem = async () => {
-  
     try {
-  
       setLoadingBuy(true);
-  
       const increasedBidValue = Math.round(selectedAuction.currentBid * 1.1) || Math.round(selectedAuction.minBid * 1.1);
+      const updatedAuctionInput = {
+        id: selectedAuction.id,
+        make: selectedAuction.make,
+        model: selectedAuction.model,
+        year: selectedAuction.year,
+        carId: selectedAuction.carId,
+        currentBid: selectedAuction.buy,
+        endTime: selectedAuction.endTime,
+        status: "Finished",
+        lastBidPlayer: playerInfo.nickname,
+        player: selectedAuction.player,
+        buy: selectedAuction.buy,
+        minBid: selectedAuction.minBid,
+        type: selectedAuction.type
+      };
 
-        const updatedAuctionInput = {
-            id: selectedAuction.id,
-            make: selectedAuction.make,
-            model: selectedAuction.model,
-            year: selectedAuction.year,
-            carId: selectedAuction.carId,
-            currentBid: selectedAuction.buy, // Set currentBid to the buy value
-            endTime: selectedAuction.endTime,
-            status: "Finished",
-            lastBidPlayer: playerInfo.nickname,
-            player: selectedAuction.player,
-            buy: selectedAuction.buy, // Set buy to the same buy value
-            minBid: selectedAuction.minBid,
-            type: selectedAuction.type
-        };
+      setMoney(prevMoney => {
+        const bidDifference =
+          selectedAuction.lastBidPlayer === playerInfo?.nickname
+            ? selectedAuction.buy - selectedAuction.currentBid
+            : increasedBidValue;
+        return prevMoney - bidDifference;
+      });
 
-        setMoney(prevMoney => {
-            const bidDifference =
-                selectedAuction.lastBidPlayer === playerInfo?.nickname
-                    ? selectedAuction.buy - selectedAuction.currentBid
-                    : increasedBidValue;
-
-            return prevMoney - bidDifference;
-        });
-
-        const id = selectedAuction.id
-  
+      const id = selectedAuction.id
       const auctionUser = await fetchAuctionUser(playerInfo.id, id);
       
       console.log('Auction User:', auctionUser);
-  
 
-        await Promise.all([
-            client.graphql({
-                query: mutations.updateAuction,
-                variables: { input: updatedAuctionInput },
-            }),
-            client.graphql({
-                query: mutations.updateUser,
-                variables: {
-                    input: {
-                        id: playerInfo.id,
-                        money:
-                            selectedAuction.lastBidPlayer === playerInfo?.nickname
-                                ? money - (selectedAuction.buy - selectedAuction.currentBid)
-                                : money - increasedBidValue,
-                    },
-                },
-            }),
-            auctionUser && client.graphql({
-                query: mutations.updateUser,
-                variables: {
-                    input: {
-                        id: auctionUser.id,
-                        money: auctionUser.money + selectedAuction.buy,
-                    },
-                },
-            }),
-        ]);
-        createNewUserCar(playerInfo.id, selectedAuction.carId);
-        message.success('Car successfully bought!');
-        listAuctions();
+      await Promise.all([
+        client.graphql({
+          query: mutations.updateAuction,
+          variables: { input: updatedAuctionInput },
+        }),
+        client.graphql({
+          query: mutations.updateUser,
+          variables: {
+            input: {
+              id: playerInfo.id,
+              money:
+                selectedAuction.lastBidPlayer === playerInfo?.nickname
+                  ? money - (selectedAuction.buy - selectedAuction.currentBid)
+                  : money - increasedBidValue,
+            },
+          },
+        }),
+        auctionUser && client.graphql({
+          query: mutations.updateUser,
+          variables: {
+            input: {
+              id: auctionUser.id,
+              money: auctionUser.money + selectedAuction.buy,
+            },
+          },
+        }),
+      ]);
+      createNewUserCar(playerInfo.id, selectedAuction.carId);
+      message.success('Car successfully bought!');
+      listAuctions();
     } catch (error) {
-
       console.error(error);
-    
     } finally {
-  
       setLoadingBuy(false);
-    
     }
-  
   };
-
-
-  
 
   const listener = async (data) => {
     const { nickname } = data?.payload?.data;
     setPlayer(nickname);
   };
 
+  const scrollToFocusedItem = (index) => {
+    if (itemRefs.current[index] && itemRefs.current[index].current) {
+      itemRefs.current[index].current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'start'
+      });
+    }
+  };
+
+  const handleKeyDown = useCallback((event) => {
+    if (!auctions.length) return;
+
+    switch (event.key) {
+      case 'ArrowUp':
+        event.preventDefault();
+        setFocusedIndex(prev => {
+          const newIndex = prev === 0 ? auctions.length - 1 : prev - 1;
+          setSelectedAuction(auctions[newIndex]);
+          scrollToFocusedItem(newIndex);
+          return newIndex;
+        });
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        setFocusedIndex(prev => {
+          const newIndex = prev === auctions.length - 1 ? 0 : prev + 1;
+          setSelectedAuction(auctions[newIndex]);
+          scrollToFocusedItem(newIndex);
+          return newIndex;
+        });
+        break;
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        if (selectedAuction) {
+          handleAuctionActionsShow();
+        }
+        break;
+      default:
+        break;
+    }
+  }, [auctions, selectedAuction]);
+
   useEffect(() => {
     listAuctions();
     Hub.listen('auth', listener);
   }, [listAuctions]);
-
-  const handleKeyDown = (e) => {
-    if (e.key === "ArrowUp") {
-      setSelectedAuction((prevAuction) => {
-        const newIndex = auctions.indexOf(prevAuction) - 1;
-        return newIndex >= 0 ? auctions[newIndex] : prevAuction;
-      });
-    } else if (e.key === "ArrowDown") {
-      setSelectedAuction((prevAuction) => {
-        const newIndex = auctions.indexOf(prevAuction) + 1;
-        return newIndex < auctions.length ? auctions[newIndex] : prevAuction;
-      });
-    }
-  };
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [auctions]);
+  }, [handleKeyDown]);
 
-  const handleItemClick = (selectedAuction) => {
-    setSelectedAuction(selectedAuction);
+  const handleItemClick = (clickedAuction) => {
+    const newIndex = auctions.findIndex(auction => auction.id === clickedAuction.id);
+    setFocusedIndex(newIndex);
+    setSelectedAuction(clickedAuction);
+    scrollToFocusedItem(newIndex);
     handleAuctionActionsShow();
   };
 
   return (
-    <div style={{ display: 'flex', padding: '20px' }}>
+    <div style={{ display: 'flex', padding: '20px' }} tabIndex={0}>
       <div style={{ flex: 1 }}>
         <div className="auction-items-container">
-          {auctions.map((auction) => (
-            <AuctionPageItem
-              key={auction.id}
-              setSelectedAuction={setSelectedAuction}
-              auction={auction}
-              index={auctions.indexOf(auction)}
-              increaseBid={increaseBid}
-              isSelected={auction === selectedAuction}
-              handleAuctionActionsShow={handleAuctionActionsShow}
-              handleItemClick={handleItemClick}
-            />
-          ))}
+          {auctions.map((auction, index) => {
+            itemRefs.current[index] = itemRefs.current[index] || React.createRef();
+            return (
+              <div ref={itemRefs.current[index]} key={auction.id}>
+                <AuctionPageItem
+                  setSelectedAuction={setSelectedAuction}
+                  auction={auction}
+                  index={index}
+                  increaseBid={increaseBid}
+                  isSelected={auction === selectedAuction}
+                  isFocused={index === focusedIndex}
+                  handleAuctionActionsShow={handleAuctionActionsShow}
+                  handleItemClick={handleItemClick}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
       <SelectedAuctionDetails selectedAuction={selectedAuction} />
