@@ -44,23 +44,55 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
         const endTime = new Date(parseInt(auction.endTime) * 1000);
         const timeLeft = calculateTimeDifference(endTime);
 
+        // Normalize status property (case insensitive comparison)
+        let status = auction.status;
+        if (status) {
+          // Convert to title case for consistency
+          status = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+        } else {
+          // If status is missing, set it based on other properties
+          const now = new Date();
+          if ((auction.currentBid && auction.buy && auction.currentBid >= auction.buy) ||
+              (endTime && endTime < now)) {
+            status = 'Finished';
+          } else {
+            status = 'Active';
+          }
+        }
+
         return {
           ...auction,
           endTime,
-          timeLeft
+          timeLeft,
+          status
         };
       });
+
       let filtered = auctions.filter(auction => auction.player === playerInfo?.nickname);
 
-      // Sort auctions: active auctions by end date (ascending), finished auctions at the end
-      filtered.sort((a, b) => {
-        // If both have the same status, sort by end date
-        if ((a.status === 'Finished') === (b.status === 'Finished')) {
-          return a.endTime - b.endTime;
-        }
-        // Otherwise, put finished auctions at the end
-        return a.status === 'Finished' ? 1 : -1;
-      });
+      console.log("MyAuctions - before sorting:", filtered);
+
+      try {
+        // Sort auctions: active auctions by end date (ascending), finished auctions at the end
+        filtered.sort((a, b) => {
+          // First check if both auctions have valid endTime
+          if (!a.endTime || !b.endTime) {
+            return 0; // Keep original order if endTime is missing
+          }
+
+          // If both have the same status, sort by end date
+          if ((a.status === 'Finished') === (b.status === 'Finished')) {
+            return a.endTime - b.endTime;
+          }
+          // Otherwise, put finished auctions at the end
+          return a.status === 'Finished' ? 1 : -1;
+        });
+      } catch (error) {
+        console.error("Error sorting auctions:", error);
+        // If sorting fails, at least we still have the unsorted auctions
+      }
+
+      console.log("MyAuctions - after sorting:", filtered);
 
       setAuctions(filtered);
       filtered.length > 0 && !selectedAuction && setSelectedAuction(filtered[0]);
@@ -82,7 +114,7 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
         minBid: auction.minBid,
         currentBid: increasedBidValue,
         endTime: auction.endTime,
-        lastBidPlayer: playerInfo.nickname,
+        lastBidPlayer: playerInfo?.nickname,
         status: increasedBidValue < auction.buy ? "active" : "finished",
       };
       await client.graphql({
@@ -128,7 +160,7 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
         currentBid: selectedAuction.buy,
         endTime: selectedAuction.endTime,
         status: "Finished",
-        lastBidPlayer: playerInfo.nickname,
+        lastBidPlayer: playerInfo?.nickname,
         player: selectedAuction.player,
         buy: selectedAuction.buy,
         minBid: selectedAuction.minBid,
@@ -273,27 +305,35 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
     handleAuctionActionsShow();
   };
 
+  console.log("Rendering MyAuctions with auctions:", auctions);
+
   return (
     <div style={{ display: 'flex', padding: '20px' }} tabIndex={0}>
       <div style={{ flex: 1 }}>
         <div className="auction-items-container">
-          {auctions.map((auction, index) => {
-            itemRefs.current[index] = itemRefs.current[index] || React.createRef();
-            return (
-              <div ref={itemRefs.current[index]} key={auction.id}>
-                <AuctionPageItem
-                  setSelectedAuction={setSelectedAuction}
-                  auction={auction}
-                  index={index}
-                  increaseBid={increaseBid}
-                  isSelected={auction === selectedAuction}
-                  isFocused={index === focusedIndex}
-                  handleAuctionActionsShow={handleAuctionActionsShow}
-                  handleItemClick={handleItemClick}
-                />
-              </div>
-            );
-          })}
+          {auctions.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <Typography.Text>No auctions found. You haven't created any auctions yet.</Typography.Text>
+            </div>
+          ) : (
+            auctions.map((auction, index) => {
+              itemRefs.current[index] = itemRefs.current[index] || React.createRef();
+              return (
+                <div ref={itemRefs.current[index]} key={auction.id}>
+                  <AuctionPageItem
+                    setSelectedAuction={setSelectedAuction}
+                    auction={auction}
+                    index={index}
+                    increaseBid={increaseBid}
+                    isSelected={auction === selectedAuction}
+                    isFocused={index === focusedIndex}
+                    handleAuctionActionsShow={handleAuctionActionsShow}
+                    handleItemClick={handleItemClick}
+                  />
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
       <SelectedAuctionDetails selectedAuction={selectedAuction} />

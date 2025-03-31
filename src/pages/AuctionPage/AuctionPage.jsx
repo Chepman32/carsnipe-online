@@ -107,7 +107,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         return;
       }
   
-      const newMoney = auction.lastBidPlayer === playerInfo.nickname
+      const newMoney = auction.lastBidPlayer === playerInfo?.nickname
         ? money - (increasedBidValue - auction.currentBid)
         : money - increasedBidValue;
   
@@ -136,7 +136,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       const updatedAuction = {
         id: auction.id,
         currentBid: increasedBidValue,
-        lastBidPlayer: playerInfo.nickname,
+        lastBidPlayer: playerInfo?.nickname,
         bidsCount: auction.bidsCount + 1,
         status: increasedBidValue < auction.buy ? "Active" : "Finished",
       };
@@ -158,7 +158,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       const currentIndex = auctions.findIndex(a => a.id === auction.id);
       await listAuctions(currentIndex);
   
-      if (auction.player !== playerInfo.nickname) {
+      if (playerInfo && auction.player !== playerInfo.nickname) {
         await client.graphql({
           query: mutations.updateUser,
           variables: {
@@ -260,7 +260,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         const updatedAuctionInput = {
           id: auction.id,
           currentBid: auction.buy,
-          lastBidPlayer: playerInfo.nickname,
+          lastBidPlayer: playerInfo?.nickname,
           status: "Finished",
           finishedAt: new Date().toISOString() // Ensure correct format for Lambda detection
         };

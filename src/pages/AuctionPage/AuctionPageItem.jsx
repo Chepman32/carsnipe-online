@@ -10,12 +10,22 @@ const getImageSource = (make, model) => {
 };
 
 export default function AuctionPageItem({ playerInfo, auction, isSelected, index, handleItemClick }) {
+    // Check if auction is finished or bought out
+    const isFinished = auction.status === 'Finished' || auction.currentBid === auction.buy;
+
+    // Text color style to apply when auction is finished
+    const textStyle = isFinished ? { color: 'gray' } : {};
+
+    // Safe click handler that checks if playerInfo exists
+    const handleClick = () => {
+        if (handleItemClick) {
+            handleItemClick(auction);
+            console.log("auction info:", auction);
+        }
+    };
 
     return (
-        <Col className='auctionPageItem' span={24} style={{ height: '5%', width: '100%', display: 'flex' }} onClick={() => {
-            handleItemClick(auction);
-            console.log("auction info:", auction)
-        }} >
+        <Col className='auctionPageItem' span={24} style={{ height: '5%', width: '100%', display: 'flex' }} onClick={handleClick} >
             <Flex justify="space-between" align="flex-end" style={{width: "100%", paddingRight: "1vw", outline: isSelected ? '3px solid #ff69b4' : 'none'}} >
                 <div>
                     <img
@@ -24,10 +34,10 @@ export default function AuctionPageItem({ playerInfo, auction, isSelected, index
                         style={{ width: 'auto', height: '10vw', objectFit: "contain", marginRight: '10px' }}
                     />
                     <div style={{height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between"}}>
-                        <ThinText>{auction.year}&nbsp;{auction.make}&nbsp;{auction.model} </ThinText>
+                        <ThinText style={textStyle}>{auction.year}&nbsp;{auction.make}&nbsp;{auction.model} </ThinText>
                         <Flex align="center">
                             <img src='https://static.thenounproject.com/png/1336726-200.png' className='hammer' alt=''/>
-                            <Typography.Text className='subText'>
+                            <Typography.Text className='subText' style={textStyle}>
                                 {auction.status === 'Finished'
                                   ? 'Finished'
                                   : auction.currentBid === auction.buy
@@ -39,16 +49,16 @@ export default function AuctionPageItem({ playerInfo, auction, isSelected, index
                 </div>
                 <Flex>
                     <div style={{ display: 'flex', flexDirection: "column", alignItems: "flex-end" }}>
-                        <Typography.Text className='subText'>
+                        <Typography.Text className='subText' style={textStyle}>
                             {auction.currentBid >= auction.minBid ? 'HIGHEST' : 'START'} BID
                         </Typography.Text>
-                        <Typography.Text className='price' >
+                        <Typography.Text className='price' style={textStyle}>
                             {auction.currentBid || auction.minBid}
                         </Typography.Text>
                     </div>
                     <div style={{ display: 'flex', flexDirection: "column", alignItems: "flex-end", marginLeft: "3rem" }}>
-                        <Typography.Text className='subText'>Buy out</Typography.Text>
-                        <Typography.Text className='price'>{auction.buy}</Typography.Text>
+                        <Typography.Text className='subText' style={textStyle}>Buy out</Typography.Text>
+                        <Typography.Text className='price' style={textStyle}>{auction.buy}</Typography.Text>
                     </div>
                 </Flex>
             </Flex>

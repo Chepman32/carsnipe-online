@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Hub } from 'aws-amplify/utils';
 import "@aws-amplify/ui-react/styles.css";
-import { Form, Select, message } from "antd";
+import { Form, Select, Typography, message } from "antd";
 import { generateClient } from 'aws-amplify/api';
 import * as mutations from '../../graphql/mutations';
 import { getAuction as getAuctionQuery, getUser } from '../../graphql/queries';
-import { fetchUserBiddedList, fetchAuctionUser, createNewUserCar, fetchUserAchievementsList } from "../../functions";
+import { fetchUserBiddedList, fetchAuctionUser, createNewUserCar, fetchUserAchievementsList, calculateTimeDifference } from "../../functions";
 import AuctionPageItem from "./AuctionPageItem";
 import { SelectedAuctionDetails } from "./SelectedAuctionDetails";
 import AuctionActionsModal from "./AuctionActionsModal";
@@ -82,15 +82,57 @@ export default function MyBids({ playerInfo, setMoney, money }) {
       const auctionsData = await Promise.all(auctionPromises);
       let validAuctions = auctionsData.filter(auction => auction !== null);
 
-      // Sort auctions: active auctions by end date (ascending), finished auctions at the end
-      validAuctions.sort((a, b) => {
-        // If both have the same status, sort by end date
-        if ((a.status === 'Finished') === (b.status === 'Finished')) {
-          return a.endTime - b.endTime;
+      console.log("Before processing - validAuctions:", validAuctions);
+
+      // Process auctions to ensure they have all required properties
+      validAuctions = validAuctions.map(auction => {
+        // Make sure endTime is a Date object
+        if (auction.endTime && !(auction.endTime instanceof Date)) {
+          auction.endTime = new Date(parseInt(auction.endTime) * 1000);
         }
-        // Otherwise, put finished auctions at the end
-        return a.status === 'Finished' ? 1 : -1;
+
+        // Calculate timeLeft for display
+        auction.timeLeft = calculateTimeDifference(auction.endTime);
+
+        // Normalize status property (case insensitive comparison)
+        if (auction.status) {
+          // Convert to title case for consistency
+          auction.status = auction.status.charAt(0).toUpperCase() + auction.status.slice(1).toLowerCase();
+        } else {
+          // If status is missing, set it based on other properties
+          const now = new Date();
+          if ((auction.currentBid && auction.buy && auction.currentBid >= auction.buy) ||
+              (auction.endTime && auction.endTime < now)) {
+            auction.status = 'Finished';
+          } else {
+            auction.status = 'Active';
+          }
+        }
+
+        return auction;
       });
+
+      try {
+        // Sort auctions: active auctions by end date (ascending), finished auctions at the end
+        validAuctions.sort((a, b) => {
+          // First check if both auctions have valid endTime
+          if (!a.endTime || !b.endTime) {
+            return 0; // Keep original order if endTime is missing
+          }
+
+          // If both have the same status, sort by end date
+          if ((a.status === 'Finished') === (b.status === 'Finished')) {
+            return a.endTime - b.endTime;
+          }
+          // Otherwise, put finished auctions at the end
+          return a.status === 'Finished' ? 1 : -1;
+        });
+      } catch (error) {
+        console.error("Error sorting auctions:", error);
+        // If sorting fails, at least we still have the unsorted auctions
+      }
+
+      console.log("After processing - validAuctions:", validAuctions);
 
       setAuctions(validAuctions);
       if (validAuctions.length > 0 && !selectedAuction) {
@@ -107,7 +149,7 @@ export default function MyBids({ playerInfo, setMoney, money }) {
     try {
       setLoadingBid(true);
       const increasedBidValue = Math.floor(auction.currentBid * 1.1) || Math.round(auction.minBid * 1.1)
-      setMoney(auction.lastBidPlayer === playerInfo.nickname ? money - (increasedBidValue - auction.currentBid) : money - increasedBidValue)
+      setMoney(auction.lastBidPlayer === playerInfo?.nickname ? money - (increasedBidValue - auction.currentBid) : money - increasedBidValue)
       const updatedAuction = {
         id: auction.id,
         carName: auction.carName,
@@ -116,7 +158,7 @@ export default function MyBids({ playerInfo, setMoney, money }) {
         minBid: auction.minBid,
         currentBid: increasedBidValue,
         endTime: auction.endTime,
-        lastBidPlayer: playerInfo.nickname,
+        lastBidPlayer: playerInfo?.nickname,
         status: increasedBidValue < auction.buy ? "Active" : "Finished",
       };
       await client.graphql({
@@ -382,27 +424,35 @@ export default function MyBids({ playerInfo, setMoney, money }) {
     console.log("Selected Auction Info:", auctionInfo);
   };
 
+  console.log("Rendering MyBids with auctions:", auctions);
+
   return (
     <div style={{ display: 'flex', padding: '20px' }} tabIndex={0}>
       <div style={{ flex: 1 }}>
         <div className="auction-items-container">
-          {auctions.map((auction, index) => {
-            itemRefs.current[index] = itemRefs.current[index] || React.createRef();
-            return (
-              <div ref={itemRefs.current[index]} key={auction.id}>
-                <AuctionPageItem
-                  setSelectedAuction={setSelectedAuction}
-                  auction={auction}
-                  index={index}
-                  increaseBid={increaseBid}
-                  isSelected={auction === selectedAuction}
-                  isFocused={index === focusedIndex}
-                  handleAuctionActionsShow={handleAuctionActionsShow}
-                  handleItemClick={handleItemClick}
-                />
-              </div>
-            );
-          })}
+          {auctions.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <Typography.Text>No auctions found. You haven't bid on any auctions yet.</Typography.Text>
+            </div>
+          ) : (
+            auctions.map((auction, index) => {
+              itemRefs.current[index] = itemRefs.current[index] || React.createRef();
+              return (
+                <div ref={itemRefs.current[index]} key={auction.id}>
+                  <AuctionPageItem
+                    setSelectedAuction={setSelectedAuction}
+                    auction={auction}
+                    index={index}
+                    increaseBid={increaseBid}
+                    isSelected={auction === selectedAuction}
+                    isFocused={index === focusedIndex}
+                    handleAuctionActionsShow={handleAuctionActionsShow}
+                    handleItemClick={handleItemClick}
+                  />
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
       <SelectedAuctionDetails selectedAuction={selectedAuction} />
