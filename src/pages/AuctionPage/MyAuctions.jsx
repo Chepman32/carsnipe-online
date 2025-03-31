@@ -16,14 +16,10 @@ const client = generateClient();
 
 export default function MyAuctions({ playerInfo, setMoney, money }) {
   const [auctions, setAuctions] = useState([]);
-  const [userCars, setUserCars] = useState([]);
   const [visible, setVisible] = useState(false);
-  const [selectedCar, setSelectedCar] = useState(null);
-  const [auctionDuration, setAuctionDuration] = useState(1);
   const [player, setPlayer] = useState("");
   const [loadingBid, setLoadingBid] = useState(false);
   const [loadingBuy, setLoadingBuy] = useState(false);
-  const [form] = Form.useForm();
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [auctionActionsVisible, setAuctionActionsVisible] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -105,6 +101,12 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
   
   const buyItem = async () => {
     try {
+      if (!selectedAuction || !selectedAuction.id) {
+        console.error("Invalid auction for buyItem:", selectedAuction);
+        message.error('Cannot buy item: No valid auction selected');
+        return;
+      }
+
       setLoadingBuy(true);
       const increasedBidValue = Math.round(selectedAuction.currentBid * 1.1) || Math.round(selectedAuction.minBid * 1.1);
       const updatedAuctionInput = {
@@ -131,12 +133,15 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
         return prevMoney - bidDifference;
       });
 
-      const id = selectedAuction.id
-      const auctionUser = await fetchAuctionUser(playerInfo.id, id);
-      
+      const id = selectedAuction.id;
+
+      // Fix the parameter order - fetchAuctionUser expects auctionId as the only parameter
+      const auctionUser = await fetchAuctionUser(id);
+
       console.log('Auction User:', auctionUser);
 
-      await Promise.all([
+      // Create an array of promises to execute
+      const promises = [
         client.graphql({
           query: mutations.updateAuction,
           variables: { input: updatedAuctionInput },
@@ -152,22 +157,38 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
                   : money - increasedBidValue,
             },
           },
-        }),
-        auctionUser && client.graphql({
-          query: mutations.updateUser,
-          variables: {
-            input: {
-              id: auctionUser.id,
-              money: auctionUser.money + selectedAuction.buy,
+        })
+      ];
+
+      // Only add the seller update if auctionUser exists
+      if (auctionUser) {
+        promises.push(
+          client.graphql({
+            query: mutations.updateUser,
+            variables: {
+              input: {
+                id: auctionUser.id,
+                money: auctionUser.money + selectedAuction.buy,
+              },
             },
-          },
-        }),
-      ]);
-      createNewUserCar(playerInfo.id, selectedAuction.carId);
+          })
+        );
+      }
+
+      await Promise.all(promises);
+
+      try {
+        await createNewUserCar(playerInfo.id, selectedAuction.carId);
+      } catch (error) {
+        console.error("Error creating user car:", error);
+        // Continue even if this fails
+      }
+
       message.success('Car successfully bought!');
       listAuctions();
     } catch (error) {
-      console.error(error);
+      console.error("Buy item error:", error);
+      message.error('Failed to buy item');
     } finally {
       setLoadingBuy(false);
     }

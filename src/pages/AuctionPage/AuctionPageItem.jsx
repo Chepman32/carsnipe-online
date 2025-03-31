@@ -28,7 +28,7 @@ export default function AuctionPageItem({ playerInfo, auction, isSelected, index
                         <Flex align="center">
                             <img src='https://static.thenounproject.com/png/1336726-200.png' className='hammer' alt=''/>
                             <Typography.Text className='subText'>
-                                {calculateTimeDifference(auction.endTime)} {/* This will now work correctly */}
+                                {calculateTimeDifference(auction.endTime)}
                             </Typography.Text>
                         </Flex>
                     </div>
