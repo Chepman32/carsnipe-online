@@ -17,6 +17,7 @@ export const HEADER_AUCTIONS = "HEADER_AUCTIONS";
 export const HEADER_STORE = "HEADER_STORE";
 export const HEADER_PROFILE = "HEADER_PROFILE";
 export const HEADER_LAST_OPTION = "HEADER_LAST_OPTION";
+export const MAKER_ROW = "MAKER_ROW";
 
 export const SETTINGS_DARK_MODE = "SETTINGS_DARK_MODE";
 export const SETTINGS_SOUND_EFFECTS = "SETTINGS_SOUND_EFFECTS";
@@ -42,6 +43,7 @@ const initialState = {
   settingsVolumeChange: 0,
   isQuickMenuOpen: false,
   stationNeedsChange: null, // New field to track next/previous station requests
+  shouldFocusFirstCar: false, // Add this field to track when first car should be focused
 };
 
 const focusSlice = createSlice({
@@ -83,7 +85,10 @@ const focusSlice = createSlice({
               state.currentQuickMenuItem = QUICK_MENU_DARK_MODE;
               return;
             }
-            if (state.currentRoute === "/carsStore" || state.currentRoute === "/mycars") {
+            if (
+              state.currentRoute === "/carsStore" ||
+              state.currentRoute === "/mycars"
+            ) {
               state.focusedZone = FOCUS_ZONES.PAGE;
               state.currentFocusedElement = TOP_CAR;
             } else if (state.currentRoute === "/store") {
@@ -116,7 +121,9 @@ const focusSlice = createSlice({
           if (key === "ArrowUp") {
             if (state.currentSettingsElement === SETTINGS_MUSIC_VOLUME) {
               state.currentSettingsElement = SETTINGS_SOUND_EFFECTS;
-            } else if (state.currentSettingsElement === SETTINGS_SOUND_EFFECTS) {
+            } else if (
+              state.currentSettingsElement === SETTINGS_SOUND_EFFECTS
+            ) {
               state.currentSettingsElement = SETTINGS_DARK_MODE;
               state.currentFocusedElement = SETTINGS_DARK_MODE;
             } else if (state.currentSettingsElement === SETTINGS_DARK_MODE) {
@@ -261,6 +268,12 @@ const focusSlice = createSlice({
     setStationNeedsChange: (state, action) => {
       state.stationNeedsChange = action.payload;
     },
+    setShouldFocusFirstCar: (state, action) => {
+      state.shouldFocusFirstCar = action.payload;
+    },
+    resetShouldFocusFirstCar: (state) => {
+      state.shouldFocusFirstCar = false;
+    },
   },
 });
 
@@ -276,6 +289,8 @@ export const {
   setSettingsVolumeChange,
   setIsQuickMenuOpen,
   setStationNeedsChange,
+  setShouldFocusFirstCar,
+  resetShouldFocusFirstCar,
 } = focusSlice.actions;
 
 export default focusSlice.reducer;

@@ -6,6 +6,7 @@
   box-sizing: border-box;
   overflow-x: auto;
   overflow-y: hidden;
+  max-height: calc(99vh - 60px);
 }
 
 .cars__container {
@@ -13,11 +14,12 @@
   padding: 8px;
   white-space: nowrap;
   height: 100%;
+  overflow-y: hidden;
 }
 
 .cars__container.mobile-vertical {
   display: block;
-  overflow-y: auto;
+  overflow-y: hidden;
   height: 100%;
   padding: 0;
 }
@@ -456,7 +458,7 @@
   }
 
   .cars__container.mobile-vertical {
-    overflow-y: auto;
+    overflow-y: hidden;
     padding: 0;
   }
 
