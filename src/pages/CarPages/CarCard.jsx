@@ -1,6 +1,6 @@
 import React from "react";
 import "./carsPage.css";
-import { playOpeningSound } from "../../functions";
+import { playOpeningSound, getCarTypeColor } from "../../functions";
 import { useDispatch } from "react-redux";
 import { FOCUS_ZONES, setCurrentFocusedElement, setFocusedZone } from "../../redux/slices/focusSlice";
 
@@ -18,6 +18,17 @@ export default function CarCard({
   row,
 }) {
   const dispatch = useDispatch();
+
+  // Helper function to get car type letter
+  const getCarTypeLetter = (carType) => {
+    switch(carType) {
+      case "COMMON": return "B";
+      case "RARE": return "A";
+      case "EPIC": return "S";
+      case "LEGENDARY": return "S1";
+      default: return "";
+    }
+  };
 
   const handleClick = () => {
     playOpeningSound();
@@ -50,11 +61,11 @@ export default function CarCard({
         />
         {showPrice && <div className="carCard__price">{car.price}</div>}
       </div>
-      <div className={`carsPage__type ${car.type.toLowerCase()}`}>
-        {car.type === "COMMON" && "B"}
-        {car.type === "RARE" && "A"}
-        {car.type === "EPIC" && "S"}
-        {car.type === "LEGENDARY" && "S1"}
+      <div
+        className={`carsPage__type ${car.type.toLowerCase()}`}
+        style={{ backgroundColor: getCarTypeColor(car.type.toLowerCase()) }}
+      >
+        {getCarTypeLetter(car.type)}
         <span className="carsPage__rating">{car.type}</span>
       </div>
     </div>
