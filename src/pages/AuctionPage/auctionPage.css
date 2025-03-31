@@ -139,12 +139,12 @@
 }
 
 .auction-items-container::-webkit-scrollbar-thumb {
-  background: rgba(135, 206, 250, 0.7);
+  background: #e77c7c;
   border-radius: 6px;
 }
 
 .auction-items-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 180, 255, 0.9);
+  background: #e40303;
 }
 
 .activeCard {
