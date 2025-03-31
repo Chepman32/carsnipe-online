@@ -22,7 +22,7 @@
         },
         "automaticalyAuctionCreation": {
           "deploymentBucketName": "amplify-carsnipe-staging-43d19-deployment",
-          "s3Key": "amplify-builds/automaticalyAuctionCreation-44316c31716b566b436a-build.zip"
+          "s3Key": "amplify-builds/automaticalyAuctionCreation-624e36534e797a654b48-build.zip"
         }
       },
       "api": {

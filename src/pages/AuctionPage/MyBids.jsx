@@ -80,8 +80,18 @@ export default function MyBids({ playerInfo, setMoney, money }) {
       });
 
       const auctionsData = await Promise.all(auctionPromises);
-      const validAuctions = auctionsData.filter(auction => auction !== null);
-      
+      let validAuctions = auctionsData.filter(auction => auction !== null);
+
+      // Sort auctions: active auctions by end date (ascending), finished auctions at the end
+      validAuctions.sort((a, b) => {
+        // If both have the same status, sort by end date
+        if ((a.status === 'Finished') === (b.status === 'Finished')) {
+          return a.endTime - b.endTime;
+        }
+        // Otherwise, put finished auctions at the end
+        return a.status === 'Finished' ? 1 : -1;
+      });
+
       setAuctions(validAuctions);
       if (validAuctions.length > 0 && !selectedAuction) {
         setSelectedAuction(validAuctions[0]);

@@ -26,7 +26,11 @@ export default function AuctionMobilePageItem({ auction, isSelected, index, hand
                         <Flex align="center">
                             <img src='https://static.thenounproject.com/png/1336726-200.png' className='hammer' alt=''/>
                             <Typography.Text className='subText'>
-                                {calculateTimeDifference(auction.endTime)}
+                                {auction.status === 'Finished'
+                                  ? 'Finished'
+                                  : auction.currentBid === auction.buy
+                                    ? 'Finished'
+                                    : calculateTimeDifference(auction.endTime)}
                             </Typography.Text>
                         </Flex>
                 </div>

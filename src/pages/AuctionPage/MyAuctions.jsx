@@ -40,7 +40,7 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
   const listAuctions = useCallback(async () => {
     try {
       const auctionData = await client.graphql({ query: listAuctionsQuery });
-      const auctions = auctionData.data.listAuctions.items.map(auction => {
+      let auctions = auctionData.data.listAuctions.items.map(auction => {
         const endTime = new Date(parseInt(auction.endTime) * 1000);
         const timeLeft = calculateTimeDifference(endTime);
 
@@ -50,7 +50,17 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
           timeLeft
         };
       });
-      const filtered = auctions.filter(auction => auction.player === playerInfo?.nickname)
+      let filtered = auctions.filter(auction => auction.player === playerInfo?.nickname);
+
+      // Sort auctions: active auctions by end date (ascending), finished auctions at the end
+      filtered.sort((a, b) => {
+        // If both have the same status, sort by end date
+        if ((a.status === 'Finished') === (b.status === 'Finished')) {
+          return a.endTime - b.endTime;
+        }
+        // Otherwise, put finished auctions at the end
+        return a.status === 'Finished' ? 1 : -1;
+      });
 
       setAuctions(filtered);
       filtered.length > 0 && !selectedAuction && setSelectedAuction(filtered[0]);

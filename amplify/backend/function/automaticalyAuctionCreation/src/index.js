@@ -3,6 +3,7 @@ const {
   ScanCommand,
   PutItemCommand,
   DeleteItemCommand,
+  UpdateItemCommand,
 } = require("@aws-sdk/client-dynamodb");
 const { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
 const { v4: uuidv4 } = require("uuid");
@@ -185,55 +186,32 @@ async function deleteExpiredAuctions() {
     }
 
     const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-    const oneMinuteInSeconds = 60;
 
     for (const item of tableContent.Items) {
       const auction = unmarshall(item);
 
-      if (parseInt(auction.currentBid) === parseInt(auction.buy)) {
-        // Delete the auction immediately if the buy price is met
-        const deleteParams = {
+      const isExpired = parseInt(auction.endTime) < currentTimeInSeconds;
+      const isBought = parseInt(auction.currentBid) >= parseInt(auction.buy);
+
+      if ((isExpired || isBought) && auction.status !== "Finished") {
+        const updateParams = {
           TableName: auctionTableName,
           Key: { id: { S: auction.id } },
+          UpdateExpression: "SET #status = :status, #finishedAt = :finishedAt, #updatedAt = :updatedAt",
+          ExpressionAttributeNames: {
+            "#status": "status",
+            "#finishedAt": "finishedAt",
+            "#updatedAt": "updatedAt"
+          },
+          ExpressionAttributeValues: {
+            ":status": { S: "Finished" },
+            ":finishedAt": { S: new Date().toISOString() },
+            ":updatedAt": { S: new Date().toISOString() }
+          },
         };
 
-        const deleteCommand = new DeleteItemCommand(deleteParams);
-        await dynamoDBClient.send(deleteCommand);
-        continue;
-      }
-
-      if (parseInt(auction.endTime) < currentTimeInSeconds) {
-        if (auction.status !== "Finished") {
-          // Mark the auction as "Finished" and set finishedAt timestamp
-          const updateParams = {
-            TableName: auctionTableName,
-            Key: { id: { S: auction.id } },
-            UpdateExpression: "SET #status = :status, #finishedAt = :finishedAt",
-            ExpressionAttributeNames: {
-              "#status": "status",
-              "#finishedAt": "finishedAt",
-            },
-            ExpressionAttributeValues: {
-              ":status": { S: "Finished" },
-              ":finishedAt": { N: currentTimeInSeconds.toString() },
-            },
-          };
-
-          const updateCommand = new PutItemCommand(updateParams);
-          await dynamoDBClient.send(updateCommand);
-        } else if (
-          auction.finishedAt &&
-          parseInt(auction.finishedAt) + oneMinuteInSeconds < currentTimeInSeconds
-        ) {
-          // Delete the auction if it has been finished for over a minute
-          const deleteParams = {
-            TableName: auctionTableName,
-            Key: { id: { S: auction.id } },
-          };
-
-          const deleteCommand = new DeleteItemCommand(deleteParams);
-          await dynamoDBClient.send(deleteCommand);
-        }
+        const updateCommand = new UpdateItemCommand(updateParams);
+        await dynamoDBClient.send(updateCommand);
       }
     }
   } catch (error) {
