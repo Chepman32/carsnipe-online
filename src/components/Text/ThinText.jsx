@@ -1,7 +1,7 @@
 import React from 'react'
 
-export default function ThinText({children}) {
+export default function ThinText({children, style}) {
   return (
-    <p className='thinText' >{children}</p>
+    <p className='thinText' style={style}>{children}</p>
   )
 }
