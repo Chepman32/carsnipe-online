@@ -211,6 +211,7 @@ export const onCreateAuction = /* GraphQL */ `
         __typename
       }
       bidsCount
+      finishedAt
       createdAt
       updatedAt
       __typename
@@ -238,6 +239,7 @@ export const onUpdateAuction = /* GraphQL */ `
         __typename
       }
       bidsCount
+      finishedAt
       createdAt
       updatedAt
       __typename
@@ -265,6 +267,7 @@ export const onDeleteAuction = /* GraphQL */ `
         __typename
       }
       bidsCount
+      finishedAt
       createdAt
       updatedAt
       __typename
@@ -444,6 +447,7 @@ export const onCreateAuctionUser = /* GraphQL */ `
         minBid
         type
         bidsCount
+        finishedAt
         createdAt
         updatedAt
         __typename
@@ -495,6 +499,7 @@ export const onUpdateAuctionUser = /* GraphQL */ `
         minBid
         type
         bidsCount
+        finishedAt
         createdAt
         updatedAt
         __typename
@@ -546,6 +551,7 @@ export const onDeleteAuctionUser = /* GraphQL */ `
         minBid
         type
         bidsCount
+        finishedAt
         createdAt
         updatedAt
         __typename

@@ -36,6 +36,7 @@ export default function AuctionCreateForm(props) {
     minBid: "",
     type: "",
     bidsCount: "",
+    finishedAt: "",
   };
   const [make, setMake] = React.useState(initialValues.make);
   const [model, setModel] = React.useState(initialValues.model);
@@ -52,6 +53,7 @@ export default function AuctionCreateForm(props) {
   const [minBid, setMinBid] = React.useState(initialValues.minBid);
   const [type, setType] = React.useState(initialValues.type);
   const [bidsCount, setBidsCount] = React.useState(initialValues.bidsCount);
+  const [finishedAt, setFinishedAt] = React.useState(initialValues.finishedAt);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     setMake(initialValues.make);
@@ -67,6 +69,7 @@ export default function AuctionCreateForm(props) {
     setMinBid(initialValues.minBid);
     setType(initialValues.type);
     setBidsCount(initialValues.bidsCount);
+    setFinishedAt(initialValues.finishedAt);
     setErrors({});
   };
   const validations = {
@@ -83,6 +86,7 @@ export default function AuctionCreateForm(props) {
     minBid: [{ type: "Required" }],
     type: [{ type: "Required" }],
     bidsCount: [],
+    finishedAt: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -123,6 +127,7 @@ export default function AuctionCreateForm(props) {
           minBid,
           type,
           bidsCount,
+          finishedAt,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -198,6 +203,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.make ?? value;
@@ -234,6 +240,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.model ?? value;
@@ -274,6 +281,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.year ?? value;
@@ -310,6 +318,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.carId ?? value;
@@ -350,6 +359,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.currentBid ?? value;
@@ -386,6 +396,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.endTime ?? value;
@@ -422,6 +433,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.status ?? value;
@@ -458,6 +470,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.lastBidPlayer ?? value;
@@ -494,6 +507,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.player ?? value;
@@ -534,6 +548,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.buy ?? value;
@@ -574,6 +589,7 @@ export default function AuctionCreateForm(props) {
               minBid: value,
               type,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.minBid ?? value;
@@ -610,6 +626,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type: value,
               bidsCount,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.type ?? value;
@@ -650,6 +667,7 @@ export default function AuctionCreateForm(props) {
               minBid,
               type,
               bidsCount: value,
+              finishedAt,
             };
             const result = onChange(modelFields);
             value = result?.bidsCount ?? value;
@@ -663,6 +681,43 @@ export default function AuctionCreateForm(props) {
         errorMessage={errors.bidsCount?.errorMessage}
         hasError={errors.bidsCount?.hasError}
         {...getOverrideProps(overrides, "bidsCount")}
+      ></TextField>
+      <TextField
+        label="Finished at"
+        isRequired={false}
+        isReadOnly={false}
+        value={finishedAt}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              make,
+              model,
+              year,
+              carId,
+              currentBid,
+              endTime,
+              status,
+              lastBidPlayer,
+              player,
+              buy,
+              minBid,
+              type,
+              bidsCount,
+              finishedAt: value,
+            };
+            const result = onChange(modelFields);
+            value = result?.finishedAt ?? value;
+          }
+          if (errors.finishedAt?.hasError) {
+            runValidationTasks("finishedAt", value);
+          }
+          setFinishedAt(value);
+        }}
+        onBlur={() => runValidationTasks("finishedAt", finishedAt)}
+        errorMessage={errors.finishedAt?.errorMessage}
+        hasError={errors.finishedAt?.hasError}
+        {...getOverrideProps(overrides, "finishedAt")}
       ></TextField>
       <Flex
         justifyContent="space-between"

@@ -56,6 +56,7 @@ type Auction @model
   type: String!
   user: [User] @manyToMany(relationName: "AuctionUser")
   bidsCount: Int
+  finishedAt: String
 }
 
 type Achievement {

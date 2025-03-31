@@ -141,6 +141,7 @@ export const getAuction = /* GraphQL */ `
         __typename
       }
       bidsCount
+      finishedAt
       createdAt
       updatedAt
       __typename
@@ -169,6 +170,7 @@ export const listAuctions = /* GraphQL */ `
         minBid
         type
         bidsCount
+        finishedAt
         createdAt
         updatedAt
         __typename
@@ -337,6 +339,7 @@ export const getAuctionUser = /* GraphQL */ `
         minBid
         type
         bidsCount
+        finishedAt
         createdAt
         updatedAt
         __typename

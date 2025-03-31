@@ -251,6 +251,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
           currentBid: auction.buy,
           lastBidPlayer: playerInfo.nickname,
           status: "Finished",
+          finishedAt: new Date().toISOString() // Ensure correct format for Lambda detection
         };
         await client.graphql({
           query: mutations.updateAuction,
