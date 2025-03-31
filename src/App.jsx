@@ -30,6 +30,7 @@ import './AuthStyles.css';
 import MusicUploadPage from "./pages/MusicUploadPage/MusicUploadPage";
 import MusicLibraryPage from "./pages/MusicLibraryPage/MusicLibraryPage";
 import GameSettings from "./pages/GameSettings/GameSettings";
+import UserPage from "./pages/UserPage/UserPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 import VideoBackground from "./assets/intro-background.mp4";
 
@@ -297,6 +298,10 @@ export default function App() {
                           <Route
                             path="/musicLibraryPage"
                             element={<MusicLibraryPage />}
+                          />
+                          <Route
+                            path="/user/:id"
+                            element={<UserPage />}
                           />
                         </Routes>
                         </DarkModeWrapper>

@@ -27,6 +27,11 @@ const client = generateClient();
 
 export const fetchUserCarsRequest = async (id) => {
   try {
+    if (!id) {
+      console.error("No user ID provided to fetchUserCarsRequest");
+      return [];
+    }
+
     const userData = await client.graphql({
       query: `
         query GetUser($id: ID!) {
@@ -50,30 +55,48 @@ export const fetchUserCarsRequest = async (id) => {
         id,
       },
     });
-    return userData.data.getUser.cars.items;
+
+    // Check if user exists and has cars
+    if (!userData?.data?.getUser) {
+      console.log("User not found in fetchUserCarsRequest");
+      return [];
+    }
+
+    return userData.data.getUser.cars?.items || [];
   } catch (error) {
     console.error("Error fetching user's cars:", error);
+    return [];
   }
 };
 
 export const fetchAuctionCreator = async (auctionId) => {
   try {
+    if (!auctionId) {
+      console.error("No auction ID provided to fetchAuctionCreator");
+      return null;
+    }
+
     const auctionUserData = await fetchAuctionUser(auctionId);
 
     if (!auctionUserData) {
-      // Auction user not found
+      console.log("No auction user data found for auction ID:", auctionId);
       return null;
     }
 
     return auctionUserData;
   } catch (error) {
     console.error("Error fetching auction creator:", error);
-    throw error;
+    return null; // Return null instead of throwing to prevent app crashes
   }
 };
 
 export const fetchUserInfoById = async (userId) => {
   try {
+    if (!userId) {
+      console.error("No user ID provided to fetchUserInfoById");
+      return null;
+    }
+
     const userData = await client.graphql({
       query: queries.getUser,
       variables: {
@@ -81,10 +104,15 @@ export const fetchUserInfoById = async (userId) => {
       },
     });
 
+    if (!userData?.data?.getUser) {
+      console.log("User not found in fetchUserInfoById");
+      return null;
+    }
+
     return userData.data.getUser;
   } catch (error) {
     console.error("Error fetching user information:", error);
-    throw error;
+    return null;
   }
 };
 
@@ -209,6 +237,11 @@ export const createNewAuctionUser = async (userId, auctionId) => {
 
 export const fetchAuctionUser = async (auctionId) => {
   try {
+    if (!auctionId) {
+      console.error("No auction ID provided to fetchAuctionUser");
+      return null;
+    }
+
     console.log("Fetching auction user...:", auctionId);
     const auctionUserData = await client.graphql({
       query: queries.listAuctionUsers,
@@ -219,9 +252,15 @@ export const fetchAuctionUser = async (auctionId) => {
       },
     });
 
-    const auctionUser = auctionUserData.data.listAuctionUsers.items[0];
+    const auctionUser = auctionUserData?.data?.listAuctionUsers?.items?.[0];
 
     if (!auctionUser) {
+      console.log("No auction user found for auction ID:", auctionId);
+      return null;
+    }
+
+    if (!auctionUser.userId) {
+      console.log("Auction user has no userId:", auctionUser);
       return null;
     }
 
@@ -232,11 +271,17 @@ export const fetchAuctionUser = async (auctionId) => {
       },
     });
 
-    const user = userData.data.getUser;
+    const user = userData?.data?.getUser;
+
+    if (!user) {
+      console.log("User not found for userId:", auctionUser.userId);
+      return null;
+    }
+
     return user;
   } catch (error) {
-    console.error(error);
-    throw error;
+    console.error("Error in fetchAuctionUser:", error);
+    return null; // Return null instead of throwing to prevent app crashes
   }
 };
 

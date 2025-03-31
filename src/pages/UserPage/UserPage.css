@@ -1,0 +1,90 @@
+.user-profile-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.user-profile-card, .user-cars-card {
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+
+.user-profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.user-avatar {
+  margin-bottom: 16px;
+  border: 4px solid #f0f0f0;
+}
+
+.user-name {
+  margin: 0;
+  text-align: center;
+}
+
+.user-bio {
+  margin-bottom: 20px;
+}
+
+.bio-text {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.user-stats {
+  margin-top: 20px;
+}
+
+.statistic-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  height: 100%;
+}
+
+.statistic-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.statistic-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.cars-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.no-cars-message {
+  text-align: center;
+  color: #999;
+  margin: 40px 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-profile-container {
+    padding: 10px;
+  }
+  
+  .statistic-container {
+    padding: 8px;
+  }
+  
+  .statistic-value {
+    font-size: 16px;
+  }
+}
