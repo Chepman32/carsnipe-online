@@ -190,6 +190,18 @@ async function deleteExpiredAuctions() {
     for (const item of tableContent.Items) {
       const auction = unmarshall(item);
 
+      if (parseInt(auction.currentBid) === parseInt(auction.buy)) {
+        // Delete the auction immediately if the buy price is met
+        const deleteParams = {
+          TableName: auctionTableName,
+          Key: { id: { S: auction.id } },
+        };
+
+        const deleteCommand = new DeleteItemCommand(deleteParams);
+        await dynamoDBClient.send(deleteCommand);
+        continue;
+      }
+
       if (parseInt(auction.endTime) < currentTimeInSeconds) {
         if (auction.status !== "Finished") {
           // Mark the auction as "Finished" and set finishedAt timestamp
