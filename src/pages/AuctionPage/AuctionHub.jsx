@@ -72,8 +72,8 @@ export default function AuctionsHub() {
   }, [focusedTile, handleKeyDown]);
 
   return (
-    <div className="auctionsHub" onKeyDown={handleKeyDown} tabIndex={0}>
-      <Row style={{ height: "100vh", margin: "0", boxSizing: "border-box" }}>
+    <div className="auctionsHub" onKeyDown={handleKeyDown} tabIndex={0} style={{ height: "100vh", overflow: "hidden" }}>
+      <Row style={{ height: "100%", margin: "0", boxSizing: "border-box" }}>
         <Col xs={24} md={12} style={{ height: "100%" }}>
           <AuctionHubSearch focused={focusedTile === "search"} />
         </Col>
