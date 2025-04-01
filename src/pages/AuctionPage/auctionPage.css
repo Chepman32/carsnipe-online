@@ -171,6 +171,10 @@ html, body {
 .auctionHub__cardText {
   font-size: 6vh;
   color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  text-align: center;
+  margin: 0;
+  padding: 0;
 }
 
 .auctionsHub {
@@ -260,6 +264,11 @@ html, body {
 
 .zoom-transition {
   transition: transform 0.3s ease-in-out;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
 }
 
 .cardContent {
@@ -273,6 +282,10 @@ html, body {
 
 .hubCard, .activeCard {
   overflow: hidden;
+  background-size: cover !important;
+  background-position: center !important;
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .hubCard:hover .cardContent, .activeCard .cardContent {

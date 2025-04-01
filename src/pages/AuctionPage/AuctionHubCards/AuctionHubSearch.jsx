@@ -18,29 +18,38 @@ export default function AuctionHubSearch({ focused }) {
   }, []);
 
   return (
-    <Col xs={24} md={24} style={{ height: '100%' }} className={!isMobile && focused ? "activeCard" : "hubCard"}>
-      <Link to="/auctions">
+    <Col xs={24} md={24} style={{ height: '100%', padding: 0, margin: 0 }} className={!isMobile && focused ? "activeCard" : "hubCard"}>
+      <Link to="/auctions" style={{ display: 'block', width: '100%', height: '100%' }}>
         <Card
           style={{
             height: '100%',
+            width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             position: 'relative',
             overflow: 'hidden',
             backgroundColor: "#fff",
+            padding: 0,
+            margin: 0,
+          }}
+          bodyStyle={{
+            padding: 0,
+            margin: 0,
+            width: '100%',
+            height: '100%'
           }}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          <div 
-            style={{ 
-              position: 'absolute', 
-              top: 0, 
-              left: 0, 
-              width: '100%', 
-              height: '100%', 
-              overflow: 'hidden' 
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              overflow: 'hidden'
             }}
           >
             <img
@@ -51,13 +60,26 @@ export default function AuctionHubSearch({ focused }) {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
+                objectPosition: 'center',
                 transform: (!isMobile && (initialScale || hovered || focused)) ? 'scale(1.05)' : 'scale(1)',
               }}
             />
           </div>
-          <Typography.Text className="auctionHub__cardText" style={{ position: 'relative', zIndex: 1 }}>
-            Search auctions
-          </Typography.Text>
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1
+          }}>
+            <Typography.Text className="auctionHub__cardText">
+              Search auctions
+            </Typography.Text>
+          </div>
         </Card>
       </Link>
     </Col>
