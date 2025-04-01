@@ -23,9 +23,9 @@ export default function AuctionHubMyBids({ focused, onClick }) {
           onMouseLeave={() => setHovered(false)}
           onClick={onClick}
         >
-          <div className="cardContent">
-            <img src={icon} alt="icon" />
-            <Typography.Text className="auctionHub__cardText_black">
+          <div className="cardContent" style={{ justifyContent: 'center', width: '100%', height: '100%' }}>
+            <img src={icon} alt="icon" style={{ marginRight: '10px' }} />
+            <Typography.Text className="auctionHub__cardText_black" style={{ textAlign: 'center' }}>
               My bids
             </Typography.Text>
           </div>

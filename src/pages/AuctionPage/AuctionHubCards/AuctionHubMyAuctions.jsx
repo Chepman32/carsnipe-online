@@ -16,8 +16,8 @@ export default function AuctionHubMyAuctions({ focused }) {
                     onMouseEnter={() => setHovered(true)}
                     onMouseLeave={() => setHovered(false)}
                 >
-                    <div className="cardContent">
-                        <Typography.Text className="auctionHub__cardText_black">
+                    <div className="cardContent" style={{ justifyContent: 'center', width: '100%', height: '100%' }}>
+                        <Typography.Text className="auctionHub__cardText_black" style={{ textAlign: 'center', marginRight: '10px' }}>
                             My auctions
                         </Typography.Text>
                         <img src={icon} alt="icon" />

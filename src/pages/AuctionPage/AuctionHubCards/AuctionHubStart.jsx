@@ -24,8 +24,8 @@ export default function AuctionHubStart({ focused, onClick }) {
           onClick={onClick}
           className={!isMobile && focused ? "activeCard" : "hubCard"}
         >
-          <div className="cardContent">
-            <Typography.Text className="auctionHub__cardText">
+          <div className="cardContent" style={{ justifyContent: 'center', width: '100%', height: '100%' }}>
+            <Typography.Text className="auctionHub__cardText" style={{ textAlign: 'center' }}>
               Start auction
             </Typography.Text>
           </div>

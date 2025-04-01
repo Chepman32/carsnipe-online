@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Card, Col, Row, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 import "./auctionPage.css";
+import "./auctionHub.css"; // Import the specific hub CSS
 import AuctionHubMyBids from "./AuctionHubCards/AuctionHubMyBids";
 import AuctionHubMyAuctions from "./AuctionHubCards/AuctionHubMyAuctions";
 import AuctionHubStart from "./AuctionHubCards/AuctionHubStart";
@@ -11,6 +12,16 @@ import { playOpeningSound, playSwitchSound } from "../../functions";
 export default function AuctionsHub() {
   const [focusedTile, setFocusedTile] = useState(""); // No initial focus
   const navigate = useNavigate();
+
+  // Add a class to the body element to prevent scrolling
+  useEffect(() => {
+    document.body.classList.add('hub-page-active');
+
+    // Clean up function to remove the class when component unmounts
+    return () => {
+      document.body.classList.remove('hub-page-active');
+    };
+  }, []);
 
   // Optionally, keep sessionStorage logic but only apply it on explicit user action, not page load
   // Remove this useEffect if you don't want any persistence
@@ -72,8 +83,15 @@ export default function AuctionsHub() {
   }, [focusedTile, handleKeyDown]);
 
   return (
-    <div className="auctionsHub" onKeyDown={handleKeyDown} tabIndex={0} style={{ height: "100vh", overflow: "hidden" }}>
-      <Row style={{ height: "100%", margin: "0", padding: "0", boxSizing: "border-box" }}>
+    <div className="auctionsHub" onKeyDown={handleKeyDown} tabIndex={0}>
+      <Row style={{
+        height: "100%",
+        margin: "0",
+        padding: "0",
+        boxSizing: "border-box",
+        overflow: "hidden",
+        maxHeight: "100vh"
+      }}>
         <Col xs={24} md={12} style={{ height: "100%", padding: "0", margin: "0" }}>
           <AuctionHubSearch focused={focusedTile === "search"} />
         </Col>
