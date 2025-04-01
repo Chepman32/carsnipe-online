@@ -1,3 +1,5 @@
+@import url("../../shared/darkTheme.css");
+
 .auctionPage {
   display: flex;
   padding: 10px;
@@ -9,8 +11,9 @@
   height: 10px;
   display: flex;
   margin: 10px 0;
-  background: #fff;
+  background: var(--box-background, #fff);
   transition: transform 0.2s ease-in-out;
+  border: 1px solid var(--border-color, lightblue);
 }
 
 .auctionPageItem:hover {
@@ -26,8 +29,9 @@
 .mobileAuctionPageItem {
   max-width: 98vw;
   border-bottom: 2px solid #ccc;
-  background: #fff;
+  background: var(--box-background, #fff);
   transition: transform 0.2s ease-in-out;
+  border: 1px solid var(--border-color, lightblue);
 }
 
 .mobileAuctionPageItem:hover {
@@ -50,6 +54,17 @@
 .mobileAuctionPageItem .hammer {
   width: 5vh;
   height: 5vh;
+}
+
+.mobileAuctionPageItem .subText {
+  font-size: 1.4vh;
+  color: var(--text-color, #000000);
+}
+
+.mobileAuctionPageItem .price {
+  font-size: 1.6vh;
+  font-weight: 600;
+  color: var(--text-color, #000000);
 }
 
 .auctionDetails {
@@ -85,16 +100,19 @@
 
 .auctionPageItem .subText {
   font-size: 1.4vh;
+  color: var(--text-color, #000000);
 }
 
 .auctionPageItem .price {
   font-size: 1.6vh;
   font-weight: 600;
+  color: var(--text-color, #000000);
 }
 
 .auctionPageItem .carName {
   font-size: 2vh;
   font-weight: bold;
+  color: var(--text-color, #000000);
 }
 
 .auctionDetails .subText {
