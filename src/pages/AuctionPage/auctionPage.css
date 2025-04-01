@@ -19,28 +19,8 @@
 
 /* Add a persistent selection class */
 .selected-auction {
-  outline: 4px solid #ff69b4 !important;
-  box-shadow: 0 0 15px rgba(255, 105, 180, 0.7);
-  position: relative;
-  z-index: 10;
-  transform: translateX(5px);
-  background-color: rgba(255, 240, 245, 0.3) !important;
-  animation: pulse-border 2s infinite;
-}
-
-@keyframes pulse-border {
-  0% {
-    outline-color: #ff69b4;
-    box-shadow: 0 0 15px rgba(255, 105, 180, 0.7);
-  }
-  50% {
-    outline-color: #ff1493;
-    box-shadow: 0 0 20px rgba(255, 20, 147, 0.9);
-  }
-  100% {
-    outline-color: #ff69b4;
-    box-shadow: 0 0 15px rgba(255, 105, 180, 0.7);
-  }
+  outline: 3px solid #ff69b4 !important;
+  box-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
 }
 
 .mobileAuctionPageItem {

@@ -68,6 +68,8 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
         };
       });
 
+      // Filter auctions to only show those owned by the current user
+      // For MyAuctions, we show all auctions owned by the user, regardless of status or finish time
       let filtered = auctions.filter(auction => auction.player === playerInfo?.nickname);
 
       console.log("MyAuctions - before sorting:", filtered);

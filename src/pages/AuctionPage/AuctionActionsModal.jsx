@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Modal, Spin, message } from "antd";
 import "./auctionPage.css";
 import { fetchAuctionCreator, playSwitchSound, createNewAuctionUser } from "../../functions";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AuctionActionsModalRow from "../../components/AuctionActionsModalRow/AuctionActionsModalRow";
 import { isMobile } from "react-device-detect";
 import { generateClient } from 'aws-amplify/api';
@@ -12,6 +12,7 @@ const client = generateClient();
 
 const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuction, loadingBid, bid, buyCar, loadingBuy }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const totalRows = 3;
   const [focusedRow, setFocusedRow] = useState(0);
@@ -189,10 +190,10 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
       )}
     >
       {
-        selectedAuction?.status === "Active" && <AuctionActionsModalRow text={loadingBid ? <Spin /> : "Make a bid"} handler={() => bid(selectedAuction)} selected={focusedRow === 0} />
+        selectedAuction?.status === "Active" && location.pathname !== "/myAuctions" && <AuctionActionsModalRow text={loadingBid ? <Spin /> : "Make a bid"} handler={() => bid(selectedAuction)} selected={focusedRow === 0} />
       }
       {
-        selectedAuction?.status === "Active" && <AuctionActionsModalRow text={loadingBuy ? <Spin /> : "Buy out"} handler={() => buyCar(selectedAuction)} selected={focusedRow === 1} />
+        selectedAuction?.status === "Active" && location.pathname !== "/myAuctions" && <AuctionActionsModalRow text={loadingBuy ? <Spin /> : "Buy out"} handler={() => buyCar(selectedAuction)} selected={focusedRow === 1} />
       }
       <AuctionActionsModalRow
         text={loadingProfile ? <Spin size="small" /> : "Open user's profile"}

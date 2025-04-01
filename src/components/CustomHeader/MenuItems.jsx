@@ -18,9 +18,7 @@ export const MenuItems = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { currentFocusedElement, focusedZone } = useSelector(
-    (state) => state.focus
-  );
+  const { currentFocusedElement, focusedZone } = useSelector((state) => state.focus);
 
   const handleKeyDown = (event) => {
     dispatch(handleKeyDownAction(event.key));

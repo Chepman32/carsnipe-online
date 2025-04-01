@@ -109,7 +109,21 @@ export default function MyBids({ playerInfo, setMoney, money }) {
           }
         }
 
+        // For MyBids, we want to keep track of whether the user is the last bidder
+        // This will be used to determine if we should show finished auctions
+        auction.isUserLastBidder = auction.lastBidPlayer === playerInfo?.nickname;
+
         return auction;
+      });
+
+      // For MyBids, we show all auctions the user has bid on, but for finished auctions,
+      // we only keep those where the user is the last bidder (potential winner)
+      validAuctions = validAuctions.filter(auction => {
+        // Keep all active auctions
+        if (auction.status !== 'Finished') return true;
+
+        // For finished auctions, keep if user is the last bidder
+        return auction.isUserLastBidder;
       });
 
       try {
