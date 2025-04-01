@@ -1,5 +1,5 @@
 // src/components/CreditWarningModal.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +15,16 @@ export const CreditWarningModal = ({ isModalVisible, setIsModalVisible }) => {
     setIsModalVisible(false);
   };
 
+  // Reference to the modal container
+  const modalRef = useRef(null);
+
+  // Focus the modal when it becomes visible
+  useEffect(() => {
+    if (isModalVisible && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [isModalVisible]);
+
   // Handle keyboard events for the modal
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -23,12 +33,15 @@ export const CreditWarningModal = ({ isModalVisible, setIsModalVisible }) => {
       // Stop event propagation to prevent parent components from handling the same key events
       event.stopPropagation();
 
+      // Prevent default browser behavior for these keys
+      if (event.key === "Enter" || event.key === "Escape") {
+        event.preventDefault();
+      }
+
       // Handle specific keys
       if (event.key === "Enter") {
-        event.preventDefault();
         handleOk();
       } else if (event.key === "Escape") {
-        event.preventDefault();
         handleCancel();
       }
     };
@@ -39,17 +52,22 @@ export const CreditWarningModal = ({ isModalVisible, setIsModalVisible }) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown, true);
     };
-  }, [isModalVisible]);
+  }, [isModalVisible, handleOk, handleCancel]);
 
   return (
     <Modal
         title="Insufficient Credits"
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
         okText="Add Credits"
-              cancelText="Cancel"
-              centered
+        cancelText="Cancel"
+        centered
+        modalRender={(modal) => (
+          <div ref={modalRef} tabIndex={-1} style={{ outline: 'none' }}>
+            {modal}
+          </div>
+        )}
       >
         <p>You have insufficient credits to perform this action. Please add more credits to continue.</p>
       </Modal>

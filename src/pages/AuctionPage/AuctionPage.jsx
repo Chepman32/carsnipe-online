@@ -351,6 +351,9 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
     }
   };
 
+  // Track the last key press time to prevent double processing
+  const lastKeyPressTimeRef = useRef(0);
+
   const handleKeyDown = useCallback((event) => {
     // Don't handle keyboard events if there are no auctions
     if (!auctions.length) return;
@@ -360,27 +363,41 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       return;
     }
 
+    // Get current time
+    const now = Date.now();
+
+    // Throttle key presses to prevent double processing
+    // Only process if it's been more than 100ms since the last key press
+    if (now - lastKeyPressTimeRef.current < 100) {
+      return;
+    }
+
+    // Update the last key press time
+    lastKeyPressTimeRef.current = now;
+
     switch (event.key) {
       case 'ArrowUp':
         event.preventDefault();
-        setFocusedIndex(prev => {
-          const newIndex = prev === 0 ? auctions.length - 1 : prev - 1;
-          setSelectedAuction(auctions[newIndex]);
-          playSwitchSound();
-          scrollToFocusedItem(newIndex);
-          return newIndex;
-        });
+        // Calculate new index
+        const upIndex = focusedIndex === 0 ? auctions.length - 1 : focusedIndex - 1;
+        // Update state directly instead of using functional updates
+        setFocusedIndex(upIndex);
+        setSelectedAuction(auctions[upIndex]);
+        playSwitchSound();
+        scrollToFocusedItem(upIndex);
         break;
+
       case 'ArrowDown':
         event.preventDefault();
-        setFocusedIndex(prev => {
-          const newIndex = prev === auctions.length - 1 ? 0 : prev + 1;
-          setSelectedAuction(auctions[newIndex]);
-          playSwitchSound();
-          scrollToFocusedItem(newIndex);
-          return newIndex;
-        });
+        // Calculate new index
+        const downIndex = focusedIndex === auctions.length - 1 ? 0 : focusedIndex + 1;
+        // Update state directly instead of using functional updates
+        setFocusedIndex(downIndex);
+        setSelectedAuction(auctions[downIndex]);
+        playSwitchSound();
+        scrollToFocusedItem(downIndex);
         break;
+
       case 'Enter':
       case ' ':
         event.preventDefault();
@@ -389,10 +406,11 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
           isMobile ? setSelectedAuctionDetailsModalVisible(true) : handleAuctionActionsShow();
         }
         break;
+
       default:
         break;
     }
-  }, [auctions, selectedAuction, auctionActionsVisible, selectedAuctionDetailsModalVisible, creditWarningModalvisible]);
+  }, [auctions, selectedAuction, focusedIndex, auctionActionsVisible, selectedAuctionDetailsModalVisible, creditWarningModalvisible, handleAuctionActionsShow, scrollToFocusedItem]);
 
   useEffect(() => {
     console.log("useEffect triggered, calling listAuctions...");
@@ -424,10 +442,20 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
     }
   }, [auctions]);
 
+  // Reference to the auction page container
+  const auctionPageRef = useRef(null);
+
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
+    // Focus the auction page container when the component mounts
+    if (auctionPageRef.current) {
+      auctionPageRef.current.focus();
+    }
+
+    // Use the capture phase to ensure our handler runs before other handlers
+    document.addEventListener('keydown', handleKeyDown, true);
+
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown, true);
     };
   }, [handleKeyDown]);
 
@@ -450,7 +478,12 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   };
 
   return (
-    <div className="auctionPage" tabIndex={0}>
+    <div
+      className="auctionPage"
+      tabIndex={0}
+      ref={auctionPageRef}
+      onFocus={() => console.log("Auction page focused")}
+    >
       <div style={{ flex: 1 }}>
         <div className="auction-items-container" ref={auctionContainerRef}>
           {auctions.map((auction, index) => {

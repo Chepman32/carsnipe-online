@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Modal, Spin, message } from "antd";
 import "./auctionPage.css";
 import { fetchAuctionCreator, playSwitchSound, createNewAuctionUser } from "../../functions";
@@ -65,73 +65,103 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
     }
   };
 
+  // Track the last key press time to prevent double processing
+  const lastKeyPressTimeRef = useRef(0);
+
+  // Reference to the modal container
+  const modalRef = useRef(null);
+
+  // Focus the modal when it becomes visible
+  useEffect(() => {
+    if (visible && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [visible]);
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       const { key } = event;
 
-      if (visible) {
-        // Stop event propagation to prevent parent components from handling the same key events
-        event.stopPropagation();
-
-        // Prevent default browser behavior for these keys
-        if (key === "ArrowUp" || key === "ArrowDown" || key === "Enter" || key === " ") {
-          event.preventDefault();
-        }
-
-        if (key === "ArrowUp") {
-          playSwitchSound();
-          setFocusedRow((prevRow) => (prevRow === 0 ? totalRows - 1 : prevRow - 1));
-        } else if (key === "ArrowDown") {
-          playSwitchSound();
-          setFocusedRow((prevRow) => (prevRow === totalRows - 1 ? 0 : prevRow + 1));
-        } else if (key === "Enter" || key === " ") {
-          switch (focusedRow) {
-            case 0:
-              if (selectedAuction?.status === "Active") {
-                bid(selectedAuction);
-              }
-              break;
-            case 1:
-              if (selectedAuction?.status === "Active") {
-                buyCar(selectedAuction);
-              }
-              break;
-            case 2:
-              const handleOpenProfile = async () => {
-                try {
-                  if (!selectedAuction || !selectedAuction.id) {
-                    console.log("No auction selected or auction has no ID");
-                    message.info("Cannot open user profile: No auction selected");
-                    return;
-                  }
-
-                  setLoadingProfile(true);
-                  const user = await ensureAuctionUserExists(selectedAuction.id);
-
-                  if (!user) {
-                    console.log("No user found for this auction");
-                    message.info("User profile not available for this auction");
-                    return;
-                  }
-                  navigate(`/user/${user.id}`);
-                } catch (error) {
-                  console.error("Error opening user profile:", error);
-                  message.error("Could not open user profile");
-                } finally {
-                  setLoadingProfile(false);
-                }
-              };
-              handleOpenProfile();
-              break;
-            default:
-              break;
-          }
-        } else if (key === "Escape") {
-          // Close the modal when Escape is pressed
-          handleAuctionActionsCancel();
-        }
-      } else {
+      if (!visible) {
         setFocusedRow(0);
+        return;
+      }
+
+      // Stop event propagation to prevent parent components from handling the same key events
+      event.stopPropagation();
+
+      // Prevent default browser behavior for these keys
+      if (key === "ArrowUp" || key === "ArrowDown" || key === "Enter" || key === " ") {
+        event.preventDefault();
+      }
+
+      // Get current time
+      const now = Date.now();
+
+      // Throttle key presses to prevent double processing
+      // Only process if it's been more than 100ms since the last key press
+      if ((key === "ArrowUp" || key === "ArrowDown") && now - lastKeyPressTimeRef.current < 100) {
+        return;
+      }
+
+      // Update the last key press time
+      lastKeyPressTimeRef.current = now;
+
+      if (key === "ArrowUp") {
+        playSwitchSound();
+        // Calculate new index directly
+        const newRow = focusedRow === 0 ? totalRows - 1 : focusedRow - 1;
+        setFocusedRow(newRow);
+      } else if (key === "ArrowDown") {
+        playSwitchSound();
+        // Calculate new index directly
+        const newRow = focusedRow === totalRows - 1 ? 0 : focusedRow + 1;
+        setFocusedRow(newRow);
+      } else if (key === "Enter" || key === " ") {
+        switch (focusedRow) {
+          case 0:
+            if (selectedAuction?.status === "Active") {
+              bid(selectedAuction);
+            }
+            break;
+          case 1:
+            if (selectedAuction?.status === "Active") {
+              buyCar(selectedAuction);
+            }
+            break;
+          case 2:
+            const handleOpenProfile = async () => {
+              try {
+                if (!selectedAuction || !selectedAuction.id) {
+                  console.log("No auction selected or auction has no ID");
+                  message.info("Cannot open user profile: No auction selected");
+                  return;
+                }
+
+                setLoadingProfile(true);
+                const user = await ensureAuctionUserExists(selectedAuction.id);
+
+                if (!user) {
+                  console.log("No user found for this auction");
+                  message.info("User profile not available for this auction");
+                  return;
+                }
+                navigate(`/user/${user.id}`);
+              } catch (error) {
+                console.error("Error opening user profile:", error);
+                message.error("Could not open user profile");
+              } finally {
+                setLoadingProfile(false);
+              }
+            };
+            handleOpenProfile();
+            break;
+          default:
+            break;
+        }
+      } else if (key === "Escape") {
+        // Close the modal when Escape is pressed
+        handleAuctionActionsCancel();
       }
     };
 
@@ -148,10 +178,15 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
       centered
       className="carDetailsModal"
       width={isMobile ? "90%" : "50%"}
-      visible={visible}
+      open={visible}
       title="Car Details"
       onCancel={handleAuctionActionsCancel}
       footer={null}
+      modalRender={(modal) => (
+        <div ref={modalRef} tabIndex={-1} style={{ outline: 'none' }}>
+          {modal}
+        </div>
+      )}
     >
       {
         selectedAuction?.status === "Active" && <AuctionActionsModalRow text={loadingBid ? <Spin /> : "Make a bid"} handler={() => bid(selectedAuction)} selected={focusedRow === 0} />

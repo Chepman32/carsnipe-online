@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Card, Col, Flex, Modal, Space, Spin, Typography } from "antd";
 import "./auctionPage.css";
 import { calculateTimeDifference, fetchAuctionCreator, fetchAuctionUser, playSwitchSound, selectAvatar } from "../../functions";
@@ -23,6 +23,16 @@ export const SelectedAuctionDetailsModal = ({ visible, close, selectedAuction, h
     getAvatar()
   }, [selectedAuction]);
 
+  // Reference to the modal container
+  const modalRef = useRef(null);
+
+  // Focus the modal when it becomes visible
+  useEffect(() => {
+    if (visible && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [visible]);
+
   // Handle keyboard events for the modal
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -31,12 +41,15 @@ export const SelectedAuctionDetailsModal = ({ visible, close, selectedAuction, h
       // Stop event propagation to prevent parent components from handling the same key events
       event.stopPropagation();
 
+      // Prevent default browser behavior for these keys
+      if (event.key === "Enter" || event.key === " " || event.key === "Escape") {
+        event.preventDefault();
+      }
+
       // Handle specific keys
       if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
         handleAuctionActionsShow();
       } else if (event.key === "Escape") {
-        event.preventDefault();
         close();
       }
     };
@@ -57,6 +70,11 @@ export const SelectedAuctionDetailsModal = ({ visible, close, selectedAuction, h
       open={visible}
       onCancel={close}
       footer={null}
+      modalRender={(modal) => (
+        <div ref={modalRef} tabIndex={-1} style={{ outline: 'none' }}>
+          {modal}
+        </div>
+      )}
     >
       <div className="auctionDetails" style={{ height: '100%', padding: '20px' }}>
       {selectedAuction && (
