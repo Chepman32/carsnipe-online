@@ -341,18 +341,29 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
     setAuctionActionsVisible(false);
   };
 
-  const scrollToFocusedItem = (index) => {
-    if (itemRefs.current[index] && itemRefs.current[index].current) {
-      itemRefs.current[index].current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'start'
-      });
-    }
-  };
+  const scrollToFocusedItem = useCallback((index) => {
+    // Use a small timeout to ensure the DOM has updated
+    setTimeout(() => {
+      if (itemRefs.current[index] && itemRefs.current[index].current) {
+        itemRefs.current[index].current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'start'
+        });
+      }
+    }, 10);
+  }, []);
 
-  // Track the last key press time to prevent double processing
-  const lastKeyPressTimeRef = useRef(0);
+  // Use a ref to track if we're currently processing a key event
+  const isProcessingKeyRef = useRef(false);
+
+  // Use a ref to track the current focused index to avoid closure issues
+  const currentFocusedIndexRef = useRef(focusedIndex);
+
+  // Update the ref when the state changes
+  useEffect(() => {
+    currentFocusedIndexRef.current = focusedIndex;
+  }, [focusedIndex]);
 
   const handleKeyDown = useCallback((event) => {
     // Don't handle keyboard events if there are no auctions
@@ -363,63 +374,94 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       return;
     }
 
-    // Get current time
-    const now = Date.now();
-
-    // Throttle key presses to prevent double processing
-    // Only process if it's been more than 100ms since the last key press
-    if (now - lastKeyPressTimeRef.current < 100) {
+    // Don't process if we're already handling a key event
+    if (isProcessingKeyRef.current) {
       return;
     }
 
-    // Update the last key press time
-    lastKeyPressTimeRef.current = now;
+    // Mark that we're processing a key event
+    isProcessingKeyRef.current = true;
 
-    switch (event.key) {
-      case 'ArrowUp':
-        event.preventDefault();
-        // Calculate new index
-        const upIndex = focusedIndex === 0 ? auctions.length - 1 : focusedIndex - 1;
-        // Update state directly instead of using functional updates
-        setFocusedIndex(upIndex);
-        setSelectedAuction(auctions[upIndex]);
-        playSwitchSound();
-        scrollToFocusedItem(upIndex);
-        break;
+    try {
+      switch (event.key) {
+        case 'ArrowUp':
+          event.preventDefault();
+          event.stopPropagation();
 
-      case 'ArrowDown':
-        event.preventDefault();
-        // Calculate new index
-        const downIndex = focusedIndex === auctions.length - 1 ? 0 : focusedIndex + 1;
-        // Update state directly instead of using functional updates
-        setFocusedIndex(downIndex);
-        setSelectedAuction(auctions[downIndex]);
-        playSwitchSound();
-        scrollToFocusedItem(downIndex);
-        break;
+          // Calculate new index using the ref value
+          const currentIndex = currentFocusedIndexRef.current;
+          const upIndex = currentIndex === 0 ? auctions.length - 1 : currentIndex - 1;
 
-      case 'Enter':
-      case ' ':
-        event.preventDefault();
-        if (selectedAuction) {
-          playOpeningSound();
-          isMobile ? setSelectedAuctionDetailsModalVisible(true) : handleAuctionActionsShow();
-        }
-        break;
+          // Batch the state updates to happen together
+          setTimeout(() => {
+            setFocusedIndex(upIndex);
+            setSelectedAuction(auctions[upIndex]);
+            playSwitchSound();
+            scrollToFocusedItem(upIndex);
+          }, 0);
+          break;
 
-      default:
-        break;
+        case 'ArrowDown':
+          event.preventDefault();
+          event.stopPropagation();
+
+          // Calculate new index using the ref value
+          const currentIdx = currentFocusedIndexRef.current;
+          const downIndex = currentIdx === auctions.length - 1 ? 0 : currentIdx + 1;
+
+          // Batch the state updates to happen together
+          setTimeout(() => {
+            setFocusedIndex(downIndex);
+            setSelectedAuction(auctions[downIndex]);
+            playSwitchSound();
+            scrollToFocusedItem(downIndex);
+          }, 0);
+          break;
+
+        case 'Enter':
+        case ' ':
+          event.preventDefault();
+          event.stopPropagation();
+
+          if (selectedAuction) {
+            playOpeningSound();
+            isMobile ? setSelectedAuctionDetailsModalVisible(true) : handleAuctionActionsShow();
+          }
+          break;
+
+        default:
+          break;
+      }
+    } finally {
+      // Reset the processing flag after a short delay
+      setTimeout(() => {
+        isProcessingKeyRef.current = false;
+      }, 150); // Slightly longer than typical key repeat delay
     }
-  }, [auctions, selectedAuction, focusedIndex, auctionActionsVisible, selectedAuctionDetailsModalVisible, creditWarningModalvisible, handleAuctionActionsShow, scrollToFocusedItem]);
+  }, [auctions, selectedAuction, auctionActionsVisible, selectedAuctionDetailsModalVisible, creditWarningModalvisible, handleAuctionActionsShow, scrollToFocusedItem]);
 
   useEffect(() => {
     console.log("useEffect triggered, calling listAuctions...");
     listAuctions();
   }, [listAuctions]);
 
+  // Flag to track initial selection
+  const hasInitializedRef = useRef(false);
+
   // Ensure selection persists after auctions are refreshed
   useEffect(() => {
-    if (selectedAuction && auctions.length > 0) {
+    // Skip if we're processing a key event
+    if (isProcessingKeyRef.current) {
+      return;
+    }
+
+    // Only run this effect if auctions have loaded
+    if (auctions.length === 0) {
+      return;
+    }
+
+    // If we already have a selection, try to maintain it
+    if (selectedAuction) {
       // Find the auction in the new list that matches the currently selected auction
       const matchingAuction = auctions.find(auction =>
         auction.id === selectedAuction.id
@@ -428,34 +470,53 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       if (matchingAuction) {
         // Update the selected auction with the fresh data
         const newIndex = auctions.findIndex(auction => auction.id === matchingAuction.id);
-        setFocusedIndex(newIndex);
-        setSelectedAuction(matchingAuction);
-      } else if (auctions.length > 0) {
+
+        // Only update if the index has changed
+        if (newIndex !== focusedIndex) {
+          setFocusedIndex(newIndex);
+          setSelectedAuction(matchingAuction);
+        }
+      } else {
         // If the previously selected auction is no longer in the list, select the first one
         setFocusedIndex(0);
         setSelectedAuction(auctions[0]);
       }
-    } else if (auctions.length > 0 && !selectedAuction) {
-      // If there's no selection but we have auctions, select the first one
+    } else if (!hasInitializedRef.current) {
+      // If there's no selection but we have auctions, select the first one (only once)
       setFocusedIndex(0);
       setSelectedAuction(auctions[0]);
+      hasInitializedRef.current = true;
     }
-  }, [auctions]);
+  }, [auctions, selectedAuction, focusedIndex]);
 
   // Reference to the auction page container
   const auctionPageRef = useRef(null);
 
+  // Set up key event handling
   useEffect(() => {
     // Focus the auction page container when the component mounts
     if (auctionPageRef.current) {
       auctionPageRef.current.focus();
     }
 
-    // Use the capture phase to ensure our handler runs before other handlers
-    document.addEventListener('keydown', handleKeyDown, true);
+    // Create a stable reference to the handler function
+    const keyHandler = (e) => {
+      // Only handle arrow keys, Enter, and Space to avoid conflicts
+      if (
+        e.key === 'ArrowUp' ||
+        e.key === 'ArrowDown' ||
+        e.key === 'Enter' ||
+        e.key === ' '
+      ) {
+        handleKeyDown(e);
+      }
+    };
+
+    // Use the capture phase with highest priority
+    window.addEventListener('keydown', keyHandler, { capture: true, passive: false });
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('keydown', keyHandler, { capture: true, passive: false });
     };
   }, [handleKeyDown]);
 
