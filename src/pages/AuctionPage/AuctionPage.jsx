@@ -49,6 +49,18 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         return { ...auction, endTime, timeLeft };
       }).filter(a => a.id);
 
+      // Filter out finished auctions that ended more than 5 minutes ago
+      const currentTime = new Date();
+      const fiveMinutesInMs = 5 * 60 * 1000; // 5 minutes in milliseconds
+      auctions = auctions.filter(auction => {
+        // Keep all active auctions
+        if (auction.status !== 'Finished') return true;
+
+        // For finished auctions, check if they ended less than 5 minutes ago
+        const timeSinceEnd = currentTime - auction.endTime;
+        return timeSinceEnd < fiveMinutesInMs;
+      });
+
       // Sort auctions: active auctions by end date (ascending), finished auctions at the end
       auctions.sort((a, b) => {
         // If both have the same status, sort by end date
@@ -139,6 +151,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         lastBidPlayer: playerInfo?.nickname,
         bidsCount: auction.bidsCount + 1,
         status: increasedBidValue < auction.buy ? "Active" : "Finished",
+        ...(increasedBidValue >= auction.buy && { finishedAt: new Date().toISOString() }) // Add finishedAt when auction is finished
       };
   
       setAuctions(prevAuctions =>

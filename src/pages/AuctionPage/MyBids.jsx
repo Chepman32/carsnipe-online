@@ -160,6 +160,7 @@ export default function MyBids({ playerInfo, setMoney, money }) {
         endTime: auction.endTime,
         lastBidPlayer: playerInfo?.nickname,
         status: increasedBidValue < auction.buy ? "Active" : "Finished",
+        ...(increasedBidValue >= auction.buy && { finishedAt: new Date().toISOString() }) // Add finishedAt when auction is finished
       };
       await client.graphql({
         query: mutations.updateAuction,
@@ -269,6 +270,7 @@ export default function MyBids({ playerInfo, setMoney, money }) {
           currentBid: auction.buy,
           lastBidPlayer: playerInfo.nickname,
           status: "Finished",
+          finishedAt: new Date().toISOString() // Ensure correct format for Lambda detection
         };
         await client.graphql({
           query: mutations.updateAuction,

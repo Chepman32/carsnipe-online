@@ -116,6 +116,7 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
         endTime: auction.endTime,
         lastBidPlayer: playerInfo?.nickname,
         status: increasedBidValue < auction.buy ? "active" : "finished",
+        ...(increasedBidValue >= auction.buy && { finishedAt: new Date().toISOString() }) // Add finishedAt when auction is finished
       };
       await client.graphql({
         query: mutations.updateAuction,
@@ -160,6 +161,7 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
         currentBid: selectedAuction.buy,
         endTime: selectedAuction.endTime,
         status: "Finished",
+        finishedAt: new Date().toISOString(), // Add finishedAt when auction is finished
         lastBidPlayer: playerInfo?.nickname,
         player: selectedAuction.player,
         buy: selectedAuction.buy,
