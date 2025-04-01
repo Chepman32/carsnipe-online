@@ -352,7 +352,13 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   };
 
   const handleKeyDown = useCallback((event) => {
+    // Don't handle keyboard events if there are no auctions
     if (!auctions.length) return;
+
+    // Don't handle keyboard events if any modal is open
+    if (auctionActionsVisible || selectedAuctionDetailsModalVisible || creditWarningModalvisible) {
+      return;
+    }
 
     switch (event.key) {
       case 'ArrowUp':
@@ -386,12 +392,37 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       default:
         break;
     }
-  }, [auctions, selectedAuction]);
+  }, [auctions, selectedAuction, auctionActionsVisible, selectedAuctionDetailsModalVisible, creditWarningModalvisible]);
 
   useEffect(() => {
     console.log("useEffect triggered, calling listAuctions...");
     listAuctions();
   }, [listAuctions]);
+
+  // Ensure selection persists after auctions are refreshed
+  useEffect(() => {
+    if (selectedAuction && auctions.length > 0) {
+      // Find the auction in the new list that matches the currently selected auction
+      const matchingAuction = auctions.find(auction =>
+        auction.id === selectedAuction.id
+      );
+
+      if (matchingAuction) {
+        // Update the selected auction with the fresh data
+        const newIndex = auctions.findIndex(auction => auction.id === matchingAuction.id);
+        setFocusedIndex(newIndex);
+        setSelectedAuction(matchingAuction);
+      } else if (auctions.length > 0) {
+        // If the previously selected auction is no longer in the list, select the first one
+        setFocusedIndex(0);
+        setSelectedAuction(auctions[0]);
+      }
+    } else if (auctions.length > 0 && !selectedAuction) {
+      // If there's no selection but we have auctions, select the first one
+      setFocusedIndex(0);
+      setSelectedAuction(auctions[0]);
+    }
+  }, [auctions]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -403,10 +434,17 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   console.log("Rendering with auctions state:", auctions);
 
   const handleItemClick = (clickedAuction) => {
+    // Find the index of the clicked auction
     const newIndex = auctions.findIndex(auction => auction.id === clickedAuction.id);
+
+    // Update the focused index and selected auction
     setFocusedIndex(newIndex);
     setSelectedAuction(clickedAuction);
+
+    // Scroll to the selected item
     scrollToFocusedItem(newIndex);
+
+    // Play sound and show appropriate modal
     playOpeningSound();
     isMobile === false ? handleAuctionActionsShow() : setSelectedAuctionDetailsModalVisible(true);
   };

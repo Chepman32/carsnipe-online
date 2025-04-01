@@ -705,7 +705,7 @@ export default function UserCreateForm(props) {
         {...getOverrideProps(overrides, "totalBidsPlaced")}
       ></TextField>
       <TextField
-        label="Total garage price"
+        label="Total spent"
         isRequired={false}
         isReadOnly={false}
         type="number"

@@ -22,6 +22,32 @@ export const SelectedAuctionDetailsModal = ({ visible, close, selectedAuction, h
     }
     getAvatar()
   }, [selectedAuction]);
+
+  // Handle keyboard events for the modal
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (!visible) return;
+
+      // Stop event propagation to prevent parent components from handling the same key events
+      event.stopPropagation();
+
+      // Handle specific keys
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleAuctionActionsShow();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+      }
+    };
+
+    // Use capture phase to ensure our handler runs before the parent's handler
+    document.addEventListener("keydown", handleKeyDown, true);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown, true);
+    };
+  }, [visible, close, handleAuctionActionsShow]);
   
   return (
     <Modal

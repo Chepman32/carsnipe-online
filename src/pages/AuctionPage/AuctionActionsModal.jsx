@@ -68,21 +68,33 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
   useEffect(() => {
     const handleKeyDown = (event) => {
       const { key } = event;
-  
+
       if (visible) {
+        // Stop event propagation to prevent parent components from handling the same key events
+        event.stopPropagation();
+
+        // Prevent default browser behavior for these keys
+        if (key === "ArrowUp" || key === "ArrowDown" || key === "Enter" || key === " ") {
+          event.preventDefault();
+        }
+
         if (key === "ArrowUp") {
           playSwitchSound();
           setFocusedRow((prevRow) => (prevRow === 0 ? totalRows - 1 : prevRow - 1));
         } else if (key === "ArrowDown") {
           playSwitchSound();
           setFocusedRow((prevRow) => (prevRow === totalRows - 1 ? 0 : prevRow + 1));
-        } else if (key === "Enter") {
+        } else if (key === "Enter" || key === " ") {
           switch (focusedRow) {
             case 0:
-              bid(selectedAuction);
+              if (selectedAuction?.status === "Active") {
+                bid(selectedAuction);
+              }
               break;
             case 1:
-              buyCar(selectedAuction);
+              if (selectedAuction?.status === "Active") {
+                buyCar(selectedAuction);
+              }
               break;
             case 2:
               const handleOpenProfile = async () => {
@@ -114,18 +126,22 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
             default:
               break;
           }
+        } else if (key === "Escape") {
+          // Close the modal when Escape is pressed
+          handleAuctionActionsCancel();
         }
       } else {
         setFocusedRow(0);
       }
     };
-  
-    document.addEventListener("keydown", handleKeyDown);
-  
+
+    // Use capture phase to ensure our handler runs before the parent's handler
+    document.addEventListener("keydown", handleKeyDown, true);
+
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown, true);
     };
-  }, [visible, focusedRow, selectedAuction, bid, buyCar, navigate, totalRows]);
+  }, [visible, focusedRow, selectedAuction, bid, buyCar, navigate, totalRows, handleAuctionActionsCancel]);
   
   return (
     <Modal

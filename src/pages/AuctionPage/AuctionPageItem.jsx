@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { calculateTimeDifference, fetchUserBiddedList } from '../../functions';
-import { Card, Col, Flex, Space, Typography } from 'antd';
+import React from 'react';
+import { calculateTimeDifference } from '../../functions';
+import { Col, Flex, Typography } from 'antd';
 import "./auctionPage.css"
 import ThinText from '../../components/Text/ThinText';
 
@@ -9,7 +9,7 @@ const getImageSource = (make, model) => {
     return require(`../../assets/images/cars/${imageName}`);
 };
 
-export default function AuctionPageItem({ playerInfo, auction, isSelected, index, handleItemClick }) {
+export default function AuctionPageItem({ playerInfo, auction, isSelected, isFocused, index, handleItemClick }) {
     // Check if auction is finished or bought out
     const isFinished = auction.status === 'Finished' || auction.currentBid === auction.buy;
 
@@ -24,9 +24,24 @@ export default function AuctionPageItem({ playerInfo, auction, isSelected, index
         }
     };
 
+    // Base styles that don't change with selection
+    const baseStyle = {
+        width: "100%",
+        paddingRight: "1vw",
+        transition: 'all 0.3s ease-in-out' // Smooth transition for all changes
+    };
+
+    // Determine if this item should be shown as selected - only use the props from parent
+    const isItemSelected = isSelected || isFocused;
+
+    // Combine the CSS class approach with inline styles
     return (
-        <Col className='auctionPageItem' span={24} style={{ height: '5%', width: '100%', display: 'flex' }} onClick={handleClick} >
-            <Flex justify="space-between" align="flex-end" style={{width: "100%", paddingRight: "1vw", outline: isSelected ? '3px solid #ff69b4' : 'none'}} >
+        <Col
+            className={`auctionPageItem ${isItemSelected ? 'selected-auction' : ''}`}
+            span={24}
+            style={{ height: '5%', width: '100%', display: 'flex' }}
+            onClick={handleClick} >
+            <Flex justify="space-between" align="flex-end" style={baseStyle} >
                 <div>
                     <img
                         src={getImageSource(auction.make, auction.model)}
