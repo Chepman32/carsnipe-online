@@ -186,6 +186,7 @@ async function deleteExpiredAuctions() {
     }
 
     const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+    const fiveMinutesAgo = currentTimeInSeconds - 300;
 
     for (const item of tableContent.Items) {
       const auction = unmarshall(item);
@@ -201,17 +202,37 @@ async function deleteExpiredAuctions() {
           ExpressionAttributeNames: {
             "#status": "status",
             "#finishedAt": "finishedAt",
-            "#updatedAt": "updatedAt"
+            "#updatedAt": "updatedAt",
           },
           ExpressionAttributeValues: {
             ":status": { S: "Finished" },
             ":finishedAt": { S: new Date().toISOString() },
-            ":updatedAt": { S: new Date().toISOString() }
+            ":updatedAt": { S: new Date().toISOString() },
           },
         };
 
         const updateCommand = new UpdateItemCommand(updateParams);
         await dynamoDBClient.send(updateCommand);
+        console.log(`Marked auction ${auction.id} as Finished`);
+      }
+    }
+
+    for (const item of tableContent.Items) {
+      const auction = unmarshall(item);
+
+      if (auction.status === "Finished" && auction.finishedAt) {
+        const finishedAtSeconds = Math.floor(new Date(auction.finishedAt).getTime() / 1000);
+
+        if (finishedAtSeconds < fiveMinutesAgo) {
+          const deleteParams = {
+            TableName: auctionTableName,
+            Key: { id: { S: auction.id } },
+          };
+
+          const deleteCommand = new DeleteItemCommand(deleteParams);
+          await dynamoDBClient.send(deleteCommand);
+          console.log(`Deleted auction ${auction.id} after 5 minutes of being finished`);
+        }
       }
     }
   } catch (error) {
