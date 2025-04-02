@@ -346,10 +346,12 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   };
 
   const handleAuctionActionsShow = () => {
+    console.log("handleAuctionActionsShow called, setting modal visible");
     setAuctionActionsVisible(true);
   };
 
   const handleAuctionActionsCancel = () => {
+    console.log("handleAuctionActionsCancel called, setting modal hidden");
     playClosingSound();
     setAuctionActionsVisible(false);
   };
@@ -435,10 +437,25 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         case ' ':
           event.preventDefault();
           event.stopPropagation();
+          console.log("Enter key pressed in AuctionPage, showing modal");
 
           if (selectedAuction) {
             playOpeningSound();
-            isMobile ? setSelectedAuctionDetailsModalVisible(true) : handleAuctionActionsShow();
+
+            // Use a more direct approach with a small delay
+            setTimeout(() => {
+              if (isMobile) {
+                console.log("Setting mobile auction details modal visible");
+                setSelectedAuctionDetailsModalVisible(true);
+              } else {
+                console.log("Setting auction actions modal visible via Enter key");
+                // Force state update with a callback to ensure it happens
+                setAuctionActionsVisible(true);
+
+                // Log the state after setting it
+                console.log("Modal should now be visible");
+              }
+            }, 10);
           }
           break;
 
@@ -451,7 +468,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         isProcessingKeyRef.current = false;
       }, 150); // Slightly longer than typical key repeat delay
     }
-  }, [auctions, selectedAuction, auctionActionsVisible, selectedAuctionDetailsModalVisible, creditWarningModalvisible, handleAuctionActionsShow, scrollToFocusedItem]);
+  }, [auctions, selectedAuction, auctionActionsVisible, selectedAuctionDetailsModalVisible, creditWarningModalvisible, scrollToFocusedItem]);
 
   useEffect(() => {
     console.log("useEffect triggered, calling listAuctions...");
@@ -536,6 +553,8 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   console.log("Rendering with auctions state:", auctions);
 
   const handleItemClick = (clickedAuction) => {
+    console.log("handleItemClick called with auction:", clickedAuction);
+
     // Find the index of the clicked auction
     const newIndex = auctions.findIndex(auction => auction.id === clickedAuction.id);
 
@@ -548,7 +567,17 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
 
     // Play sound and show appropriate modal
     playOpeningSound();
-    isMobile === false ? handleAuctionActionsShow() : setSelectedAuctionDetailsModalVisible(true);
+
+    // Use a small delay to ensure state updates have completed
+    setTimeout(() => {
+      if (isMobile) {
+        console.log("Setting mobile details modal visible");
+        setSelectedAuctionDetailsModalVisible(true);
+      } else {
+        console.log("Setting auction actions modal visible via click");
+        setAuctionActionsVisible(true);
+      }
+    }, 10);
   };
 
   return (
@@ -594,16 +623,17 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         </div>
       </div>
       {!isMobile && <SelectedAuctionDetails selectedAuction={selectedAuction} />}
+      {/* Add a console log to verify the state when rendering */}
+      {console.log("Rendering AuctionActionsModal with visible state:", auctionActionsVisible)}
+
+      {/* Always render the modal but let it handle visibility internally */}
       <AuctionActionsModal
         visible={auctionActionsVisible}
-        handleAuctionActionsCancel={() => {
-          playClosingSound();
-          handleAuctionActionsCancel();
-        }}
+        handleAuctionActionsCancel={() => setAuctionActionsVisible(false)}
         selectedAuction={selectedAuction}
         bid={increaseBid}
         loadingBid={loadingBid}
-        buyCar={() => buyItem(selectedAuction)}
+        buyCar={buyItem}
         loadingBuy={loadingBuy}
       />
       <CreditWarningModal

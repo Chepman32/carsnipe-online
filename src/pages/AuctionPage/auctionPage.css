@@ -16,6 +16,7 @@ html, body {
 }
 
 .auctionPage {
+  width: 100vw !important;
   display: flex;
   padding: 10px;
   background: url(../../assets/images/soft-background.png);
@@ -314,6 +315,24 @@ html, body {
   width: 5vh;
   height: 5vh;
   margin: 0 1vw;
+}
+
+/* Modal styles to ensure visibility */
+.carDetailsModal {
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000 !important; /* Ensure high z-index */
+}
+
+/* Override Ant Design modal styles to ensure visibility */
+.ant-modal-root, .ant-modal-mask, .ant-modal-wrap {
+  z-index: 1000 !important;
+}
+
+.ant-modal {
+  z-index: 1001 !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 @media (max-width: 768px) {

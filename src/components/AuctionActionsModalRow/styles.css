@@ -7,6 +7,21 @@
     background: #528a4c;
     font-size: 2vh;
     font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    position: relative;
+    outline: none;
+  }
+
+  .auctionActionsModal__row:hover {
+    background: #3e6a39;
+    transform: translateY(-1px);
+  }
+
+  .auctionActionsModal__row:focus {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+    outline: none;
   }
 
   .auctionActionsModal__row_selected {
@@ -15,9 +30,36 @@
     justify-content: center;
     align-items: center;
     margin-bottom: 2px;
-    background: #528a4c;
+    background: #3e6a39;
     font-size: 2vh;
     font-weight: 600;
     color: #fff;
-    border: 1px solid #fff;
+    border: 2px solid #fff;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    position: relative;
+    outline: none;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+
+  .auctionActionsModal__row_selected:hover {
+    background: #345c31;
+    transform: translateY(-1px);
+  }
+
+  .auctionActionsModal__row_selected:focus {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.7);
+    outline: none;
+  }
+
+  /* Add a visual indicator for keyboard users */
+  .auctionActionsModal__row:focus::after,
+  .auctionActionsModal__row_selected:focus::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
   }

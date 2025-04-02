@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Modal, Spin, message } from "antd";
+import { message } from "antd";
 import "./auctionPage.css";
-import { fetchAuctionCreator, playSwitchSound, createNewAuctionUser } from "../../functions";
+import "./customModal.css";
+import { fetchAuctionCreator, playSwitchSound, playClosingSound, createNewAuctionUser } from "../../functions";
 import { useLocation, useNavigate } from "react-router-dom";
 import AuctionActionsModalRow from "../../components/AuctionActionsModalRow/AuctionActionsModalRow";
 import { isMobile } from "react-device-detect";
@@ -13,6 +14,7 @@ const client = generateClient();
 const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuction, loadingBid, bid, buyCar, loadingBuy }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const modalRef = useRef(null);
 
   const totalRows = 3;
   const [focusedRow, setFocusedRow] = useState(0);
@@ -70,7 +72,6 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
   const lastKeyPressTimeRef = useRef(0);
 
   // Reference to the modal container
-  const modalRef = useRef(null);
 
   // Focus the modal when it becomes visible
   useEffect(() => {
@@ -119,18 +120,23 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
         const newRow = focusedRow === totalRows - 1 ? 0 : focusedRow + 1;
         setFocusedRow(newRow);
       } else if (key === "Enter" || key === " ") {
+        console.log("Enter key pressed in AuctionActionsModal, focused row:", focusedRow);
+
         switch (focusedRow) {
           case 0:
             if (selectedAuction?.status === "Active") {
+              console.log("Triggering bid action");
               bid(selectedAuction);
             }
             break;
           case 1:
             if (selectedAuction?.status === "Active") {
+              console.log("Triggering buy action");
               buyCar(selectedAuction);
             }
             break;
           case 2:
+            console.log("Triggering profile action");
             const handleOpenProfile = async () => {
               try {
                 if (!selectedAuction || !selectedAuction.id) {
@@ -174,56 +180,81 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
     };
   }, [visible, focusedRow, selectedAuction, bid, buyCar, navigate, totalRows, handleAuctionActionsCancel]);
   
+  console.log("AuctionActionsModal rendering with visible:", visible);
+
+  // If not visible, don't render anything
+  if (!visible) {
+    return null;
+  }
+
+  const handleClose = () => {
+    playClosingSound();
+    handleAuctionActionsCancel();
+  };
+
+  const handleOpenProfile = async () => {
+    try {
+      if (!selectedAuction || !selectedAuction.id) {
+        console.log("No auction selected or auction has no ID");
+        message.info("Cannot open user profile: No auction selected");
+        return;
+      }
+
+      setLoadingProfile(true);
+      const user = await ensureAuctionUserExists(selectedAuction.id);
+
+      if (!user) {
+        console.log("No user found for this auction");
+        message.info("User profile not available for this auction");
+        return;
+      }
+      navigate(`/user/${user.id}`);
+    } catch (error) {
+      console.error("Error opening user profile:", error);
+      message.error("Could not open user profile");
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
   return (
-    <Modal
-      centered
-      className="carDetailsModal"
-      width={isMobile ? "90%" : "50%"}
-      open={visible}
-      title="Car Details"
-      onCancel={handleAuctionActionsCancel}
-      footer={null}
-      modalRender={(modal) => (
-        <div ref={modalRef} tabIndex={-1} style={{ outline: 'none' }}>
-          {modal}
+    <div className="custom-modal-overlay" onClick={handleClose}>
+      <div
+        className="custom-modal-content"
+        ref={modalRef}
+        onClick={(e) => e.stopPropagation()}
+        tabIndex={0}
+      >
+        <div className="custom-modal-header">
+          <h2>Car Details</h2>
+          <button className="custom-modal-close" onClick={handleClose}>×</button>
         </div>
-      )}
-    >
-      {
-        selectedAuction?.status === "Active" && location.pathname !== "/myAuctions" && <AuctionActionsModalRow text={loadingBid ? <Spin /> : "Make a bid"} handler={() => bid(selectedAuction)} selected={focusedRow === 0} />
-      }
-      {
-        selectedAuction?.status === "Active" && location.pathname !== "/myAuctions" && <AuctionActionsModalRow text={loadingBuy ? <Spin /> : "Buy out"} handler={() => buyCar(selectedAuction)} selected={focusedRow === 1} />
-      }
-      <AuctionActionsModalRow
-        text={loadingProfile ? <Spin size="small" /> : "Open user's profile"}
-        handler={async () => {
-          try {
-            if (!selectedAuction || !selectedAuction.id) {
-              console.log("No auction selected or auction has no ID");
-              message.info("Cannot open user profile: No auction selected");
-              return;
-            }
 
-            setLoadingProfile(true);
-            const user = await ensureAuctionUserExists(selectedAuction.id);
+        <div className="custom-modal-body">
+          {selectedAuction?.status === "Active" && location.pathname !== "/myAuctions" && (
+            <AuctionActionsModalRow
+              text={loadingBid ? "Loading..." : "Make a bid"}
+              handler={() => bid(selectedAuction)}
+              selected={focusedRow === 0}
+            />
+          )}
 
-            if (!user) {
-              console.log("No user found for this auction");
-              message.info("User profile not available for this auction");
-              return;
-            }
-            navigate(`/user/${user.id}`);
-          } catch (error) {
-            console.error("Error opening user profile:", error);
-            message.error("Could not open user profile");
-          } finally {
-            setLoadingProfile(false);
-          }
-        }}
-        selected={focusedRow === 2}
-      />
-    </Modal>
+          {selectedAuction?.status === "Active" && location.pathname !== "/myAuctions" && (
+            <AuctionActionsModalRow
+              text={loadingBuy ? "Loading..." : "Buy out"}
+              handler={() => buyCar(selectedAuction)}
+              selected={focusedRow === 1}
+            />
+          )}
+
+          <AuctionActionsModalRow
+            text={loadingProfile ? "Loading..." : "Open user's profile"}
+            handler={handleOpenProfile}
+            selected={focusedRow === 2}
+          />
+        </div>
+      </div>
+    </div>
   );
 };
 
