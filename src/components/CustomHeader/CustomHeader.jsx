@@ -39,6 +39,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const profileMenuContainerRef = useRef(null);
   const closeMenuTimeout = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -72,16 +73,22 @@ const CustomHeader = ({ nickname, avatar, money }) => {
     dispatch(toggleSoundEffects());
   };
 
-  const handleMouseEnterMenu = () => {
+  const handleMouseEnterContainer = () => {
+    if (closeMenuTimeout.current) {
+      clearTimeout(closeMenuTimeout.current);
+      closeMenuTimeout.current = null;
+    }
     setIsMenuOpen(true);
     dispatch(setIsQuickMenuOpen(true));
   };
 
-  const handleMouseLeaveMenu = () => {
-    setIsMenuOpen(false);
-    if (focusedZone !== FOCUS_ZONES.QUICK_MENU && currentFocusedElement !== HEADER_PROFILE) {
-      dispatch(setIsQuickMenuOpen(false));
-    }
+  const handleMouseLeaveContainer = () => {
+    closeMenuTimeout.current = setTimeout(() => {
+      setIsMenuOpen(false);
+      if (focusedZone !== FOCUS_ZONES.QUICK_MENU && currentFocusedElement !== HEADER_PROFILE) {
+        dispatch(setIsQuickMenuOpen(false));
+      }
+    }, 100); // Small delay to prevent menu from closing when moving between elements
   };
 
   useEffect(() => {
@@ -155,6 +162,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
     return () => {
       if (closeMenuTimeout.current) {
         clearTimeout(closeMenuTimeout.current);
+        closeMenuTimeout.current = null;
       }
     };
   }, []);
@@ -228,70 +236,72 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   {'$' + money}
                 </Text>
               </Link>
-              <Link
-                onMouseEnter={handleMouseEnterMenu}
-                onMouseLeave={handleMouseLeaveMenu}
-                to="/profileEditPage"
-                className="customHeader__avatar"
-                style={{
-                  padding: '0.45rem',
-                  background:
-                    location.pathname === '/profileEditPage' ||
-                    location.pathname === '/achievements'
-                      ? 'rgba(42, 72, 234, 0.57)'
-                      : 'transparent',
-                  border:
-                    focusedZone === FOCUS_ZONES.HEADER &&
-                    currentFocusedElement === HEADER_PROFILE
-                      ? '2px solid red'
-                      : 'none',
-                  borderRadius: '.7rem'
-                }}
-                ref={menuRef}
-                tabIndex={0}
-              >
-                <Text
-                  style={{
-                    marginRight: 15,
-                    color: 'var(--text-color)',
-                    fontSize: '1.4rem',
-                    fontWeight: 'bold',
-                    maxWidth: '150px',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {nickname}
-                </Text>
-                <img src={avatar} alt="avatar" />
-              </Link>
               <div
-                className={
-                  isMenuOpen ||
-                  isQuickMenuOpen ||
-                  currentFocusedElement === HEADER_PROFILE ||
-                  focusedZone === FOCUS_ZONES.QUICK_MENU
-                    ? 'settings-menu open'
-                    : 'settings-menu'
-                }
-                onClick={(e) => e.stopPropagation()}
-                onMouseEnter={handleMouseEnterMenu}
-                onMouseLeave={handleMouseLeaveMenu}
-                tabIndex={0}
-                role="menu"
-                aria-label="Settings Menu"
+                ref={profileMenuContainerRef}
+                onMouseEnter={handleMouseEnterContainer}
+                onMouseLeave={handleMouseLeaveContainer}
+                style={{ display: 'flex', alignItems: 'center' }}
               >
+                <Link
+                  to="/profileEditPage"
+                  className="customHeader__avatar"
+                  style={{
+                    padding: '0.45rem',
+                    background:
+                      location.pathname === '/profileEditPage' ||
+                      location.pathname === '/achievements'
+                        ? 'rgba(42, 72, 234, 0.57)'
+                        : 'transparent',
+                    border:
+                      focusedZone === FOCUS_ZONES.HEADER &&
+                      currentFocusedElement === HEADER_PROFILE
+                        ? '2px solid red'
+                        : 'none',
+                    borderRadius: '.7rem'
+                  }}
+                  ref={menuRef}
+                  tabIndex={0}
+                >
+                  <Text
+                    style={{
+                      marginRight: 15,
+                      color: 'var(--text-color)',
+                      fontSize: '1.4rem',
+                      fontWeight: 'bold',
+                      maxWidth: '150px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {nickname}
+                  </Text>
+                  <img src={avatar} alt="avatar" />
+                </Link>
                 <div
-                  className={`settings-menu-item ${
-                    focusedZone === FOCUS_ZONES.QUICK_MENU &&
-                    currentFocusedElement === QUICK_MENU_DARK_MODE
-                      ? 'focused'
-                      : ''
-                  }`}
-                  onClick={handleToggleDarkMode}
-                  role="menuitem"
-                  tabIndex={-1}
+                  className={
+                    isMenuOpen ||
+                    isQuickMenuOpen ||
+                    currentFocusedElement === HEADER_PROFILE ||
+                    focusedZone === FOCUS_ZONES.QUICK_MENU
+                      ? 'settings-menu open'
+                      : 'settings-menu'
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                  tabIndex={0}
+                  role="menu"
+                  aria-label="Settings Menu"
+                >
+                  <div
+                    className={`settings-menu-item ${
+                      focusedZone === FOCUS_ZONES.QUICK_MENU &&
+                      currentFocusedElement === QUICK_MENU_DARK_MODE
+                        ? 'focused'
+                        : ''
+                    }`}
+                    onClick={handleToggleDarkMode}
+                    role="menuitem"
+                    tabIndex={-1}
                 >
                   <img
                     src="https://cdn-icons-png.flaticon.com/512/5262/5262027.png"
@@ -299,16 +309,16 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   />
                   <span>Dark Mode: {darkMode ? 'On' : 'Off'}</span>
                 </div>
-                <div
-                  className={`settings-menu-item ${
-                    focusedZone === FOCUS_ZONES.QUICK_MENU &&
-                    currentFocusedElement === QUICK_MENU_MUSIC
-                      ? 'focused'
-                      : ''
-                  }`}
-                  onClick={handleToggleMusic}
-                  role="menuitem"
-                  tabIndex={-1}
+                  <div
+                    className={`settings-menu-item ${
+                      focusedZone === FOCUS_ZONES.QUICK_MENU &&
+                      currentFocusedElement === QUICK_MENU_MUSIC
+                        ? 'focused'
+                        : ''
+                    }`}
+                    onClick={handleToggleMusic}
+                    role="menuitem"
+                    tabIndex={-1}
                 >
                   <img
                     src="https://static.vecteezy.com/system/resources/previews/011/934/413/non_2x/silver-music-note-icon-free-png.png"
@@ -316,16 +326,16 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   />
                   <span>Music: {musicOn ? 'On' : 'Off'}</span>
                 </div>
-                <div
-                  className={`settings-menu-item ${
-                    focusedZone === FOCUS_ZONES.QUICK_MENU &&
-                    currentFocusedElement === QUICK_MENU_SOUND
-                      ? 'focused'
-                      : ''
-                  }`}
-                  onClick={handleToggleSoundEffects}
-                  role="menuitem"
-                  tabIndex={-1}
+                  <div
+                    className={`settings-menu-item ${
+                      focusedZone === FOCUS_ZONES.QUICK_MENU &&
+                      currentFocusedElement === QUICK_MENU_SOUND
+                        ? 'focused'
+                        : ''
+                    }`}
+                    onClick={handleToggleSoundEffects}
+                    role="menuitem"
+                    tabIndex={-1}
                 >
                   <img
                     src="https://cdn1.iconfinder.com/data/icons/ios-and-android-line-set-2/52/call__phone__volume__sound-512.png"
@@ -333,16 +343,16 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   />
                   <span>Sound: {soundEffectsOn ? 'On' : 'Off'}</span>
                 </div>
-                <Title
-                  level={5}
-                  style={{
-                    margin: '8px 0',
-                    textAlign: 'center',
-                    color: 'var(--text-color)',
-                    fontWeight: 800
-                  }}
+                  <Title
+                    level={5}
+                    style={{
+                      margin: '8px 0',
+                      textAlign: 'center',
+                      color: 'var(--text-color)',
+                      fontWeight: 800
+                    }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {currentStation && (
                       <img
                         src={currentStation.icon}
@@ -353,27 +363,28 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                     {currentStation ? currentStation.name : ''}
                   </div>
                 </Title>
-                <div className="settings-menu-item station-controls">
-                  <button
-                    onClick={() => dispatch(playPreviousStation())}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
-                    <img
-                      src={rewind}
-                      alt="Previous Station"
-                      style={{ width: '24px', height: '24px' }}
-                    />
-                  </button>
-                  <button
-                    onClick={() => dispatch(playNextStation())}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
-                    <img
-                      src={fastForward}
-                      alt="Next Station"
-                      style={{ width: '24px', height: '24px' }}
-                    />
-                  </button>
+                  <div className="settings-menu-item station-controls">
+                    <button
+                      onClick={() => dispatch(playPreviousStation())}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      <img
+                        src={rewind}
+                        alt="Previous Station"
+                        style={{ width: '24px', height: '24px' }}
+                      />
+                    </button>
+                    <button
+                      onClick={() => dispatch(playNextStation())}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      <img
+                        src={fastForward}
+                        alt="Next Station"
+                        style={{ width: '24px', height: '24px' }}
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
             </section>
