@@ -131,4 +131,12 @@
   .auth-left {
       display: none;
   }
+
+  .auth-right {
+    width: 100%;
+  }
+
+  .amplify-tabs, .data-amplify-container, .data-amplify-router {
+    width: 100% !important;
+  }
 }
