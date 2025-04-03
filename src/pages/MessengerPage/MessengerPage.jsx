@@ -20,9 +20,82 @@ import * as mutations from '../../graphql/mutations';
 import { fetchAuctionUser, fetchUserInfoById, selectAvatar } from "../../functions";
 import "./MessengerPage.css";
 
-// Use the auto-generated queries and mutations
-const { getConversation, userConversationsByUserId, listMessages } = queries;
+// Custom queries with expanded user data
+const customQueries = {
+  getConversation: /* GraphQL */ `
+    query GetConversation($id: ID!) {
+      getConversation(id: $id) {
+        id
+        participants {
+          items {
+            user {
+              id
+              nickname
+              avatar
+            }
+            userId
+            conversationId
+          }
+        }
+        messages {
+          items {
+            id
+            conversationId
+            senderId
+            content
+            timestamp
+            read
+          }
+        }
+        lastMessageAt
+        lastMessageContent
+        lastMessageSenderId
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+  userConversationsByUserId: /* GraphQL */ `
+    query UserConversationsByUserId(
+      $userId: ID!
+      $sortDirection: ModelSortDirection
+      $filter: ModelUserConversationFilterInput
+      $limit: Int
+      $nextToken: String
+    ) {
+      userConversationsByUserId(
+        userId: $userId
+        sortDirection: $sortDirection
+        filter: $filter
+        limit: $limit
+        nextToken: $nextToken
+      ) {
+        items {
+          id
+          userId
+          conversationId
+          user {
+            id
+            nickname
+            avatar
+          }
+          conversation {
+            id
+            lastMessageAt
+            lastMessageContent
+            lastMessageSenderId
+          }
+        }
+        nextToken
+      }
+    }
+  `
+};
+
+// Use the custom queries and auto-generated mutations
+const { listMessages } = queries;
 const { createConversation, updateConversation, createUserConversation, createMessage, updateMessage } = mutations;
+const { getConversation, userConversationsByUserId } = customQueries;
 
 const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -151,8 +224,14 @@ const MessengerPage = () => {
           );
 
           if (otherParticipant) {
-            const otherUserData = await fetchUserInfoById(otherParticipant.user.id);
-            setOtherUser(otherUserData);
+            // First try to use the user data directly from the conversation
+            if (otherParticipant.user && otherParticipant.user.avatar) {
+              setOtherUser(otherParticipant.user);
+            } else {
+              // Fallback to fetching user info if needed
+              const otherUserData = await fetchUserInfoById(otherParticipant.user.id);
+              setOtherUser(otherUserData);
+            }
           }
         }
 
@@ -270,10 +349,9 @@ const MessengerPage = () => {
     }
   };
 
-  const getAvatar = async () => {
-        const auctionUser = await fetchAuctionUser(otherUser?.id);
-        return auctionUser?.avatar ? selectAvatar(auctionUser.avatar) : null;
-      }
+  const getAvatar = (avatarName) => {
+    return avatarName ? selectAvatar(avatarName) : null;
+  }
 
   if (loading && !currentUser) {
     return <Spin size="large" fullscreen />;
@@ -316,9 +394,9 @@ const MessengerPage = () => {
                   <List.Item.Meta
                     avatar={
                       <Badge dot={hasUnread} offset={[-5, 5]} color="red">
-                        <Avatar 
-                          size={40} 
-                          src={getAvatar()}
+                        <Avatar
+                          size={40}
+                          src={getAvatar(otherParticipant?.avatar)}
                           icon={!otherParticipant?.avatar && <UserOutlined />}
                         />
                       </Badge>
@@ -354,9 +432,9 @@ const MessengerPage = () => {
           <>
             <div className="message-header">
               <div className="message-header-user">
-                <Avatar 
-                  size={40} 
-                  src={getAvatar()}
+                <Avatar
+                  size={40}
+                  src={getAvatar(otherUser?.avatar)}
                   icon={!otherUser?.avatar && <UserOutlined />}
                 />
                 <div className="message-header-info">
@@ -386,9 +464,9 @@ const MessengerPage = () => {
                         className={`message-bubble-container ${isCurrentUser ? 'sent' : 'received'}`}
                       >
                         {!isCurrentUser && showAvatar && (
-                          <Avatar 
-                            size={32} 
-                            src={getAvatar()}
+                          <Avatar
+                            size={32}
+                            src={getAvatar(otherUser?.avatar)}
                             icon={!otherUser?.avatar && <UserOutlined />}
                             className="message-avatar"
                           />
@@ -415,12 +493,13 @@ const MessengerPage = () => {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
-                autoSize={{ minRows: 1, maxRows: 4 }}
+                autoSize={{ minRows: 2, maxRows: 6 }}
                 className="message-input"
+                style={{ fontSize: '16px' }}
               />
               <Button
                 type="primary"
-                icon={<SendOutlined />}
+                icon={<SendOutlined style={{ fontSize: '20px' }} />}
                 onClick={handleSendMessage}
                 loading={sendingMessage}
                 className="send-button"
