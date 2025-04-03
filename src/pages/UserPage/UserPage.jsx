@@ -1,11 +1,117 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Form, message, Typography, Spin, Card, Row, Col, Divider, Avatar } from "antd";
+import { Form, message, Typography, Spin, Card, Row, Col, Divider, Avatar, Button, Image } from "antd";
 import { generateClient } from 'aws-amplify/api';
+import { useParams, useNavigate } from "react-router-dom";
+import { MessageOutlined } from "@ant-design/icons";
 import * as mutations from '../../graphql/mutations';
+import * as queries from '../../graphql/queries';
 import { fetchUserCarsRequest, getUserCar, deleteUserCar, createNewAuctionUser, playSwitchSound, playOpeningSound, playClosingSound, fetchAuctionCreator, fetchUserInfoById, selectAvatar } from "../../functions";
 import CarCard from "../CarPages/CarCard";
-import { useParams } from "react-router-dom";
 import "./UserPage.css";
+
+// Import custom queries and mutations
+const customMutations = {
+  createConversation: /* GraphQL */ `
+    mutation CreateConversation(
+      $input: CreateConversationInput!
+      $condition: ModelConversationConditionInput
+    ) {
+      createConversation(input: $input, condition: $condition) {
+        id
+        lastMessageAt
+        lastMessageContent
+        lastMessageSenderId
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+  createUserConversation: /* GraphQL */ `
+    mutation CreateUserConversation(
+      $input: CreateUserConversationInput!
+      $condition: ModelUserConversationConditionInput
+    ) {
+      createUserConversation(input: $input, condition: $condition) {
+        id
+        userId
+        conversationId
+        createdAt
+        updatedAt
+      }
+    }
+  `
+};
+
+const customQueries = {
+  getConversation: /* GraphQL */ `
+    query GetConversation($id: ID!) {
+      getConversation(id: $id) {
+        id
+        participants {
+          items {
+            user {
+              id
+              nickname
+              avatar
+            }
+            userId
+            conversationId
+          }
+        }
+        messages {
+          items {
+            id
+            conversationId
+            senderId
+            content
+            timestamp
+            read
+          }
+        }
+        lastMessageAt
+        lastMessageContent
+        lastMessageSenderId
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+  userConversationsByUserId: /* GraphQL */ `
+    query UserConversationsByUserId(
+      $userId: ID!
+      $sortDirection: ModelSortDirection
+      $filter: ModelUserConversationFilterInput
+      $limit: Int
+      $nextToken: String
+    ) {
+      userConversationsByUserId(
+        userId: $userId
+        sortDirection: $sortDirection
+        filter: $filter
+        limit: $limit
+        nextToken: $nextToken
+      ) {
+        items {
+          id
+          userId
+          conversationId
+          user {
+            id
+            nickname
+            avatar
+          }
+          conversation {
+            id
+            lastMessageAt
+            lastMessageContent
+            lastMessageSenderId
+          }
+        }
+        nextToken
+      }
+    }
+  `
+};
 
 const client = generateClient();
 const { Title, Text, Paragraph } = Typography;
@@ -19,8 +125,11 @@ const UserPage = () => {
   const [selectedCar, setSelectedCar] = useState(null);
   const [carDetailsVisible, setCarDetailsVisible] = useState(false);
   const [selectedCarIndex, setSelectedCarIndex] = useState(0);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const carsContainerRef = useRef(null);
 
@@ -50,7 +159,247 @@ const UserPage = () => {
       }
     }
     fetchUserCars();
+
+    // Fetch current user info
+    async function fetchCurrentUser() {
+      try {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        if (userInfo && userInfo.id) {
+          const userData = await fetchUserInfoById(userInfo.id);
+          console.log('Current user data:', userData);
+          setCurrentUser(userData);
+        } else {
+          // Try to get user info from the App component's state
+          const appUserInfo = JSON.parse(localStorage.getItem('playerInfo'));
+          if (appUserInfo && appUserInfo.id) {
+            const userData = await fetchUserInfoById(appUserInfo.id);
+            console.log('Current user data from playerInfo:', userData);
+            setCurrentUser(userData);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+    }
+    fetchCurrentUser();
   }, [id]);
+
+  const handleSendMessage = async () => {
+    // Play a sound when the button is clicked
+    playSwitchSound();
+
+    console.log('handleSendMessage called');
+    console.log('currentUser:', currentUser);
+    console.log('userInfo:', userInfo);
+
+    if (!currentUser) {
+      message.info("Please log in to send messages");
+      return;
+    }
+
+    if (!userInfo || currentUser.id === userInfo.id) {
+      if (currentUser?.id === userInfo?.id) {
+        message.info("You cannot send messages to yourself");
+      }
+      return;
+    }
+
+    try {
+      setSendingMessage(true);
+
+      // Define the query inline
+      const userConversationsByUserId = /* GraphQL */ `
+        query UserConversationsByUserId(
+          $userId: ID!
+          $sortDirection: ModelSortDirection
+          $filter: ModelUserConversationFilterInput
+          $limit: Int
+          $nextToken: String
+        ) {
+          userConversationsByUserId(
+            userId: $userId
+            sortDirection: $sortDirection
+            filter: $filter
+            limit: $limit
+            nextToken: $nextToken
+          ) {
+            items {
+              id
+              userId
+              conversationId
+              user {
+                id
+                nickname
+                avatar
+              }
+              conversation {
+                id
+                lastMessageAt
+                lastMessageContent
+                lastMessageSenderId
+              }
+            }
+            nextToken
+          }
+        }
+      `;
+
+      // Check if a conversation already exists between these users
+      const userConversationsData = await client.graphql({
+        query: userConversationsByUserId,
+        variables: {
+          userId: currentUser.id,
+        },
+      });
+
+      const userConversationItems = userConversationsData.data.userConversationsByUserId.items;
+
+      // Define the query inline
+      const getConversation = /* GraphQL */ `
+        query GetConversation($id: ID!) {
+          getConversation(id: $id) {
+            id
+            participants {
+              items {
+                user {
+                  id
+                  nickname
+                  avatar
+                }
+                userId
+                conversationId
+              }
+            }
+            messages {
+              items {
+                id
+                conversationId
+                senderId
+                content
+                timestamp
+                read
+              }
+            }
+            lastMessageAt
+            lastMessageContent
+            lastMessageSenderId
+            createdAt
+            updatedAt
+          }
+        }
+      `;
+
+      // Fetch full conversation details for each conversation
+      const conversationPromises = userConversationItems.map(async (item) => {
+        const conversationData = await client.graphql({
+          query: getConversation,
+          variables: {
+            id: item.conversationId,
+          },
+        });
+
+        return conversationData.data.getConversation;
+      });
+
+      const fetchedConversations = await Promise.all(conversationPromises);
+
+      // Find if there's an existing conversation with the profile user
+      let existingConversation = null;
+
+      for (const conversation of fetchedConversations) {
+        const participants = conversation.participants?.items || [];
+        const hasProfileUser = participants.some(p => p.user.id === userInfo.id);
+
+        if (hasProfileUser) {
+          existingConversation = conversation;
+          break;
+        }
+      }
+
+      if (existingConversation) {
+        // Navigate to existing conversation
+        message.success(`Opening conversation with ${userInfo.nickname || "user"}...`);
+        navigate(`/messenger/${existingConversation.id}`);
+      } else {
+        message.success(`Creating new conversation with ${userInfo.nickname || "user"}...`);
+        // Define the mutations inline
+        const createConversation = /* GraphQL */ `
+          mutation CreateConversation(
+            $input: CreateConversationInput!
+            $condition: ModelConversationConditionInput
+          ) {
+            createConversation(input: $input, condition: $condition) {
+              id
+              lastMessageAt
+              lastMessageContent
+              lastMessageSenderId
+              createdAt
+              updatedAt
+            }
+          }
+        `;
+
+        const createUserConversation = /* GraphQL */ `
+          mutation CreateUserConversation(
+            $input: CreateUserConversationInput!
+            $condition: ModelUserConversationConditionInput
+          ) {
+            createUserConversation(input: $input, condition: $condition) {
+              id
+              userId
+              conversationId
+              createdAt
+              updatedAt
+            }
+          }
+        `;
+
+        // Create a new conversation
+        const newConversationData = await client.graphql({
+          query: createConversation,
+          variables: {
+            input: {
+              lastMessageAt: new Date().toISOString(),
+            },
+          },
+        });
+
+        const newConversation = newConversationData.data.createConversation;
+
+        // Add both users to the conversation
+        await client.graphql({
+          query: createUserConversation,
+          variables: {
+            input: {
+              userId: currentUser.id,
+              conversationId: newConversation.id,
+            },
+          },
+        });
+
+        await client.graphql({
+          query: createUserConversation,
+          variables: {
+            input: {
+              userId: userInfo.id,
+              conversationId: newConversation.id,
+            },
+          },
+        });
+
+        // Navigate to the new conversation
+        message.success(`Starting new conversation with ${userInfo.nickname || "user"}...`);
+        navigate(`/messenger/${newConversation.id}`);
+      }
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      message.error("Failed to start conversation");
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -116,7 +465,7 @@ const UserPage = () => {
 
   return (
     <div className="user-profile-container">
-      <Row gutter={[24, 24]}>
+      <Row gutter={[24, 24]} style={{ width: '100%' }}>
         <Col xs={24} md={8}>
           <Card className="user-profile-card">
             <div className="user-profile-header">
@@ -125,6 +474,36 @@ const UserPage = () => {
                 src={userInfo.avatar ? selectAvatar(userInfo.avatar) : null}
                 className="user-avatar"
               />
+
+<Button
+                  type="primary"
+                  icon={
+                    <img
+                      src="https://cdn2.iconfinder.com/data/icons/outline-ui-3-part-3-of-3/100/pack08-21-512.png"
+                      alt="Message"
+                      style={{ width: '20px', height: '20px', marginRight: '8px', filter: 'brightness(0) invert(1)' }}
+                    />
+                  }
+                  onClick={handleSendMessage}
+                  loading={sendingMessage}
+                  className="message-button-under-avatar"
+                  size="large"
+                  style={{
+                    width: '80%',
+                    height: '45px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    marginTop: '15px',
+                    marginBottom: '15px',
+                    boxShadow: '0 4px 12px rgba(0, 114, 255, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  Send a Message
+                </Button>
+
               <Title level={2} className="user-name">{userInfo.nickname || "User"}</Title>
             </div>
             <Divider />
@@ -151,6 +530,39 @@ const UserPage = () => {
                 </Col>
               </Row>
             </div>
+
+            {currentUser && currentUser.id !== userInfo.id && (
+              <>
+                <Divider />
+                <Button
+                  type="primary"
+                  icon={
+                    <img
+                      src="https://cdn2.iconfinder.com/data/icons/outline-ui-3-part-3-of-3/100/pack08-21-512.png"
+                      alt="Message"
+                      style={{ width: '20px', height: '20px', marginRight: '8px', filter: 'brightness(0) invert(1)' }}
+                    />
+                  }
+                  onClick={handleSendMessage}
+                  loading={sendingMessage}
+                  className="message-button-bottom"
+                  size="large"
+                  block
+                  style={{
+                    height: '50px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    marginTop: '16px',
+                    boxShadow: '0 6px 16px rgba(0, 114, 255, 0.4)'
+                  }}
+                >
+                  SEND {userInfo.nickname?.toUpperCase() || "USER"} A MESSAGE
+                </Button>
+              </>
+            )}
           </Card>
         </Col>
         <Col xs={24} md={16}>

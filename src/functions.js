@@ -519,6 +519,344 @@ export const getAchievementImageSource = (title) => {
   return require(`./assets/images/achievements/${imageName}`);
 };
 
+export async function createConversation(userId1, userId2) {
+  try {
+    // Define the mutations inline
+    const createConversationMutation = /* GraphQL */ `
+      mutation CreateConversation(
+        $input: CreateConversationInput!
+        $condition: ModelConversationConditionInput
+      ) {
+        createConversation(input: $input, condition: $condition) {
+          id
+          lastMessageAt
+          lastMessageContent
+          lastMessageSenderId
+          createdAt
+          updatedAt
+        }
+      }
+    `;
+
+    const createUserConversationMutation = /* GraphQL */ `
+      mutation CreateUserConversation(
+        $input: CreateUserConversationInput!
+        $condition: ModelUserConversationConditionInput
+      ) {
+        createUserConversation(input: $input, condition: $condition) {
+          id
+          userId
+          conversationId
+          createdAt
+          updatedAt
+        }
+      }
+    `;
+
+    // Create a new conversation
+    const newConversationData = await client.graphql({
+      query: createConversationMutation,
+      variables: {
+        input: {
+          lastMessageAt: new Date().toISOString(),
+        },
+      },
+    });
+
+    const newConversation = newConversationData.data.createConversation;
+
+    // Add both users to the conversation
+    await client.graphql({
+      query: createUserConversationMutation,
+      variables: {
+        input: {
+          userId: userId1,
+          conversationId: newConversation.id,
+        },
+      },
+    });
+
+    await client.graphql({
+      query: createUserConversationMutation,
+      variables: {
+        input: {
+          userId: userId2,
+          conversationId: newConversation.id,
+        },
+      },
+    });
+
+    return newConversation.id;
+  } catch (error) {
+    console.error("Error creating conversation:", error);
+    throw error;
+  }
+}
+
+export async function sendMessage(conversationId, senderId, content) {
+  try {
+    // Define the mutations inline
+    const createMessageMutation = /* GraphQL */ `
+      mutation CreateMessage(
+        $input: CreateMessageInput!
+        $condition: ModelMessageConditionInput
+      ) {
+        createMessage(input: $input, condition: $condition) {
+          id
+          conversationId
+          senderId
+          content
+          timestamp
+          read
+          createdAt
+          updatedAt
+        }
+      }
+    `;
+
+    const updateConversationMutation = /* GraphQL */ `
+      mutation UpdateConversation(
+        $input: UpdateConversationInput!
+        $condition: ModelConversationConditionInput
+      ) {
+        updateConversation(input: $input, condition: $condition) {
+          id
+          lastMessageAt
+          lastMessageContent
+          lastMessageSenderId
+          updatedAt
+        }
+      }
+    `;
+
+    const timestamp = new Date().toISOString();
+
+    // Create new message
+    const newMessageData = await client.graphql({
+      query: createMessageMutation,
+      variables: {
+        input: {
+          conversationId,
+          senderId,
+          content,
+          timestamp,
+          read: false,
+        },
+      },
+    });
+
+    // Update conversation with last message info
+    await client.graphql({
+      query: updateConversationMutation,
+      variables: {
+        input: {
+          id: conversationId,
+          lastMessageAt: timestamp,
+          lastMessageContent: content,
+          lastMessageSenderId: senderId,
+        },
+      },
+    });
+
+    return newMessageData.data.createMessage;
+  } catch (error) {
+    console.error("Error sending message:", error);
+    throw error;
+  }
+}
+
+export async function fetchUserConversations(userId) {
+  try {
+    // Define the queries inline
+    const userConversationsByUserId = /* GraphQL */ `
+      query UserConversationsByUserId(
+        $userId: ID!
+        $sortDirection: ModelSortDirection
+        $filter: ModelUserConversationFilterInput
+        $limit: Int
+        $nextToken: String
+      ) {
+        userConversationsByUserId(
+          userId: $userId
+          sortDirection: $sortDirection
+          filter: $filter
+          limit: $limit
+          nextToken: $nextToken
+        ) {
+          items {
+            id
+            userId
+            conversationId
+            user {
+              id
+              nickname
+              avatar
+            }
+            conversation {
+              id
+              lastMessageAt
+              lastMessageContent
+              lastMessageSenderId
+            }
+          }
+          nextToken
+        }
+      }
+    `;
+
+    const getConversation = /* GraphQL */ `
+      query GetConversation($id: ID!) {
+        getConversation(id: $id) {
+          id
+          participants {
+            items {
+              user {
+                id
+                nickname
+                avatar
+              }
+              userId
+              conversationId
+            }
+          }
+          messages {
+            items {
+              id
+              conversationId
+              senderId
+              content
+              timestamp
+              read
+            }
+          }
+          lastMessageAt
+          lastMessageContent
+          lastMessageSenderId
+          createdAt
+          updatedAt
+        }
+      }
+    `;
+
+    // Get all conversations where the user is a participant
+    const userConversationsData = await client.graphql({
+      query: userConversationsByUserId,
+      variables: {
+        userId,
+      },
+    });
+
+    const userConversationItems = userConversationsData.data.userConversationsByUserId.items;
+
+    // Fetch full conversation details for each conversation
+    const conversationPromises = userConversationItems.map(async (item) => {
+      const conversationData = await client.graphql({
+        query: getConversation,
+        variables: {
+          id: item.conversationId,
+        },
+      });
+
+      return conversationData.data.getConversation;
+    });
+
+    const fetchedConversations = await Promise.all(conversationPromises);
+
+    // Sort conversations by last message timestamp (newest first)
+    return fetchedConversations.sort((a, b) => {
+      const timeA = new Date(a.lastMessageAt || 0);
+      const timeB = new Date(b.lastMessageAt || 0);
+      return timeB - timeA;
+    });
+  } catch (error) {
+    console.error("Error fetching conversations:", error);
+    throw error;
+  }
+}
+
+export async function fetchConversationMessages(conversationId) {
+  try {
+    // Define the query inline
+    const messagesByConversationId = /* GraphQL */ `
+      query MessagesByConversationId(
+        $conversationId: ID!
+        $sortDirection: ModelSortDirection
+        $filter: ModelMessageFilterInput
+        $limit: Int
+        $nextToken: String
+      ) {
+        messagesByConversationId(
+          conversationId: $conversationId
+          sortDirection: $sortDirection
+          filter: $filter
+          limit: $limit
+          nextToken: $nextToken
+        ) {
+          items {
+            id
+            conversationId
+            senderId
+            content
+            timestamp
+            read
+            createdAt
+            updatedAt
+          }
+          nextToken
+        }
+      }
+    `;
+
+    const messagesData = await client.graphql({
+      query: messagesByConversationId,
+      variables: {
+        conversationId,
+        sortDirection: "ASC", // Oldest to newest
+      },
+    });
+
+    return messagesData.data.messagesByConversationId.items;
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    throw error;
+  }
+}
+
+export async function markMessageAsRead(messageId) {
+  try {
+    // Define the mutation inline
+    const updateMessage = /* GraphQL */ `
+      mutation UpdateMessage(
+        $input: UpdateMessageInput!
+        $condition: ModelMessageConditionInput
+      ) {
+        updateMessage(input: $input, condition: $condition) {
+          id
+          conversationId
+          senderId
+          content
+          timestamp
+          read
+          updatedAt
+        }
+      }
+    `;
+
+    await client.graphql({
+      query: updateMessage,
+      variables: {
+        input: {
+          id: messageId,
+          read: true,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error marking message as read:", error);
+    throw error;
+  }
+}
+
 export async function checkAndUpdateAchievements(user) {
   if (!user || !user.id) {
     console.error(

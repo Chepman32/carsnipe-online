@@ -9,6 +9,7 @@ import {
   HEADER_CARS_STORE,
   HEADER_MY_CARS,
   HEADER_AUCTIONS,
+  HEADER_MESSENGER,
   HEADER_LAST_OPTION,
   handleKeyDown as handleKeyDownAction,
 } from '../../redux/slices/focusSlice';
@@ -35,6 +36,9 @@ export const MenuItems = () => {
           break;
         case HEADER_AUCTIONS:
           navigate('/auctionsHub');
+          break;
+        case HEADER_MESSENGER:
+          navigate('/messenger');
           break;
         case HEADER_LAST_OPTION:
           navigate('/desiredPage');
@@ -121,6 +125,17 @@ export const MenuItems = () => {
         className="customHeader__menuItem"
       >
         <Link to="/auctionsHub">Auctions</Link>
+      </Menu.Item>
+
+      <Menu.Item
+        key="messenger"
+        style={{
+          background: getBackground('/messenger'),
+          border: getBorder(HEADER_MESSENGER),
+        }}
+        className="customHeader__menuItem"
+      >
+        <Link to="/messenger">Messages</Link>
       </Menu.Item>
     </section>
   );

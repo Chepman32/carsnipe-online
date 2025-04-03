@@ -23,18 +23,30 @@ export default function ConversationCreateForm(props) {
     ...rest
   } = props;
   const initialValues = {
-    lastMessageTimestamp: "",
+    lastMessageAt: "",
+    lastMessageContent: "",
+    lastMessageSenderId: "",
   };
-  const [lastMessageTimestamp, setLastMessageTimestamp] = React.useState(
-    initialValues.lastMessageTimestamp
+  const [lastMessageAt, setLastMessageAt] = React.useState(
+    initialValues.lastMessageAt
+  );
+  const [lastMessageContent, setLastMessageContent] = React.useState(
+    initialValues.lastMessageContent
+  );
+  const [lastMessageSenderId, setLastMessageSenderId] = React.useState(
+    initialValues.lastMessageSenderId
   );
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
-    setLastMessageTimestamp(initialValues.lastMessageTimestamp);
+    setLastMessageAt(initialValues.lastMessageAt);
+    setLastMessageContent(initialValues.lastMessageContent);
+    setLastMessageSenderId(initialValues.lastMessageSenderId);
     setErrors({});
   };
   const validations = {
-    lastMessageTimestamp: [],
+    lastMessageAt: [],
+    lastMessageContent: [],
+    lastMessageSenderId: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -53,23 +65,6 @@ export default function ConversationCreateForm(props) {
     setErrors((errors) => ({ ...errors, [fieldName]: validationResponse }));
     return validationResponse;
   };
-  const convertToLocal = (date) => {
-    const df = new Intl.DateTimeFormat("default", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      calendar: "iso8601",
-      numberingSystem: "latn",
-      hourCycle: "h23",
-    });
-    const parts = df.formatToParts(date).reduce((acc, part) => {
-      acc[part.type] = part.value;
-      return acc;
-    }, {});
-    return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
-  };
   return (
     <Grid
       as="form"
@@ -79,7 +74,9 @@ export default function ConversationCreateForm(props) {
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
-          lastMessageTimestamp,
+          lastMessageAt,
+          lastMessageContent,
+          lastMessageSenderId,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -134,34 +131,86 @@ export default function ConversationCreateForm(props) {
       {...rest}
     >
       <TextField
-        label="Last message timestamp"
+        label="Last message at"
         isRequired={false}
         isReadOnly={false}
-        type="datetime-local"
-        value={
-          lastMessageTimestamp && convertToLocal(new Date(lastMessageTimestamp))
-        }
+        value={lastMessageAt}
         onChange={(e) => {
-          let value =
-            e.target.value === "" ? "" : new Date(e.target.value).toISOString();
+          let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              lastMessageTimestamp: value,
+              lastMessageAt: value,
+              lastMessageContent,
+              lastMessageSenderId,
             };
             const result = onChange(modelFields);
-            value = result?.lastMessageTimestamp ?? value;
+            value = result?.lastMessageAt ?? value;
           }
-          if (errors.lastMessageTimestamp?.hasError) {
-            runValidationTasks("lastMessageTimestamp", value);
+          if (errors.lastMessageAt?.hasError) {
+            runValidationTasks("lastMessageAt", value);
           }
-          setLastMessageTimestamp(value);
+          setLastMessageAt(value);
+        }}
+        onBlur={() => runValidationTasks("lastMessageAt", lastMessageAt)}
+        errorMessage={errors.lastMessageAt?.errorMessage}
+        hasError={errors.lastMessageAt?.hasError}
+        {...getOverrideProps(overrides, "lastMessageAt")}
+      ></TextField>
+      <TextField
+        label="Last message content"
+        isRequired={false}
+        isReadOnly={false}
+        value={lastMessageContent}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              lastMessageAt,
+              lastMessageContent: value,
+              lastMessageSenderId,
+            };
+            const result = onChange(modelFields);
+            value = result?.lastMessageContent ?? value;
+          }
+          if (errors.lastMessageContent?.hasError) {
+            runValidationTasks("lastMessageContent", value);
+          }
+          setLastMessageContent(value);
         }}
         onBlur={() =>
-          runValidationTasks("lastMessageTimestamp", lastMessageTimestamp)
+          runValidationTasks("lastMessageContent", lastMessageContent)
         }
-        errorMessage={errors.lastMessageTimestamp?.errorMessage}
-        hasError={errors.lastMessageTimestamp?.hasError}
-        {...getOverrideProps(overrides, "lastMessageTimestamp")}
+        errorMessage={errors.lastMessageContent?.errorMessage}
+        hasError={errors.lastMessageContent?.hasError}
+        {...getOverrideProps(overrides, "lastMessageContent")}
+      ></TextField>
+      <TextField
+        label="Last message sender id"
+        isRequired={false}
+        isReadOnly={false}
+        value={lastMessageSenderId}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              lastMessageAt,
+              lastMessageContent,
+              lastMessageSenderId: value,
+            };
+            const result = onChange(modelFields);
+            value = result?.lastMessageSenderId ?? value;
+          }
+          if (errors.lastMessageSenderId?.hasError) {
+            runValidationTasks("lastMessageSenderId", value);
+          }
+          setLastMessageSenderId(value);
+        }}
+        onBlur={() =>
+          runValidationTasks("lastMessageSenderId", lastMessageSenderId)
+        }
+        errorMessage={errors.lastMessageSenderId?.errorMessage}
+        hasError={errors.lastMessageSenderId?.hasError}
+        {...getOverrideProps(overrides, "lastMessageSenderId")}
       ></TextField>
       <Flex
         justifyContent="space-between"

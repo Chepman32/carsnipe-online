@@ -153,6 +153,7 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
                   message.info("User profile not available for this auction");
                   return;
                 }
+                localStorage.setItem('BUDDY_INFO', JSON.stringify(user));
                 navigate(`/user/${user.id}`);
               } catch (error) {
                 console.error("Error opening user profile:", error);

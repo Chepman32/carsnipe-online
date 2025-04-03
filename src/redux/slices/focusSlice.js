@@ -14,6 +14,7 @@ export const HEADER_MAIN_MENU = "HEADER_MAIN_MENU";
 export const HEADER_CARS_STORE = "HEADER_CARS_STORE";
 export const HEADER_MY_CARS = "HEADER_MY_CARS";
 export const HEADER_AUCTIONS = "HEADER_AUCTIONS";
+export const HEADER_MESSENGER = "HEADER_MESSENGER"; // Messenger menu item
 export const HEADER_STORE = "HEADER_STORE";
 export const HEADER_PROFILE = "HEADER_PROFILE";
 export const HEADER_LAST_OPTION = "HEADER_LAST_OPTION";
@@ -61,8 +62,10 @@ const focusSlice = createSlice({
               state.currentFocusedElement = HEADER_CARS_STORE;
             } else if (state.currentFocusedElement === HEADER_AUCTIONS) {
               state.currentFocusedElement = HEADER_MY_CARS;
-            } else if (state.currentFocusedElement === HEADER_STORE) {
+            } else if (state.currentFocusedElement === HEADER_MESSENGER) {
               state.currentFocusedElement = HEADER_AUCTIONS;
+            } else if (state.currentFocusedElement === HEADER_STORE) {
+              state.currentFocusedElement = HEADER_MESSENGER;
             } else if (state.currentFocusedElement === HEADER_PROFILE) {
               state.currentFocusedElement = HEADER_STORE;
             }
@@ -74,6 +77,8 @@ const focusSlice = createSlice({
             } else if (state.currentFocusedElement === HEADER_MY_CARS) {
               state.currentFocusedElement = HEADER_AUCTIONS;
             } else if (state.currentFocusedElement === HEADER_AUCTIONS) {
+              state.currentFocusedElement = HEADER_MESSENGER;
+            } else if (state.currentFocusedElement === HEADER_MESSENGER) {
               state.currentFocusedElement = HEADER_STORE;
             } else if (state.currentFocusedElement === HEADER_STORE) {
               state.currentFocusedElement = HEADER_PROFILE;

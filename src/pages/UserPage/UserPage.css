@@ -2,12 +2,15 @@
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  display: flex;
+  justify-content: center;
 }
 
 .user-profile-card, .user-cars-card {
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   height: 100%;
+  position: relative;
 }
 
 .user-profile-header {
@@ -15,6 +18,7 @@
   flex-direction: column;
   align-items: center;
   margin-bottom: 20px;
+  position: relative;
 }
 
 .user-avatar {
@@ -23,8 +27,71 @@
 }
 
 .user-name {
-  margin: 0;
+  margin: 0 0 16px 0;
   text-align: center;
+}
+
+.message-button {
+  margin-top: 20px;
+  border-radius: 25px;
+  font-size: 16px;
+  height: 50px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.message-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 114, 255, 0.4);
+}
+
+.message-button-under-avatar {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  border-radius: 25px;
+  font-size: 16px;
+  height: 45px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.message-button-under-avatar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 114, 255, 0.4);
+}
+
+
+
+.message-button-bottom {
+  border-radius: 25px;
+  font-size: 18px;
+  height: 50px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.message-button-bottom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 114, 255, 0.5);
+}
+
+.message-button .anticon,
+.message-button-bottom .anticon,
+.message-button-under-avatar .anticon {
+  margin-right: 8px;
+  font-size: 20px;
 }
 
 .user-bio {

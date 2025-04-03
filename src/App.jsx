@@ -31,6 +31,7 @@ import MusicUploadPage from "./pages/MusicUploadPage/MusicUploadPage";
 import MusicLibraryPage from "./pages/MusicLibraryPage/MusicLibraryPage";
 import GameSettings from "./pages/GameSettings/GameSettings";
 import UserPage from "./pages/UserPage/UserPage";
+import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 import VideoBackground from "./assets/intro-background.mp4";
 
@@ -93,6 +94,8 @@ export default function App() {
         const existingUser = existingUsers.data.listUsers.items[0];
         setPlayerInfo(existingUser);
         setMoney(existingUser.money);
+        // Store user info in localStorage
+        localStorage.setItem('userInfo', JSON.stringify(existingUser));
         return;
       }
       const newUserData = {
@@ -112,6 +115,8 @@ export default function App() {
       if (createdPlayer?.data?.createUser) {
         setPlayerInfo(createdPlayer.data.createUser);
         setMoney(createdPlayer.data.createUser.money);
+        // Store new user info in localStorage
+        localStorage.setItem('userInfo', JSON.stringify(createdPlayer.data.createUser));
       }
     } catch (error) {
       console.error("Error creating new player:", error);
@@ -135,6 +140,8 @@ export default function App() {
       } else {
         setPlayerInfo(user);
         setMoney(user?.money);
+        // Store user info in localStorage for other components to access
+        localStorage.setItem('userInfo', JSON.stringify(user));
         setLoading(false);
       }
     } catch (err) {
@@ -179,15 +186,8 @@ export default function App() {
     <BrowserRouter>
       <BackspaceHandler />
       <div className="auth-container">
-        {playerInfo == null || playerInfo === undefined ? (
-          <div className="auth-left">
-            <video className="video-background" autoPlay muted loop>
-              <source src={VideoBackground} type="video/mp4" />
-            </video>
-          </div>
-        ) : null}
-        <div className={playerInfo == null || playerInfo === undefined ? "auth-right" : ""}>
-          <div className={playerInfo == null || playerInfo === undefined ? "authenticator-wrapper" : ""}>
+        <div>
+          <div>
             <Authenticator>
               {({ signOut, user }) => (
                 <>
@@ -303,6 +303,14 @@ export default function App() {
                             path="/user/:id"
                             element={<UserPage />}
                           />
+                          <Route
+                            path="/messenger"
+                            element={<MessengerPage />}
+                          />
+                          <Route
+                            path="/messenger/:conversationId"
+                            element={<MessengerPage />}
+                          />
                         </Routes>
                         </DarkModeWrapper>
                       </main>
@@ -313,11 +321,6 @@ export default function App() {
               )}
             </Authenticator>
           </div>
-          {/* {playerInfo == null || playerInfo === undefined ? (
-            <button className="exit-button" onClick={handleExit}>
-              Quit game
-            </button>
-          ) : null} */}
         </div>
       </div>
     </BrowserRouter>

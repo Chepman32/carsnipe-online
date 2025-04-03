@@ -36,6 +36,10 @@ export const onCreateUser = /* GraphQL */ `
       totalSpent
       totalAuctionsWon
       totalProfitEarned
+      conversations {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       __typename
@@ -77,6 +81,10 @@ export const onUpdateUser = /* GraphQL */ `
       totalSpent
       totalAuctionsWon
       totalProfitEarned
+      conversations {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       __typename
@@ -118,6 +126,10 @@ export const onDeleteUser = /* GraphQL */ `
       totalSpent
       totalAuctionsWon
       totalProfitEarned
+      conversations {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       __typename
@@ -270,6 +282,150 @@ export const onDeleteAuction = /* GraphQL */ `
       finishedAt
       createdAt
       updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreateConversation = /* GraphQL */ `
+  subscription OnCreateConversation(
+    $filter: ModelSubscriptionConversationFilterInput
+  ) {
+    onCreateConversation(filter: $filter) {
+      id
+      participants {
+        nextToken
+        __typename
+      }
+      messages {
+        nextToken
+        __typename
+      }
+      lastMessageAt
+      lastMessageContent
+      lastMessageSenderId
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateConversation = /* GraphQL */ `
+  subscription OnUpdateConversation(
+    $filter: ModelSubscriptionConversationFilterInput
+  ) {
+    onUpdateConversation(filter: $filter) {
+      id
+      participants {
+        nextToken
+        __typename
+      }
+      messages {
+        nextToken
+        __typename
+      }
+      lastMessageAt
+      lastMessageContent
+      lastMessageSenderId
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteConversation = /* GraphQL */ `
+  subscription OnDeleteConversation(
+    $filter: ModelSubscriptionConversationFilterInput
+  ) {
+    onDeleteConversation(filter: $filter) {
+      id
+      participants {
+        nextToken
+        __typename
+      }
+      messages {
+        nextToken
+        __typename
+      }
+      lastMessageAt
+      lastMessageContent
+      lastMessageSenderId
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreateMessage = /* GraphQL */ `
+  subscription OnCreateMessage($filter: ModelSubscriptionMessageFilterInput) {
+    onCreateMessage(filter: $filter) {
+      id
+      conversationId
+      senderId
+      content
+      timestamp
+      read
+      conversation {
+        id
+        lastMessageAt
+        lastMessageContent
+        lastMessageSenderId
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      conversationMessagesId
+      __typename
+    }
+  }
+`;
+export const onUpdateMessage = /* GraphQL */ `
+  subscription OnUpdateMessage($filter: ModelSubscriptionMessageFilterInput) {
+    onUpdateMessage(filter: $filter) {
+      id
+      conversationId
+      senderId
+      content
+      timestamp
+      read
+      conversation {
+        id
+        lastMessageAt
+        lastMessageContent
+        lastMessageSenderId
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      conversationMessagesId
+      __typename
+    }
+  }
+`;
+export const onDeleteMessage = /* GraphQL */ `
+  subscription OnDeleteMessage($filter: ModelSubscriptionMessageFilterInput) {
+    onDeleteMessage(filter: $filter) {
+      id
+      conversationId
+      senderId
+      content
+      timestamp
+      read
+      conversation {
+        id
+        lastMessageAt
+        lastMessageContent
+        lastMessageSenderId
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      conversationMessagesId
       __typename
     }
   }
@@ -552,6 +708,129 @@ export const onDeleteAuctionUser = /* GraphQL */ `
         type
         bidsCount
         finishedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onCreateUserConversation = /* GraphQL */ `
+  subscription OnCreateUserConversation(
+    $filter: ModelSubscriptionUserConversationFilterInput
+  ) {
+    onCreateUserConversation(filter: $filter) {
+      id
+      userId
+      conversationId
+      user {
+        id
+        nickname
+        money
+        email
+        avatar
+        bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
+        createdAt
+        updatedAt
+        __typename
+      }
+      conversation {
+        id
+        lastMessageAt
+        lastMessageContent
+        lastMessageSenderId
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onUpdateUserConversation = /* GraphQL */ `
+  subscription OnUpdateUserConversation(
+    $filter: ModelSubscriptionUserConversationFilterInput
+  ) {
+    onUpdateUserConversation(filter: $filter) {
+      id
+      userId
+      conversationId
+      user {
+        id
+        nickname
+        money
+        email
+        avatar
+        bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
+        createdAt
+        updatedAt
+        __typename
+      }
+      conversation {
+        id
+        lastMessageAt
+        lastMessageContent
+        lastMessageSenderId
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const onDeleteUserConversation = /* GraphQL */ `
+  subscription OnDeleteUserConversation(
+    $filter: ModelSubscriptionUserConversationFilterInput
+  ) {
+    onDeleteUserConversation(filter: $filter) {
+      id
+      userId
+      conversationId
+      user {
+        id
+        nickname
+        money
+        email
+        avatar
+        bio
+        sold
+        totalCarsOwned
+        totalAuctionsParticipated
+        totalBidsPlaced
+        totalSpent
+        totalAuctionsWon
+        totalProfitEarned
+        createdAt
+        updatedAt
+        __typename
+      }
+      conversation {
+        id
+        lastMessageAt
+        lastMessageContent
+        lastMessageSenderId
         createdAt
         updatedAt
         __typename

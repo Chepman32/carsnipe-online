@@ -19,6 +19,7 @@ type User @model
   totalSpent: Int
   totalAuctionsWon: Int
   totalProfitEarned: Int
+  conversations: [Conversation] @manyToMany(relationName: "UserConversation")
 }
 
 type Car @model
@@ -68,4 +69,29 @@ type BidInfo {
   auctionId: ID!
   bidValue: Int!
   timestamp: String
+}
+
+type Conversation @model
+  @auth(rules: [
+    { allow: public, operations: [create, update, delete, read] }
+  ]) {
+  id: ID!
+  participants: [User] @manyToMany(relationName: "UserConversation")
+  messages: [Message] @hasMany
+  lastMessageAt: String
+  lastMessageContent: String
+  lastMessageSenderId: ID
+}
+
+type Message @model
+  @auth(rules: [
+    { allow: public, operations: [create, update, delete, read] }
+  ]) {
+  id: ID!
+  conversationId: ID!
+  senderId: ID!
+  content: String!
+  timestamp: String!
+  read: Boolean
+  conversation: Conversation @belongsTo(fields: ["conversationId"])
 }
