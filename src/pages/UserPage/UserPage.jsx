@@ -530,39 +530,6 @@ const UserPage = () => {
                 </Col>
               </Row>
             </div>
-
-            {currentUser && currentUser.id !== userInfo.id && (
-              <>
-                <Divider />
-                <Button
-                  type="primary"
-                  icon={
-                    <img
-                      src="https://cdn2.iconfinder.com/data/icons/outline-ui-3-part-3-of-3/100/pack08-21-512.png"
-                      alt="Message"
-                      style={{ width: '20px', height: '20px', marginRight: '8px', filter: 'brightness(0) invert(1)' }}
-                    />
-                  }
-                  onClick={handleSendMessage}
-                  loading={sendingMessage}
-                  className="message-button-bottom"
-                  size="large"
-                  block
-                  style={{
-                    height: '50px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    marginTop: '16px',
-                    boxShadow: '0 6px 16px rgba(0, 114, 255, 0.4)'
-                  }}
-                >
-                  SEND {userInfo.nickname?.toUpperCase() || "USER"} A MESSAGE
-                </Button>
-              </>
-            )}
           </Card>
         </Col>
         <Col xs={24} md={16}>
