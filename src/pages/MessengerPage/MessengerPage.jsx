@@ -361,7 +361,7 @@ const MessengerPage = () => {
     <Layout className="messenger-layout">
       <Sider width={300} className="conversation-sider">
         <div className="conversations-header">
-          <Title level={4}>Messages</Title>
+          <Title level={4} onClick={() => console.log("otherparticipant", otherUser)}>Messages</Title>
         </div>
         
         {loading ? (
@@ -403,7 +403,7 @@ const MessengerPage = () => {
                     }
                     title={
                       <div className="conversation-title">
-                        <Text strong>{otherParticipant?.nickname || "User"}</Text>
+                        <Text strong>{otherUser?.nickname || "User"}</Text>
                         <Text className="conversation-time">
                           {formatTime(conversation.lastMessageAt)}
                         </Text>
