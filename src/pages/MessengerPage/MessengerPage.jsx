@@ -17,7 +17,7 @@ import { generateClient } from 'aws-amplify/api';
 import { useParams, useNavigate } from "react-router-dom";
 import * as queries from '../../graphql/queries';
 import * as mutations from '../../graphql/mutations';
-import { fetchUserInfoById, selectAvatar } from "../../functions";
+import { fetchAuctionUser, fetchUserInfoById, selectAvatar } from "../../functions";
 import "./MessengerPage.css";
 
 // Use the auto-generated queries and mutations
@@ -39,7 +39,6 @@ const MessengerPage = () => {
   const [otherUser, setOtherUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
-  // Dark mode is now controlled by the QuickMenu component
 
   const messagesEndRef = useRef(null);
   const { conversationId } = useParams();
@@ -271,11 +270,14 @@ const MessengerPage = () => {
     }
   };
 
+  const getAvatar = async () => {
+        const auctionUser = await fetchAuctionUser(otherUser?.id);
+        return auctionUser?.avatar ? selectAvatar(auctionUser.avatar) : null;
+      }
+
   if (loading && !currentUser) {
     return <Spin size="large" fullscreen />;
   }
-
-  // Dark mode toggle removed - now handled by QuickMenu
 
   return (
     <Layout className="messenger-layout">
@@ -316,7 +318,7 @@ const MessengerPage = () => {
                       <Badge dot={hasUnread} offset={[-5, 5]} color="red">
                         <Avatar 
                           size={40} 
-                          src={otherParticipant?.avatar ? selectAvatar(otherParticipant.avatar) : null}
+                          src={getAvatar()}
                           icon={!otherParticipant?.avatar && <UserOutlined />}
                         />
                       </Badge>
@@ -354,7 +356,7 @@ const MessengerPage = () => {
               <div className="message-header-user">
                 <Avatar 
                   size={40} 
-                  src={otherUser?.avatar ? selectAvatar(otherUser.avatar) : null}
+                  src={getAvatar()}
                   icon={!otherUser?.avatar && <UserOutlined />}
                 />
                 <div className="message-header-info">
@@ -386,7 +388,7 @@ const MessengerPage = () => {
                         {!isCurrentUser && showAvatar && (
                           <Avatar 
                             size={32} 
-                            src={otherUser?.avatar ? selectAvatar(otherUser.avatar) : null}
+                            src={getAvatar()}
                             icon={!otherUser?.avatar && <UserOutlined />}
                             className="message-avatar"
                           />
