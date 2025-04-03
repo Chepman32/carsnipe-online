@@ -10,7 +10,7 @@ import {
   Empty,
   Divider,
   Badge,
-  message
+  message,
 } from "antd";
 import { SendOutlined, UserOutlined } from "@ant-design/icons";
 import { generateClient } from 'aws-amplify/api';
@@ -39,7 +39,8 @@ const MessengerPage = () => {
   const [otherUser, setOtherUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
-  
+  // Dark mode is now controlled by the QuickMenu component
+
   const messagesEndRef = useRef(null);
   const { conversationId } = useParams();
   const navigate = useNavigate();
@@ -273,6 +274,8 @@ const MessengerPage = () => {
   if (loading && !currentUser) {
     return <Spin size="large" fullscreen />;
   }
+
+  // Dark mode toggle removed - now handled by QuickMenu
 
   return (
     <Layout className="messenger-layout">

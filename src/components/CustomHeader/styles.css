@@ -24,6 +24,25 @@
   --focused-border: 2px solid darkred;
 }
 
+/* Dark mode styles for settings menu */
+.dark-mode .settings-menu {
+  background-color: #262626;
+  border-color: #3a3a3a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .settings-menu-item {
+  color: #e0e0e0;
+}
+
+.dark-mode .settings-menu-item span {
+  color: #e0e0e0;
+}
+
+.dark-mode .settings-menu-item:hover {
+  background-color: #333333;
+}
+
 .customHeader {
   position: fixed;
   top: 0;

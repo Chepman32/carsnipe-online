@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Menu, Typography, Drawer, Button, ConfigProvider } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isMobile } from 'react-device-detect';
-import { MenuOutlined } from '@ant-design/icons';
+import { MenuOutlined, BulbOutlined, BulbFilled } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   toggleMusic,
@@ -302,12 +302,14 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                     onClick={handleToggleDarkMode}
                     role="menuitem"
                     tabIndex={-1}
+                    style={{ display: 'flex', alignItems: 'center' }}
                 >
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/512/5262/5262027.png"
-                    alt="Dark Mode"
-                  />
-                  <span>Dark Mode: {darkMode ? 'On' : 'Off'}</span>
+                    {darkMode ? (
+                      <BulbFilled style={{ fontSize: '20px', color: '#ffdd00' }} />
+                    ) : (
+                      <BulbOutlined style={{ fontSize: '20px' }} />
+                    )}
+                    <span style={{ marginLeft: '10px' }}>Dark Mode: {darkMode ? 'On' : 'Off'}</span>
                 </div>
                   <div
                     className={`settings-menu-item ${
