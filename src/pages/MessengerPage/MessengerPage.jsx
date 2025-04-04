@@ -137,7 +137,7 @@ const MessengerPage = () => {
     fetchCurrentUser();
   }, []);
 
-  // Fetch user conversations
+  // Fetch user conversations - only when currentUser changes
   useEffect(() => {
     const fetchConversations = async () => {
       if (!currentUser) return;
@@ -194,7 +194,17 @@ const MessengerPage = () => {
     };
 
     fetchConversations();
-  }, [currentUser, conversationId]);
+  }, [currentUser]); // Removed conversationId from dependencies
+
+  // Handle URL conversationId changes without refetching all conversations
+  useEffect(() => {
+    if (!conversationId || !conversations.length) return;
+
+    const selectedConv = conversations.find(conv => conv.id === conversationId);
+    if (selectedConv) {
+      setSelectedConversation(selectedConv);
+    }
+  }, [conversationId, conversations]);
 
   // Fetch messages for selected conversation
   useEffect(() => {
@@ -274,6 +284,45 @@ const MessengerPage = () => {
             )
           );
         }
+
+        // Check if we need to update the conversation in the list with latest message info
+        const latestMessage = fetchedMessages[fetchedMessages.length - 1];
+        if (latestMessage) {
+          // Update the conversations list using functional update to avoid dependency on conversations
+          setConversations(prevConversations => {
+            // Get the current conversation from the list
+            const currentConvInList = prevConversations.find(c => c.id === selectedConversation.id);
+
+            // If the latest message is newer than what we have in the conversation list, update it
+            if (currentConvInList &&
+                (!currentConvInList.lastMessageAt ||
+                 new Date(latestMessage.timestamp) > new Date(currentConvInList.lastMessageAt))) {
+
+              // Update the conversations list to reflect the latest message
+              const updatedConversations = prevConversations.map(conv => {
+                if (conv.id === selectedConversation.id) {
+                  return {
+                    ...conv,
+                    lastMessageAt: latestMessage.timestamp,
+                    lastMessageContent: latestMessage.content,
+                    lastMessageSenderId: latestMessage.senderId
+                  };
+                }
+                return conv;
+              });
+
+              // Sort conversations by last message timestamp (newest first)
+              return updatedConversations.sort((a, b) => {
+                const timeA = new Date(a.lastMessageAt || 0);
+                const timeB = new Date(b.lastMessageAt || 0);
+                return timeB - timeA;
+              });
+            }
+
+            // If no update needed, return the original list
+            return prevConversations;
+          });
+        }
       } catch (error) {
         console.error("Error fetching messages:", error);
         message.error("Failed to load messages");
@@ -333,6 +382,29 @@ const MessengerPage = () => {
       // Add new message to the list
       const createdMessage = newMessageData.data.createMessage;
       setMessages([...messages, createdMessage]);
+
+      // Update the local conversations list using functional update
+      setConversations(prevConversations => {
+        // Update the conversation with the new message info
+        const updatedConversations = prevConversations.map(conv => {
+          if (conv.id === selectedConversation.id) {
+            return {
+              ...conv,
+              lastMessageAt: timestamp,
+              lastMessageContent: newMessage,
+              lastMessageSenderId: currentUser.id
+            };
+          }
+          return conv;
+        });
+
+        // Sort conversations by last message timestamp (newest first)
+        return updatedConversations.sort((a, b) => {
+          const timeA = new Date(a.lastMessageAt || 0);
+          const timeB = new Date(b.lastMessageAt || 0);
+          return timeB - timeA;
+        });
+      });
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
