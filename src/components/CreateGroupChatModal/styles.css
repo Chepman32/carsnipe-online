@@ -1,0 +1,87 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 20px;
+  color: #333;
+}
+
+.selected-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.selected-user-tag {
+  background-color: #f0f2f5;
+  border-radius: 16px;
+  padding: 4px 8px;
+  font-size: 14px;
+}
+
+.user-search-input {
+  margin-bottom: 16px;
+}
+
+.user-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.no-users {
+  padding: 16px;
+  text-align: center;
+  color: #999;
+}
+
+.user-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.user-item:hover {
+  background-color: #f5f5f5;
+}
+
+.user-item.selected {
+  background-color: #e6f7ff;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}

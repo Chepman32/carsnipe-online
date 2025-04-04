@@ -12,9 +12,10 @@ import {
   Badge,
   message,
 } from "antd";
-import { SendOutlined, UserOutlined } from "@ant-design/icons";
+import { SendOutlined, UserOutlined, PlusOutlined } from "@ant-design/icons";
 import { generateClient } from 'aws-amplify/api';
 import { useParams, useNavigate } from "react-router-dom";
+import CreateGroupChatModal from '../../components/CreateGroupChatModal/CreateGroupChatModal';
 import * as queries from '../../graphql/queries';
 import * as mutations from '../../graphql/mutations';
 import { fetchAuctionUser, fetchUserInfoById, selectAvatar } from "../../functions";
@@ -109,6 +110,7 @@ const MessengerPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [isCreateGroupChatModalOpen, setIsCreateGroupChatModalOpen] = useState(false);
   const [otherUser, setOtherUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -139,7 +141,7 @@ const MessengerPage = () => {
   useEffect(() => {
     const fetchConversations = async () => {
       if (!currentUser) return;
-      
+
       try {
         setLoading(true);
 
@@ -164,18 +166,18 @@ const MessengerPage = () => {
 
           return conversationData.data.getConversation;
         });
-        
+
         const fetchedConversations = await Promise.all(conversationPromises);
-        
+
         // Sort conversations by last message timestamp (newest first)
         const sortedConversations = fetchedConversations.sort((a, b) => {
           const timeA = new Date(a.lastMessageAt || 0);
           const timeB = new Date(b.lastMessageAt || 0);
           return timeB - timeA;
         });
-        
+
         setConversations(sortedConversations);
-        
+
         // If there's a conversationId in the URL, select that conversation
         if (conversationId) {
           const selectedConv = sortedConversations.find(conv => conv.id === conversationId);
@@ -190,14 +192,14 @@ const MessengerPage = () => {
         setLoading(false);
       }
     };
-    
+
     fetchConversations();
   }, [currentUser, conversationId]);
 
   // Fetch messages for selected conversation
   useEffect(() => {
     const fetchMessages = async () => {
-      if (!selectedConversation) return;
+      if (!selectedConversation || !currentUser) return;
 
       try {
         // Get all messages for the selected conversation using listMessages with a filter
@@ -217,20 +219,37 @@ const MessengerPage = () => {
         const fetchedMessages = messagesData.data.listMessages.items;
         setMessages(fetchedMessages);
 
-        // Fetch other user's info
+        // Check if this is a group chat (more than 2 participants)
         if (selectedConversation.participants && selectedConversation.participants.items) {
-          const otherParticipant = selectedConversation.participants.items.find(
-            item => item.user.id !== currentUser.id
-          );
+          const participants = selectedConversation.participants.items;
 
-          if (otherParticipant) {
-            // First try to use the user data directly from the conversation
-            if (otherParticipant.user && otherParticipant.user.avatar) {
-              setOtherUser(otherParticipant.user);
-            } else {
-              // Fallback to fetching user info if needed
-              const otherUserData = await fetchUserInfoById(otherParticipant.user.id);
-              setOtherUser(otherUserData);
+          if (participants.length > 2) {
+            // This is a group chat - set otherUser to a special group object
+            const otherParticipants = participants.filter(
+              item => item.user.id !== currentUser.id
+            );
+
+            setOtherUser({
+              id: 'group',
+              nickname: `Group (${otherParticipants.length + 1})`,
+              isGroup: true,
+              participants: participants
+            });
+          } else {
+            // This is a one-on-one chat - find the other user
+            const otherParticipant = participants.find(
+              item => item.user.id !== currentUser.id
+            );
+
+            if (otherParticipant) {
+              // First try to use the user data directly from the conversation
+              if (otherParticipant.user && otherParticipant.user.avatar) {
+                setOtherUser(otherParticipant.user);
+              } else {
+                // Fallback to fetching user info if needed
+                const otherUserData = await fetchUserInfoById(otherParticipant.user.id);
+                setOtherUser(otherUserData);
+              }
             }
           }
         }
@@ -260,12 +279,12 @@ const MessengerPage = () => {
         message.error("Failed to load messages");
       }
     };
-    
+
     fetchMessages();
-    
+
     // Set up polling for new messages
     const intervalId = setInterval(fetchMessages, 5000);
-    
+
     return () => clearInterval(intervalId);
   }, [selectedConversation, currentUser]);
 
@@ -337,11 +356,11 @@ const MessengerPage = () => {
 
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
-    
+
     const date = new Date(timestamp);
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
-    
+
     if (isToday) {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
@@ -362,8 +381,15 @@ const MessengerPage = () => {
       <Sider width={300} className="conversation-sider">
         <div className="conversations-header">
           <Title level={4} onClick={() => console.log("otherparticipant", otherUser)}>Messages</Title>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsCreateGroupChatModalOpen(true)}
+          >
+            Create Group
+          </Button>
         </div>
-        
+
         {loading ? (
           <div className="loading-container">
             <Spin />
@@ -375,17 +401,33 @@ const MessengerPage = () => {
             className="conversation-list"
             dataSource={conversations}
             renderItem={(conversation) => {
-              // Find the other user in this conversation
-              const otherParticipantItem = conversation.participants?.items?.find(
-                item => item.user.id !== currentUser.id
-              );
-              
-              const otherParticipant = otherParticipantItem?.user;
+              const participants = conversation.participants?.items || [];
+              const isGroup = participants.length > 2;
               const isSelected = selectedConversation?.id === conversation.id;
+
               // We can't check messages directly since we're not loading them all at once
               // Instead, rely on the lastMessageSenderId to determine if there might be unread messages
               const hasUnread = conversation.lastMessageSenderId !== currentUser.id;
-              
+
+              let displayName = "Chat";
+              let avatarSrc = null;
+
+              if (isGroup) {
+                // For group chats, show the number of participants
+                const otherParticipants = participants.filter(
+                  item => item.user.id !== currentUser.id
+                );
+                displayName = `Group (${participants.length})`;
+              } else {
+                // For one-on-one chats, show the other user's name
+                const otherParticipantItem = participants.find(
+                  item => item.user.id !== currentUser.id
+                );
+                const otherParticipant = otherParticipantItem?.user;
+                displayName = otherParticipant?.nickname || "User";
+                avatarSrc = getAvatar(otherParticipant?.avatar);
+              }
+
               return (
                 <List.Item
                   className={`conversation-item ${isSelected ? 'selected' : ''}`}
@@ -396,21 +438,24 @@ const MessengerPage = () => {
                       <Badge dot={hasUnread} offset={[-5, 5]} color="red">
                         <Avatar
                           size={40}
-                          src={getAvatar(otherParticipant?.avatar)}
-                          icon={!otherParticipant?.avatar && <UserOutlined />}
-                        />
+                          src={isGroup ? null : avatarSrc}
+                          icon={isGroup ? <UserOutlined /> : (!avatarSrc && <UserOutlined />)}
+                          style={isGroup ? { backgroundColor: '#1890ff' } : {}}
+                        >
+                          {isGroup && 'G'}
+                        </Avatar>
                       </Badge>
                     }
                     title={
                       <div className="conversation-title">
-                        <Text strong>{otherUser?.nickname || "User"}</Text>
+                        <Text strong>{displayName}</Text>
                         <Text className="conversation-time">
                           {formatTime(conversation.lastMessageAt)}
                         </Text>
                       </div>
                     }
                     description={
-                      <Text 
+                      <Text
                         className="conversation-preview"
                         type={hasUnread ? "default" : "secondary"}
                         strong={hasUnread}
@@ -425,26 +470,47 @@ const MessengerPage = () => {
             }}
           />
         )}
+        <CreateGroupChatModal
+          isOpen={isCreateGroupChatModalOpen}
+          onClose={() => setIsCreateGroupChatModalOpen(false)}
+        />
       </Sider>
-      
+
       <Layout className="message-layout">
         {selectedConversation ? (
           <>
             <div className="message-header">
               <div className="message-header-user">
-                <Avatar
-                  size={40}
-                  src={getAvatar(otherUser?.avatar)}
-                  icon={!otherUser?.avatar && <UserOutlined />}
-                />
+                {otherUser?.isGroup ? (
+                  // Group chat header
+                  <Avatar
+                    size={40}
+                    style={{ backgroundColor: '#1890ff' }}
+                    icon={<UserOutlined />}
+                  >
+                    G
+                  </Avatar>
+                ) : (
+                  // One-on-one chat header
+                  <Avatar
+                    size={40}
+                    src={getAvatar(otherUser?.avatar)}
+                    icon={!otherUser?.avatar && <UserOutlined />}
+                  />
+                )}
                 <div className="message-header-info">
                   <Text strong className="message-header-name">
-                    {otherUser?.nickname || "User"}
+                    {otherUser?.isGroup ? otherUser.nickname : (otherUser?.nickname || "User")}
                   </Text>
+                  {otherUser?.isGroup && (
+                    <Text type="secondary" className="message-header-participants">
+                      {otherUser.participants.length} participants
+                    </Text>
+                  )}
                 </div>
               </div>
             </div>
-            
+
             <Content className="message-content">
               {messages.length === 0 ? (
                 <div className="empty-messages">
@@ -455,23 +521,44 @@ const MessengerPage = () => {
                 <div className="messages-container">
                   {messages.map((msg, index) => {
                     const isCurrentUser = msg.senderId === currentUser.id;
-                    const showAvatar = index === 0 || 
+                    const showAvatar = index === 0 ||
                       messages[index - 1].senderId !== msg.senderId;
-                    
+
+                    // Find sender info for group chats
+                    let senderName = isCurrentUser ? "You" : (otherUser?.nickname || "User");
+                    let senderAvatar = isCurrentUser ? null : getAvatar(otherUser?.avatar);
+
+                    if (otherUser?.isGroup && !isCurrentUser) {
+                      // In group chats, find the sender from participants
+                      const sender = otherUser.participants.find(
+                        p => p.user.id === msg.senderId
+                      )?.user;
+
+                      if (sender) {
+                        senderName = sender.nickname || "User";
+                        senderAvatar = getAvatar(sender.avatar);
+                      }
+                    }
+
                     return (
-                      <div 
-                        key={msg.id} 
+                      <div
+                        key={msg.id}
                         className={`message-bubble-container ${isCurrentUser ? 'sent' : 'received'}`}
                       >
                         {!isCurrentUser && showAvatar && (
                           <Avatar
                             size={32}
-                            src={getAvatar(otherUser?.avatar)}
-                            icon={!otherUser?.avatar && <UserOutlined />}
+                            src={senderAvatar}
+                            icon={!senderAvatar && <UserOutlined />}
                             className="message-avatar"
                           />
                         )}
                         <div className="message-bubble-wrapper">
+                          {otherUser?.isGroup && !isCurrentUser && showAvatar && (
+                            <Text className="message-sender-name" type="secondary">
+                              {senderName}
+                            </Text>
+                          )}
                           <div className={`message-bubble ${isCurrentUser ? 'sent' : 'received'}`}>
                             <Text className="message-text">{msg.content}</Text>
                           </div>
@@ -486,7 +573,7 @@ const MessengerPage = () => {
                 </div>
               )}
             </Content>
-            
+
             <div className="message-input-container">
               <TextArea
                 value={newMessage}
@@ -508,8 +595,8 @@ const MessengerPage = () => {
           </>
         ) : (
           <div className="no-conversation-selected">
-            <Empty 
-              description="Select a conversation or start a new one" 
+            <Empty
+              description="Select a conversation or start a new one"
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />
           </div>
