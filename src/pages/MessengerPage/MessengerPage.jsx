@@ -227,7 +227,15 @@ const MessengerPage = () => {
         });
 
         const fetchedMessages = messagesData.data.listMessages.items;
-        setMessages(fetchedMessages);
+
+        // Sort messages by timestamp to ensure they're in chronological order
+        const sortedMessages = fetchedMessages.sort((a, b) => {
+          const timeA = new Date(a.timestamp || 0);
+          const timeB = new Date(b.timestamp || 0);
+          return timeA - timeB;
+        });
+
+        setMessages(sortedMessages);
 
         // Check if this is a group chat (more than 2 participants)
         if (selectedConversation.participants && selectedConversation.participants.items) {
@@ -379,9 +387,17 @@ const MessengerPage = () => {
         },
       });
 
-      // Add new message to the list
+      // Add new message to the list and sort by timestamp
       const createdMessage = newMessageData.data.createMessage;
-      setMessages([...messages, createdMessage]);
+      setMessages(prevMessages => {
+        const updatedMessages = [...prevMessages, createdMessage];
+        // Sort messages by timestamp (oldest to newest)
+        return updatedMessages.sort((a, b) => {
+          const timeA = new Date(a.timestamp || 0);
+          const timeB = new Date(b.timestamp || 0);
+          return timeA - timeB;
+        });
+      });
 
       // Update the local conversations list using functional update
       setConversations(prevConversations => {
@@ -489,7 +505,7 @@ const MessengerPage = () => {
                 const otherParticipants = participants.filter(
                   item => item.user.id !== currentUser.id
                 );
-                displayName = participants.map(participant => participant.user.nickname).join('& ');
+                displayName = participants.map(participant => participant.user.nickname).join(' & ');
               } else {
                 // For one-on-one chats, show the other user's name
                 const otherParticipantItem = participants.find(
@@ -596,9 +612,9 @@ const MessengerPage = () => {
                     const showAvatar = index === 0 ||
                       messages[index - 1].senderId !== msg.senderId;
 
-                    // Find sender info for group chats
+                    // Find sender info for all messages
                     let senderName = isCurrentUser ? "You" : (otherUser?.nickname || "User");
-                    let senderAvatar = isCurrentUser ? null : getAvatar(otherUser?.avatar);
+                    let senderAvatar = isCurrentUser ? getAvatar(currentUser?.avatar) : getAvatar(otherUser?.avatar);
 
                     if (otherUser?.isGroup && !isCurrentUser) {
                       // In group chats, find the sender from participants
@@ -617,26 +633,36 @@ const MessengerPage = () => {
                         key={msg.id}
                         className={`message-bubble-container ${isCurrentUser ? 'sent' : 'received'}`}
                       >
-                        {!isCurrentUser && showAvatar && (
-                          <Avatar
-                            size={32}
-                            src={senderAvatar}
-                            icon={!senderAvatar && <UserOutlined />}
-                            className="message-avatar"
-                          />
-                        )}
-                        <div className="message-bubble-wrapper">
-                          {otherUser?.isGroup && !isCurrentUser && showAvatar && (
-                            <Text className="message-sender-name" type="secondary">
-                              {senderName}
-                            </Text>
+                        <div className="message-content-wrapper">
+                          {!isCurrentUser && showAvatar && (
+                            <Avatar
+                              size={32}
+                              src={senderAvatar}
+                              icon={!senderAvatar && <UserOutlined />}
+                              className="message-avatar-left"
+                            />
                           )}
-                          <div className={`message-bubble ${isCurrentUser ? 'sent' : 'received'}`}>
-                            <Text className="message-text">{msg.content}</Text>
+                          <div className="message-bubble-wrapper">
+                            {otherUser?.isGroup && !isCurrentUser && showAvatar && (
+                              <Text className="message-sender-name" type="secondary">
+                                {senderName}
+                              </Text>
+                            )}
+                            <div className={`message-bubble ${isCurrentUser ? 'sent' : 'received'}`}>
+                              <Text className="message-text">{msg.content}</Text>
+                            </div>
+                            <Text className="message-time" type="secondary">
+                              {formatTime(msg.timestamp)}
+                            </Text>
                           </div>
-                          <Text className="message-time" type="secondary">
-                            {formatTime(msg.timestamp)}
-                          </Text>
+                          {isCurrentUser && showAvatar && (
+                            <Avatar
+                              size={32}
+                              src={senderAvatar}
+                              icon={!senderAvatar && <UserOutlined />}
+                              className="message-avatar-right"
+                            />
+                          )}
                         </div>
                       </div>
                     );
