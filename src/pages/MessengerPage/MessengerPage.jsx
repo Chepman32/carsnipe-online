@@ -417,7 +417,7 @@ const MessengerPage = () => {
                 const otherParticipants = participants.filter(
                   item => item.user.id !== currentUser.id
                 );
-                displayName = `Group (${participants.length})`;
+                displayName = participants.map(participant => participant.user.nickname).join('& ');
               } else {
                 // For one-on-one chats, show the other user's name
                 const otherParticipantItem = participants.find(
