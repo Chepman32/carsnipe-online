@@ -1027,8 +1027,9 @@ const MessengerPage = () => {
                   {otherUser?.isGroup ? (
                     <Avatar
                       size={40}
-                      style={{ backgroundColor: '#1890ff' }}
+                      style={{ backgroundColor: '#1890ff', cursor: 'pointer' }}
                       icon={<UserOutlined />}
+                      onClick={() => setIsEditGroupChatModalOpen(true)}
                     >
                       G
                     </Avatar>
@@ -1037,6 +1038,8 @@ const MessengerPage = () => {
                       size={40}
                       src={selectAvatar(otherUser?.avatar)}
                       icon={!otherUser?.avatar && <UserOutlined />}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setIsEditGroupChatModalOpen(true)}
                     />
                   )}
                   <div className="message-header-info">
@@ -1057,7 +1060,18 @@ const MessengerPage = () => {
                         {otherUser.nickname}
                       </Text>
                     ) : (
-                      <Text strong className="message-header-name">
+                      <Text
+                        strong
+                        className="message-header-name"
+                        onClick={() => {
+                          console.log("Opening direct chat options", {
+                            selectedConversation,
+                            otherUser
+                          });
+                          setIsEditGroupChatModalOpen(true);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
                         {otherUser?.nickname || "User"}
                       </Text>
                     )}
@@ -1179,7 +1193,7 @@ const MessengerPage = () => {
       </Layout>
 
       <EditGroupChatModal
-        isOpen={isEditGroupChatModalOpen && selectedConversation && otherUser?.isGroup}
+        isOpen={isEditGroupChatModalOpen && selectedConversation}
         onClose={() => setIsEditGroupChatModalOpen(false)}
         conversationName={selectedConversation?.name || ""}
         conversation={selectedConversation || {}}

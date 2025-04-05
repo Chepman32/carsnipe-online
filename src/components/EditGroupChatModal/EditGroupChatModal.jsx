@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
-import { Input, Avatar, Button, List, Tag, Spin, message, Modal, Divider } from 'antd';
+import { Input, Avatar, Button, List, Tag, Spin, message, Modal, Divider, Image } from 'antd';
 import { UserOutlined, SearchOutlined, CloseOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import * as queries from '../../graphql/queries';
 import * as mutations from '../../graphql/mutations';
@@ -31,6 +31,13 @@ const EditGroupChatModal = ({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [participants, setParticipants] = useState([]);
+  const [isDirectChat, setIsDirectChat] = useState(false);
+  const [otherUser, setOtherUser] = useState(null);
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
+  const [messageSearchQuery, setMessageSearchQuery] = useState('');
+  const [searchingMessages, setSearchingMessages] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
 
   const navigate = useNavigate();
 
@@ -39,6 +46,23 @@ const EditGroupChatModal = ({
     if (isOpen) {
       console.log("Modal opened with conversation data:", conversation);
       console.log("Current user:", currentUser);
+
+      // Determine if this is a direct chat (2 participants) or a group chat
+      if (conversation?.participants?.items) {
+        const isDirectChatConversation = conversation.participants.items.length === 2;
+        setIsDirectChat(isDirectChatConversation);
+
+        if (isDirectChatConversation) {
+          // Find the other user in the conversation
+          const otherParticipant = conversation.participants.items.find(
+            item => item.userId !== currentUser?.id
+          );
+
+          if (otherParticipant && otherParticipant.user) {
+            setOtherUser(otherParticipant.user);
+          }
+        }
+      }
     }
   }, [isOpen, conversation, currentUser]);
 
@@ -67,14 +91,18 @@ const EditGroupChatModal = ({
     if (!isOpen) {
       setSearchQuery('');
       setFilteredUsers([]);
+      setShowMessageSearch(false);
+      setMessageSearchQuery('');
+      setSearchResults([]);
+      setImagePreviewVisible(false);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen && currentUser) {
+    if (isOpen && currentUser && !isDirectChat) {
       fetchUsers();
     }
-  }, [isOpen, currentUser]);
+  }, [isOpen, currentUser, isDirectChat]);
 
   const fetchUsers = async () => {
     if (!currentUser) {
@@ -261,21 +289,22 @@ const EditGroupChatModal = ({
     }
   };
 
-  const handleDeleteGroup = () => {
+  const handleDeleteChat = () => {
     console.log("Delete button clicked");
     console.log("Current conversation:", conversation);
 
-    // Create a simpler confirmation dialog
-    if (window.confirm('Are you sure you want to delete this group chat? This action cannot be undone. All messages will be permanently deleted.')) {
+    // Create a confirmation dialog
+    const chatType = isDirectChat ? "conversation" : "group chat";
+    if (window.confirm(`Are you sure you want to delete this ${chatType}? This action cannot be undone. All messages will be permanently deleted.`)) {
       console.log("User confirmed deletion");
-      deleteGroupChat();
+      deleteChat();
     } else {
       console.log("User cancelled deletion");
     }
   };
 
-  const deleteGroupChat = async () => {
-    console.log("deleteGroupChat function called");
+  const deleteChat = async () => {
+    console.log("deleteChat function called");
     console.log("Conversation data:", conversation);
 
     if (!conversation || !conversation.id) {
@@ -285,7 +314,7 @@ const EditGroupChatModal = ({
 
     try {
       setDeleting(true);
-      console.log("Deleting group chat with ID:", conversation.id);
+      console.log("Deleting chat with ID:", conversation.id);
 
       // Store the ID before deletion for reference
       const conversationId = conversation.id;
@@ -327,7 +356,8 @@ const EditGroupChatModal = ({
         variables: { input: { id: conversationId } },
       });
 
-      message.success("Group chat deleted successfully");
+      const successMessage = isDirectChat ? "Conversation deleted successfully" : "Group chat deleted successfully";
+      message.success(successMessage);
 
       // Close the modal first to prevent any state issues
       onClose();
@@ -340,15 +370,69 @@ const EditGroupChatModal = ({
         console.warn("onGroupDeleted callback is not defined");
       }
     } catch (error) {
-      console.error("Error deleting group chat:", error);
-      message.error("Failed to delete group chat");
+      console.error("Error deleting chat:", error);
+      message.error("Failed to delete chat");
     } finally {
       setDeleting(false);
     }
   };
 
+  const handleSearchMessages = async () => {
+    if (!messageSearchQuery.trim() || !conversation || !conversation.id) {
+      return;
+    }
+
+    try {
+      setSearchingMessages(true);
+      console.log("Searching messages for:", messageSearchQuery);
+
+      // Fetch all messages for the conversation
+      const messagesData = await client.graphql({
+        query: queries.listMessages,
+        variables: {
+          filter: { conversationId: { eq: conversation.id } },
+          limit: 1000,
+        },
+      });
+
+      if (messagesData.data && messagesData.data.listMessages && messagesData.data.listMessages.items) {
+        const allMessages = messagesData.data.listMessages.items;
+        console.log("Total messages:", allMessages.length);
+
+        // Filter messages that contain the search query
+        const matchingMessages = allMessages.filter(msg =>
+          msg.content.toLowerCase().includes(messageSearchQuery.toLowerCase())
+        );
+
+        console.log("Matching messages:", matchingMessages.length);
+        setSearchResults(matchingMessages);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error("Error searching messages:", error);
+      message.error("Failed to search messages");
+    } finally {
+      setSearchingMessages(false);
+    }
+  };
+
   const getAvatar = (avatarName) => {
     return avatarName ? selectAvatar(avatarName) : null;
+  };
+
+  const formatTime = (timestamp) => {
+    if (!timestamp) return "";
+
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+
+    if (isToday) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
   };
 
   if (!isOpen) {
@@ -358,109 +442,208 @@ const EditGroupChatModal = ({
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h2>Edit Group Chat</h2>
+        <h2>{isDirectChat ? "Chat Options" : "Edit Group Chat"}</h2>
 
-        <div className="group-name-input">
-          <label>Group Name</label>
-          <Input
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            placeholder="Enter group name"
-            className="group-name-field"
-          />
-        </div>
-
-        <Divider orientation="left">Group Members</Divider>
-
-        {selectedUsers.length > 0 && (
-          <div className="selected-users">
-            {selectedUsers.map(user => (
-              <Tag
-                key={user.id}
-                closable
-                onClose={() => removeSelectedUser(user)}
-                className="selected-user-tag"
-              >
-                {user.nickname || "User"}
-              </Tag>
-            ))}
+        {isDirectChat ? (
+          <div className="direct-chat-header">
+            <div className="user-avatar-container" onClick={() => setImagePreviewVisible(true)}>
+              <Avatar
+                size={80}
+                src={getAvatar(otherUser?.avatar)}
+                icon={!otherUser?.avatar && <UserOutlined />}
+                className="user-avatar-large"
+              />
+              <div className="avatar-click-hint">Click to enlarge</div>
+            </div>
+            <h3>{otherUser?.nickname || "User"}</h3>
           </div>
+        ) : (
+          <>
+            <div className="group-name-input">
+              <label>Group Name</label>
+              <Input
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                placeholder="Enter group name"
+                className="group-name-field"
+              />
+            </div>
+
+            <Divider orientation="left">Group Members</Divider>
+
+            {selectedUsers.length > 0 && (
+              <div className="selected-users">
+                {selectedUsers.map(user => (
+                  <Tag
+                    key={user.id}
+                    closable
+                    onClose={() => removeSelectedUser(user)}
+                    className="selected-user-tag"
+                  >
+                    {user.nickname || "User"}
+                  </Tag>
+                ))}
+              </div>
+            )}
+
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder="Search users to add..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="user-search-input"
+            />
+
+            <div className="user-list">
+              {loading ? (
+                <div className="loading-container">
+                  <Spin />
+                </div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="no-users">No users found</div>
+              ) : (
+                <List
+                  dataSource={filteredUsers}
+                  renderItem={(user) => (
+                    <List.Item
+                      key={user.id}
+                      className={`user-item ${selectedUsers.some(u => u.id === user.id) ? 'selected' : ''}`}
+                      onClick={() => handleUserSelect(user)}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar
+                            size={40}
+                            src={getAvatar(user.avatar)}
+                            icon={!user.avatar && <UserOutlined />}
+                          />
+                        }
+                        title={user.nickname || "User"}
+                        description={user.email || ""}
+                      />
+                    </List.Item>
+                  )}
+                />
+              )}
+            </div>
+          </>
         )}
 
-        <Input
-          prefix={<SearchOutlined />}
-          placeholder="Search users to add..."
-          value={searchQuery}
-          onChange={handleSearch}
-          className="user-search-input"
-        />
-
-        <div className="user-list">
-          {loading ? (
-            <div className="loading-container">
-              <Spin />
+        {isDirectChat && showMessageSearch && (
+          <>
+            <Divider orientation="left">Search Messages</Divider>
+            <div className="message-search-container">
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder="Search in conversation..."
+                value={messageSearchQuery}
+                onChange={(e) => setMessageSearchQuery(e.target.value)}
+                onPressEnter={handleSearchMessages}
+                className="message-search-input"
+              />
+              <Button
+                type="primary"
+                onClick={handleSearchMessages}
+                loading={searchingMessages}
+              >
+                Search
+              </Button>
             </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="no-users">No users found</div>
-          ) : (
-            <List
-              dataSource={filteredUsers}
-              renderItem={(user) => (
-                <List.Item
-                  key={user.id}
-                  className={`user-item ${selectedUsers.some(u => u.id === user.id) ? 'selected' : ''}`}
-                  onClick={() => handleUserSelect(user)}
-                >
-                  <List.Item.Meta
-                    avatar={
-                      <Avatar
-                        size={40}
-                        src={getAvatar(user.avatar)}
-                        icon={!user.avatar && <UserOutlined />}
+
+            {searchResults.length > 0 ? (
+              <div className="search-results">
+                <List
+                  dataSource={searchResults}
+                  renderItem={(msg) => (
+                    <List.Item key={msg.id} className="message-search-result">
+                      <List.Item.Meta
+                        title={`${msg.senderId === currentUser?.id ? 'You' : otherUser?.nickname || 'User'}`}
+                        description={
+                          <>
+                            <div className="message-content">{msg.content}</div>
+                            <div className="message-timestamp">{formatTime(msg.timestamp)}</div>
+                          </>
+                        }
                       />
-                    }
-                    title={user.nickname || "User"}
-                    description={user.email || ""}
-                  />
-                </List.Item>
-              )}
-            />
-          )}
-        </div>
+                    </List.Item>
+                  )}
+                />
+              </div>
+            ) : searchingMessages ? (
+              <div className="loading-container">
+                <Spin />
+              </div>
+            ) : messageSearchQuery && !searchingMessages ? (
+              <div className="no-results">No matching messages found</div>
+            ) : null}
+          </>
+        )}
 
         <Divider />
 
         <div className="modal-actions">
           <div className="left-actions">
-            <Button
-              danger
-              type="primary"
-              icon={<DeleteOutlined />}
-              onClick={(e) => {
-                // Prevent event propagation
-                e.stopPropagation();
-                console.log("Delete button clicked with event prevention");
-                handleDeleteGroup();
-              }}
-              loading={deleting}
-            >
-              Delete Group
-            </Button>
+            {isDirectChat ? (
+              <>
+                <Button
+                  type="primary"
+                  icon={<SearchOutlined />}
+                  onClick={() => setShowMessageSearch(!showMessageSearch)}
+                >
+                  {showMessageSearch ? "Hide Search" : "Search Messages"}
+                </Button>
+                <Button
+                  danger
+                  type="primary"
+                  icon={<DeleteOutlined />}
+                  onClick={handleDeleteChat}
+                  loading={deleting}
+                >
+                  Delete Conversation
+                </Button>
+              </>
+            ) : (
+              <Button
+                danger
+                type="primary"
+                icon={<DeleteOutlined />}
+                onClick={handleDeleteChat}
+                loading={deleting}
+              >
+                Delete Group
+              </Button>
+            )}
           </div>
           <div className="right-actions">
-            <Button
-              type="primary"
-              onClick={handleSaveChanges}
-              loading={saving}
-              disabled={selectedUsers.length === 0}
-            >
-              Save Changes
-            </Button>
+            {!isDirectChat && (
+              <Button
+                type="primary"
+                onClick={handleSaveChanges}
+                loading={saving}
+                disabled={selectedUsers.length === 0}
+              >
+                Save Changes
+              </Button>
+            )}
             <Button onClick={onClose}>
-              Cancel
+              Close
             </Button>
           </div>
         </div>
+
+        {/* Image preview modal */}
+        {isDirectChat && (
+          <Image
+            width={200}
+            style={{ display: 'none' }}
+            src={getAvatar(otherUser?.avatar)}
+            preview={{
+              visible: imagePreviewVisible,
+              src: getAvatar(otherUser?.avatar),
+              onVisibleChange: (visible) => setImagePreviewVisible(visible),
+            }}
+          />
+        )}
       </div>
     </div>
   );

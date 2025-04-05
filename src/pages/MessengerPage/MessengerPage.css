@@ -87,6 +87,11 @@
 
 .message-header-name {
   font-size: 16px;
+  transition: color 0.3s;
+}
+
+.message-header-name:hover {
+  color: #1890ff;
 }
 
 .message-header-participants {
