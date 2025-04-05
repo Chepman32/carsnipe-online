@@ -394,9 +394,27 @@ const MessengerPage = () => {
               item => item.user.id !== currentUser.id
             );
 
+            // Create a group name using the participants' names
+            let groupName = '';
+            if (otherParticipants.length <= 3) {
+              // If 3 or fewer other users, include all names
+              const userNames = otherParticipants.map(item => item.user.nickname || 'User');
+              // Add current user's name if available
+              const allNames = currentUser?.nickname ?
+                [currentUser.nickname, ...userNames] :
+                ['You', ...userNames];
+              groupName = allNames.join(', ');
+            } else {
+              // If more than 3 other users, include first 2 names and show count of others
+              const userNames = otherParticipants.slice(0, 2).map(item => item.user.nickname || 'User');
+              const currentUserName = currentUser?.nickname || 'You';
+              const othersCount = otherParticipants.length - 2;
+              groupName = `${currentUserName}, ${userNames.join(', ')} and ${othersCount} others`;
+            }
+
             setOtherUser({
               id: 'group',
-              nickname: selectedConversation.name || `Group Chat (${participants.length})`,
+              nickname: selectedConversation.name || groupName,
               isGroup: true,
               participants: participants
             });

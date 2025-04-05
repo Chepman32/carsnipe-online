@@ -168,7 +168,24 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
 
       // Create a new conversation
       const timestamp = new Date().toISOString();
-      const groupName = `Group Chat (${selectedUsers.length + 1})`;
+
+      // Create a group name using the participants' names
+      let groupName = '';
+      if (selectedUsers.length <= 3) {
+        // If 3 or fewer users, include all names
+        const userNames = selectedUsers.map(user => user.nickname || 'User');
+        // Add current user's name if available
+        const allNames = currentUser?.nickname ?
+          [currentUser.nickname, ...userNames] :
+          ['You', ...userNames];
+        groupName = allNames.join(', ');
+      } else {
+        // If more than 3 users, include first 2 names and show count of others
+        const userNames = selectedUsers.slice(0, 2).map(user => user.nickname || 'User');
+        const currentUserName = currentUser?.nickname || 'You';
+        const othersCount = selectedUsers.length - 2;
+        groupName = `${currentUserName}, ${userNames.join(', ')} and ${othersCount} others`;
+      }
 
       console.log("Creating conversation with timestamp:", timestamp);
 
