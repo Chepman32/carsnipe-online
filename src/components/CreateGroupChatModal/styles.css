@@ -41,6 +41,22 @@
   font-size: 14px;
 }
 
+.group-name-input {
+  margin-bottom: 16px;
+}
+
+.group-name-input label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.group-name-field {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
 .user-search-input {
   margin-bottom: 16px;
 }

@@ -22,22 +22,29 @@ import * as mutations from '../../graphql/mutations';
 import { fetchAuctionUser, fetchUserInfoById, selectAvatar } from "../../functions";
 import "./MessengerPage.css";
 
-// Custom queries with expanded user data
 const customQueries = {
-  getConversation: /* GraphQL */ `
+  getConversation: `
     query GetConversation($id: ID!) {
       getConversation(id: $id) {
         id
+        name
         participants {
           items {
+            id
+            userId
+            conversationId
             user {
               id
               nickname
               avatar
+              __typename
             }
-            userId
-            conversationId
+            createdAt
+            updatedAt
+            __typename
           }
+          nextToken
+          __typename
         }
         messages {
           items {
@@ -47,17 +54,24 @@ const customQueries = {
             content
             timestamp
             read
+            createdAt
+            updatedAt
+            conversationMessagesId
+            __typename
           }
+          nextToken
+          __typename
         }
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
         createdAt
         updatedAt
+        __typename
       }
     }
   `,
-  userConversationsByUserId: /* GraphQL */ `
+  userConversationsByUserId: `
     query UserConversationsByUserId(
       $userId: ID!
       $sortDirection: ModelSortDirection
@@ -76,23 +90,16 @@ const customQueries = {
           id
           userId
           conversationId
-          user {
-            id
-            nickname
-            avatar
-          }
-          conversation {
-            id
-            lastMessageAt
-            lastMessageContent
-            lastMessageSenderId
-          }
+          createdAt
+          updatedAt
+          __typename
         }
         nextToken
+        __typename
       }
     }
   `,
-  messagesByConversationId: /* GraphQL */ `
+  messagesByConversationId: `
     query MessagesByConversationId(
       $conversationId: ID!
       $sortDirection: ModelSortDirection
@@ -123,22 +130,28 @@ const customQueries = {
       }
     }
   `,
-  getConversationWithParticipants: /* GraphQL */ `
+  getConversationWithParticipants: `
     query GetConversation($id: ID!) {
       getConversation(id: $id) {
         id
+        name
         participants {
           items {
             id
             userId
+            conversationId
             user {
               id
               nickname
               avatar
               __typename
             }
+            createdAt
+            updatedAt
             __typename
           }
+          nextToken
+          __typename
         }
         lastMessageAt
         lastMessageContent
@@ -151,7 +164,6 @@ const customQueries = {
   `
 };
 
-// Use the custom queries and auto-generated queries/mutations
 const { listMessages, getUser, userConversationsByConversationId } = queries;
 const {
   getConversation,
@@ -186,7 +198,6 @@ const MessengerPage = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [isEditGroupChatModalOpen, setIsEditGroupChatModalOpen] = useState(false);
 
-  // Add a useEffect to log when the modal state changes
   useEffect(() => {
     console.log("Edit group chat modal state changed:", isEditGroupChatModalOpen);
   }, [isEditGroupChatModalOpen]);
@@ -196,7 +207,6 @@ const MessengerPage = () => {
   const { conversationId } = useParams();
   const navigate = useNavigate();
 
-  // Fetch current user info
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -211,7 +221,6 @@ const MessengerPage = () => {
             message.error("User information not found");
           }
         } else {
-          // Try to get user info from the App component's state
           const appUserInfo = JSON.parse(localStorage.getItem('playerInfo'));
           if (appUserInfo && appUserInfo.id) {
             const userData = await fetchUserInfoById(appUserInfo.id);
@@ -233,7 +242,6 @@ const MessengerPage = () => {
     fetchCurrentUser();
   }, []);
 
-  // Fetch user conversations - only when currentUser changes
   useEffect(() => {
     const fetchConversations = async () => {
       if (!currentUser) {
@@ -244,26 +252,35 @@ const MessengerPage = () => {
       try {
         setLoading(true);
         console.log("Fetching conversations for user:", currentUser.id);
+        console.log("Current user object:", JSON.stringify(currentUser, null, 2));
 
-        // Get all conversations where the current user is a participant
+        console.log("Using listUserConversations with filter");
+
         const userConversationsData = await client.graphql({
-          query: userConversationsByUserId,
+          query: queries.listUserConversations,
           variables: {
-            userId: currentUser.id,
+            filter: {
+              userId: {
+                eq: currentUser.id
+              }
+            },
+            limit: 100
           },
         });
 
-        console.log("User conversations data:", userConversationsData);
+        console.log("User conversations data:", JSON.stringify(userConversationsData, null, 2));
 
-        if (!userConversationsData.data || !userConversationsData.data.userConversationsByUserId) {
-          console.error("Invalid response format for userConversationsByUserId");
+        if (!userConversationsData.data || !userConversationsData.data.listUserConversations) {
+          console.error("Invalid response format for listUserConversations");
+          console.error("Response data:", JSON.stringify(userConversationsData, null, 2));
           message.error("Failed to load conversations: Invalid response format");
           setLoading(false);
           return;
         }
 
-        const userConversationItems = userConversationsData.data.userConversationsByUserId.items;
-        console.log("User conversation items:", userConversationItems);
+        const userConversationItems = userConversationsData.data.listUserConversations.items;
+        console.log("User conversation items:", JSON.stringify(userConversationItems, null, 2));
+        console.log("Number of conversations found:", userConversationItems.length);
 
         if (userConversationItems.length === 0) {
           console.log("No conversations found for user");
@@ -272,25 +289,71 @@ const MessengerPage = () => {
           return;
         }
 
-        // Fetch full conversation details for each conversation
         const conversationPromises = userConversationItems.map(async (item) => {
           try {
             console.log("Fetching conversation details for:", item.conversationId);
             const conversationData = await client.graphql({
-              query: getConversation,
+              query: queries.getConversation,
               variables: {
                 id: item.conversationId,
               },
             });
 
+            console.log("Conversation data for", item.conversationId, ":", JSON.stringify(conversationData, null, 2));
+
             if (!conversationData.data || !conversationData.data.getConversation) {
               console.error("Invalid response format for getConversation", item.conversationId);
+              console.error("Response data:", JSON.stringify(conversationData, null, 2));
               return null;
             }
 
-            return conversationData.data.getConversation;
+            const participantsData = await client.graphql({
+              query: userConversationsByConversationId,
+              variables: {
+                conversationId: item.conversationId,
+                limit: 50
+              },
+            });
+
+            console.log("Participants data for", item.conversationId, ":",
+              JSON.stringify(participantsData?.data?.userConversationsByConversationId?.items, null, 2));
+
+            const participantPromises = participantsData?.data?.userConversationsByConversationId?.items.map(
+              async (participant) => {
+                try {
+                  const userData = await client.graphql({
+                    query: queries.getUser,
+                    variables: {
+                      id: participant.userId,
+                    },
+                  });
+
+                  return {
+                    ...participant,
+                    user: userData.data.getUser
+                  };
+                } catch (err) {
+                  console.error("Error fetching user details for", participant.userId, ":", err);
+                  return participant;
+                }
+              }
+            ) || [];
+
+            const participantsWithUserDetails = await Promise.all(participantPromises);
+
+            const conversationWithParticipants = {
+              ...conversationData.data.getConversation,
+              participants: {
+                items: participantsWithUserDetails,
+                nextToken: participantsData?.data?.userConversationsByConversationId?.nextToken,
+                __typename: "ModelUserConversationConnection"
+              }
+            };
+
+            return conversationWithParticipants;
           } catch (err) {
-            console.error("Error fetching conversation details:", err);
+            console.error("Error fetching conversation details for", item.conversationId, ":", err);
+            console.error("Error details:", JSON.stringify(err, null, 2));
             return null;
           }
         });
@@ -298,26 +361,33 @@ const MessengerPage = () => {
         const fetchedConversations = await Promise.all(conversationPromises);
         const validConversations = fetchedConversations.filter(conv => conv !== null);
 
-        console.log("Fetched conversations:", validConversations);
+        console.log("Fetched conversations:", JSON.stringify(validConversations, null, 2));
+        console.log("Number of valid conversations:", validConversations.length);
 
-        // Sort conversations by last message timestamp (newest first)
         const sortedConversations = validConversations.sort((a, b) => {
           const timeA = new Date(a.lastMessageAt || 0);
           const timeB = new Date(b.lastMessageAt || 0);
           return timeB - timeA;
         });
 
+        console.log("Sorted conversations:", JSON.stringify(sortedConversations, null, 2));
+        console.log("Setting conversations state with", sortedConversations.length, "conversations");
+
         setConversations(sortedConversations);
 
-        // If there's a conversationId in the URL, select that conversation
         if (conversationId) {
+          console.log("URL has conversationId:", conversationId);
           const selectedConv = sortedConversations.find(conv => conv.id === conversationId);
           if (selectedConv) {
+            console.log("Found matching conversation for URL:", selectedConv.id);
             setSelectedConversation(selectedConv);
+          } else {
+            console.log("No matching conversation found for URL conversationId");
           }
         }
       } catch (error) {
         console.error("Error fetching conversations:", error);
+        console.error("Error details:", JSON.stringify(error, null, 2));
         message.error("Failed to load conversations");
       } finally {
         setLoading(false);
@@ -325,9 +395,8 @@ const MessengerPage = () => {
     };
 
     fetchConversations();
-  }, [currentUser]); // Removed conversationId from dependencies to prevent refetching when switching chats
+  }, [currentUser]);
 
-  // Handle URL conversationId changes without refetching all conversations
   useEffect(() => {
     if (!conversationId || !conversations.length) return;
 
@@ -337,17 +406,14 @@ const MessengerPage = () => {
     }
   }, [conversationId, conversations]);
 
-  // Focus the message input when a conversation is selected
   useEffect(() => {
     if (selectedConversation && messageInputRef.current) {
-      // Use a small timeout to ensure the DOM is ready
       setTimeout(() => {
         messageInputRef.current.focus();
       }, 100);
     }
   }, [selectedConversation]);
 
-  // Fetch messages for selected conversation
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedConversation || !currentUser) {
@@ -357,9 +423,9 @@ const MessengerPage = () => {
 
       try {
         console.log("Fetching messages for conversation:", selectedConversation.id);
-        setMessages([]); // Clear messages while loading
+        console.log("Selected conversation data:", JSON.stringify(selectedConversation, null, 2));
+        setMessages([]);
 
-        // Get all messages for the selected conversation using listMessages with a filter
         const messagesData = await client.graphql({
           query: listMessages,
           variables: {
@@ -368,8 +434,8 @@ const MessengerPage = () => {
                 eq: selectedConversation.id
               }
             },
-            limit: 100, // Adjust as needed
-            sortDirection: "ASC", // Oldest to newest
+            limit: 100,
+            sortDirection: "ASC",
           },
         });
 
@@ -384,53 +450,64 @@ const MessengerPage = () => {
         const fetchedMessages = messagesData.data.listMessages.items || [];
         console.log("Fetched messages:", fetchedMessages);
 
-        // Check if this is a group chat (more than 2 participants)
         if (selectedConversation.participants && selectedConversation.participants.items) {
           const participants = selectedConversation.participants.items;
+          console.log("Conversation participants:", JSON.stringify(participants, null, 2));
 
           if (participants.length > 2) {
-            // This is a group chat - set otherUser to a special group object
             const otherParticipants = participants.filter(
-              item => item.user.id !== currentUser.id
+              item => item.userId !== currentUser.id
             );
 
-            // Create a group name using the participants' names
+            console.log("Other participants:", JSON.stringify(otherParticipants, null, 2));
+
             let groupName = '';
             if (otherParticipants.length <= 3) {
-              // If 3 or fewer other users, include all names
-              const userNames = otherParticipants.map(item => item.user.nickname || 'User');
-              // Add current user's name if available
+              const userNames = otherParticipants.map(item => {
+                if (item.user && item.user.nickname) {
+                  return item.user.nickname;
+                }
+                return 'User';
+              });
+
               const allNames = currentUser?.nickname ?
                 [currentUser.nickname, ...userNames] :
                 ['You', ...userNames];
               groupName = allNames.join(', ');
             } else {
-              // If more than 3 other users, include first 2 names and show count of others
-              const userNames = otherParticipants.slice(0, 2).map(item => item.user.nickname || 'User');
+              const userNames = otherParticipants.slice(0, 2).map(item => {
+                if (item.user && item.user.nickname) {
+                  return item.user.nickname;
+                }
+                return 'User';
+              });
+
               const currentUserName = currentUser?.nickname || 'You';
               const othersCount = otherParticipants.length - 2;
-              groupName = `${currentUserName}, ${userNames.join(', ')} and ${othersCount} others`;
+              groupName = `${userNames.join(', ')} and ${othersCount} others`;
             }
+
+            console.log("Generated group name:", groupName);
+            console.log("Conversation name from data:", selectedConversation.name);
 
             setOtherUser({
               id: 'group',
-              nickname: selectedConversation.name || groupName,
+              nickname: (selectedConversation.name && selectedConversation.name.trim() !== '') ? selectedConversation.name : groupName,
               isGroup: true,
               participants: participants
             });
           } else {
-            // This is a one-on-one chat - find the other user
             const otherParticipant = participants.find(
-              item => item.user.id !== currentUser.id
+              item => item.userId !== currentUser.id
             );
 
+            console.log("Other participant:", JSON.stringify(otherParticipant, null, 2));
+
             if (otherParticipant) {
-              // First try to use the user data directly from the conversation
               if (otherParticipant.user && otherParticipant.user.avatar) {
                 setOtherUser(otherParticipant.user);
               } else {
-                // Fallback to fetching user info if needed
-                const otherUserData = await fetchUserInfoById(otherParticipant.user.id);
+                const otherUserData = await fetchUserInfoById(otherParticipant.userId);
                 setOtherUser(otherUserData);
               }
             }
@@ -443,7 +520,6 @@ const MessengerPage = () => {
           return;
         }
 
-        // Sort messages by timestamp to ensure they're in chronological order
         const sortedMessages = fetchedMessages.sort((a, b) => {
           const timeA = new Date(a.timestamp || 0);
           const timeB = new Date(b.timestamp || 0);
@@ -452,7 +528,6 @@ const MessengerPage = () => {
 
         setMessages(sortedMessages);
 
-        // Mark unread messages as read
         const unreadMessages = fetchedMessages.filter(
           msg => !msg.read && msg.senderId !== currentUser.id
         );
@@ -474,20 +549,15 @@ const MessengerPage = () => {
           );
         }
 
-        // Check if we need to update the conversation in the list with latest message info
         const latestMessage = fetchedMessages[fetchedMessages.length - 1];
         if (latestMessage) {
-          // Update the conversations list using functional update to avoid dependency on conversations
           setConversations(prevConversations => {
-            // Get the current conversation from the list
             const currentConvInList = prevConversations.find(c => c.id === selectedConversation.id);
 
-            // If the latest message is newer than what we have in the conversation list, update it
             if (currentConvInList &&
                 (!currentConvInList.lastMessageAt ||
                  new Date(latestMessage.timestamp) > new Date(currentConvInList.lastMessageAt))) {
 
-              // Update the conversations list to reflect the latest message
               const updatedConversations = prevConversations.map(conv => {
                 if (conv.id === selectedConversation.id) {
                   return {
@@ -500,7 +570,6 @@ const MessengerPage = () => {
                 return conv;
               });
 
-              // Sort conversations by last message timestamp (newest first)
               return updatedConversations.sort((a, b) => {
                 const timeA = new Date(a.lastMessageAt || 0);
                 const timeB = new Date(b.lastMessageAt || 0);
@@ -508,7 +577,6 @@ const MessengerPage = () => {
               });
             }
 
-            // If no update needed, return the original list
             return prevConversations;
           });
         }
@@ -521,12 +589,10 @@ const MessengerPage = () => {
 
     fetchMessages();
 
-    // Set up polling for new messages - only poll for new messages, not the whole conversation
     const intervalId = setInterval(async () => {
       if (!selectedConversation || !currentUser) return;
 
       try {
-        // Only fetch new messages
         const messagesData = await client.graphql({
           query: messagesByConversationIdCustom,
           variables: {
@@ -539,11 +605,9 @@ const MessengerPage = () => {
         if (messagesData.data && messagesData.data.messagesByConversationId) {
           const fetchedMessages = messagesData.data.messagesByConversationId.items || [];
 
-          // Only update if we have more messages than before
           if (fetchedMessages.length > messages.length) {
             console.log("New messages detected, updating...");
 
-            // Sort messages by timestamp
             const sortedMessages = fetchedMessages.sort((a, b) => {
               const timeA = new Date(a.timestamp || 0);
               const timeB = new Date(b.timestamp || 0);
@@ -552,7 +616,6 @@ const MessengerPage = () => {
 
             setMessages(sortedMessages);
 
-            // Mark new unread messages as read
             const unreadMessages = fetchedMessages.filter(
               msg => !msg.read && msg.senderId !== currentUser.id
             );
@@ -583,7 +646,6 @@ const MessengerPage = () => {
     return () => clearInterval(intervalId);
   }, [selectedConversation, currentUser]);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -600,7 +662,6 @@ const MessengerPage = () => {
 
       console.log("Sending message to conversation:", selectedConversation.id);
 
-      // Create new message
       const newMessageData = await client.graphql({
         query: createMessage,
         variables: {
@@ -610,14 +671,13 @@ const MessengerPage = () => {
             content: newMessage,
             timestamp,
             read: false,
-            conversationMessagesId: selectedConversation.id, // Add this field to properly link the message to the conversation
+            conversationMessagesId: selectedConversation.id,
           },
         },
       });
 
       console.log("Message created:", newMessageData);
 
-      // Update conversation with last message info
       await client.graphql({
         query: updateConversation,
         variables: {
@@ -630,11 +690,9 @@ const MessengerPage = () => {
         },
       });
 
-      // Add new message to the list and sort by timestamp
       const createdMessage = newMessageData.data.createMessage;
       setMessages(prevMessages => {
         const updatedMessages = [...prevMessages, createdMessage];
-        // Sort messages by timestamp (oldest to newest)
         return updatedMessages.sort((a, b) => {
           const timeA = new Date(a.timestamp || 0);
           const timeB = new Date(b.timestamp || 0);
@@ -642,9 +700,7 @@ const MessengerPage = () => {
         });
       });
 
-      // Update the local conversations list using functional update
       setConversations(prevConversations => {
-        // Update the conversation with the new message info
         const updatedConversations = prevConversations.map(conv => {
           if (conv.id === selectedConversation.id) {
             return {
@@ -657,7 +713,6 @@ const MessengerPage = () => {
           return conv;
         });
 
-        // Sort conversations by last message timestamp (newest first)
         return updatedConversations.sort((a, b) => {
           const timeA = new Date(a.lastMessageAt || 0);
           const timeB = new Date(b.lastMessageAt || 0);
@@ -674,50 +729,75 @@ const MessengerPage = () => {
   };
 
   const handleGroupUpdate = async () => {
-    // Reload the conversation to get updated data
-    if (selectedConversation) {
-      try {
-        const conversationData = await client.graphql({
-          query: getConversationWithParticipants,
-          variables: {
-            id: selectedConversation.id,
-          },
-        });
+    if (!selectedConversation || !currentUser) return;
 
-        if (!conversationData.data || !conversationData.data.getConversation) {
-          console.error("Invalid response format for getConversationWithParticipants");
-          return;
-        }
+    try {
+      console.log("Refreshing conversation data after group update");
 
-        const updatedConversation = conversationData.data.getConversation;
-        setSelectedConversation(updatedConversation);
+      const conversationData = await client.graphql({
+        query: getConversation,
+        variables: { id: selectedConversation.id },
+      });
 
-        // Update the conversations list
-        setConversations(prevConversations => {
-          return prevConversations.map(conv => {
-            if (conv.id === updatedConversation.id) {
-              return {
-                ...conv,
-                name: updatedConversation.name
-              };
-            }
-            return conv;
-          });
-        });
-
-        // Update otherUser info for group chats
-        if (updatedConversation.participants?.items.length > 2) {
-          const participants = updatedConversation.participants.items;
-          setOtherUser({
-            id: 'group',
-            isGroup: true,
-            nickname: updatedConversation.name || `Group (${participants.length})`,
-            participants: participants
-          });
-        }
-      } catch (error) {
-        console.error('Error refreshing conversation:', error);
+      if (!conversationData.data || !conversationData.data.getConversation) {
+        console.error("Failed to fetch updated conversation data");
+        return;
       }
+
+      const updatedConversation = conversationData.data.getConversation;
+
+      setConversations(prevConversations =>
+        prevConversations.map(conv =>
+          conv.id === updatedConversation.id ? updatedConversation : conv
+        )
+      );
+
+      setSelectedConversation(updatedConversation);
+
+      if (updatedConversation.participants?.items.length > 2) {
+        const participants = updatedConversation.participants.items;
+        const otherParticipants = participants.filter(item => item.userId !== currentUser.id);
+
+        let groupName = updatedConversation.name && updatedConversation.name.trim() !== ''
+          ? updatedConversation.name
+          : otherParticipants.map(p => p.user?.nickname || "User").join(", ");
+
+        setOtherUser({
+          id: "group",
+          isGroup: true,
+          nickname: groupName,
+          participants: participants,
+        });
+      }
+
+      console.log("Group chat updated successfully:", updatedConversation);
+      console.log("Updated conversations:", conversations);
+      console.log("Updated selectedConversation:", updatedConversation);
+      console.log("Updated otherUser:", { nickname: updatedConversation.name });
+    } catch (error) {
+      console.error("Error refreshing conversation:", error);
+      message.error("Failed to refresh group chat data");
+    }
+  };
+
+  const handleGroupDeleted = (deletedConversationId) => {
+    console.log("Group deleted:", deletedConversationId);
+
+    // Update conversations list by removing the deleted conversation
+    setConversations(prevConversations =>
+      prevConversations.filter(conv => conv.id !== deletedConversationId)
+    );
+
+    // If the deleted conversation was selected, clear all related state
+    if (selectedConversation && selectedConversation.id === deletedConversationId) {
+      setSelectedConversation(null);
+      setMessages([]);
+      setOtherUser(null);
+
+      // Use setTimeout to ensure state updates are processed before navigation
+      setTimeout(() => {
+        navigate('/messenger');
+      }, 0);
     }
   };
 
@@ -749,289 +829,366 @@ const MessengerPage = () => {
 
   const getAvatar = (avatarName) => {
     return avatarName ? selectAvatar(avatarName) : null;
-  }
+  };
+
+  useEffect(() => {
+    console.log("Rendering with conversations:", conversations.length);
+    console.log("Conversations data:", JSON.stringify(conversations, null, 2));
+    console.log("Loading state:", loading);
+    console.log("Current user:", currentUser?.id);
+  }, [conversations, loading, currentUser]);
 
   if (loading && !currentUser) {
     return <Spin size="large" fullscreen />;
   }
 
+  console.log("About to render with:", {
+    conversationsLength: conversations.length,
+    loading,
+    currentUser: currentUser?.id
+  });
+
   return (
     <>
       <Layout className="messenger-layout">
         <Sider width={300} className="conversation-sider">
-        <div className="conversations-header">
-          <Title level={4} onClick={() => console.log("otherparticipant", otherUser)}>Messages</Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setIsCreateGroupChatModalOpen(true)}
-          >
-            Create Group
-          </Button>
-        </div>
+          <div className="conversations-header">
+            <Title level={4} onClick={() => {
+              console.log("Current conversations state:", conversations);
+              console.log("Other user:", otherUser);
+            }}>Messages</Title>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Button
+                type="default"
+                onClick={() => {
+                  console.log("Debug button clicked");
+                  console.log("Current user:", currentUser);
+                  console.log("Conversations:", conversations);
+                  console.log("Loading state:", loading);
 
-        {loading ? (
-          <div className="loading-container">
-            <Spin />
-          </div>
-        ) : conversations.length === 0 ? (
-          <Empty description="No conversations yet" />
-        ) : (
-          <List
-            className="conversation-list"
-            dataSource={conversations}
-            renderItem={(conversation) => {
-              const participants = conversation.participants?.items || [];
-              const isGroup = participants.length > 2;
-              const isSelected = selectedConversation?.id === conversation.id;
-
-              // We can't check messages directly since we're not loading them all at once
-              // Instead, rely on the lastMessageSenderId to determine if there might be unread messages
-              const hasUnread = conversation.lastMessageSenderId !== currentUser.id;
-
-              let displayName = "Chat";
-              let avatarSrc = null;
-
-              if (isGroup) {
-                // For group chats, show the number of participants
-                const otherParticipants = participants.filter(
-                  item => item.user.id !== currentUser.id
-                );
-                // Use conversation name if available, otherwise show "Group Chat (n)"
-                displayName = conversation.name || `Group Chat (${participants.length})`;
-              } else {
-                // For one-on-one chats, show the other user's name
-                const otherParticipantItem = participants.find(
-                  item => item.user.id !== currentUser.id
-                );
-                const otherParticipant = otherParticipantItem?.user;
-                displayName = otherParticipant?.nickname || "User";
-                avatarSrc = getAvatar(otherParticipant?.avatar);
-              }
-
-              return (
-                <List.Item
-                  className={`conversation-item ${isSelected ? 'selected' : ''}`}
-                  onClick={() => selectConversation(conversation)}
-                >
-                  <List.Item.Meta
-                    avatar={
-                      <Badge dot={hasUnread} offset={[-5, 5]} color="red">
-                        <Avatar
-                          size={40}
-                          src={isGroup ? null : avatarSrc}
-                          icon={isGroup ? <UserOutlined /> : (!avatarSrc && <UserOutlined />)}
-                          style={isGroup ? { backgroundColor: '#1890ff' } : {}}
-                        >
-                          {isGroup && 'G'}
-                        </Avatar>
-                      </Badge>
-                    }
-                    title={
-                      <div className="conversation-title">
-                        <Text strong>{displayName}</Text>
-                        <Text className="conversation-time">
-                          {formatTime(conversation.lastMessageAt)}
-                        </Text>
-                      </div>
-                    }
-                    description={
-                      <Text
-                        className="conversation-preview"
-                        type={hasUnread ? "default" : "secondary"}
-                        strong={hasUnread}
-                      >
-                        {conversation.lastMessageSenderId === currentUser.id ? "You: " : ""}
-                        {conversation.lastMessageContent || "No messages yet"}
-                      </Text>
-                    }
-                  />
-                </List.Item>
-              );
-            }}
-          />
-        )}
-      </Sider>
-
-      <Layout className="message-layout">
-        {selectedConversation ? (
-          <>
-            <div className="message-header">
-              <div className="message-header-user">
-                {otherUser?.isGroup ? (
-                  // Group chat header
-                  <Avatar
-                    size={40}
-                    style={{ backgroundColor: '#1890ff' }}
-                    icon={<UserOutlined />}
-                  >
-                    G
-                  </Avatar>
-                ) : (
-                  // One-on-one chat header
-                  <Avatar
-                    size={40}
-                    src={selectAvatar(otherUser?.avatar)}
-                    icon={!otherUser?.avatar && <UserOutlined />}
-                  />
-                )}
-                <div className="message-header-info">
-                  {otherUser?.isGroup ? (
-                    <Text
-                      strong
-                      className="message-header-name group-name"
-                      onClick={() => {
-                        console.log("Opening edit group modal", {
-                          selectedConversation,
-                          otherUser,
-                          isGroup: otherUser?.isGroup
-                        });
-                        setIsEditGroupChatModalOpen(true);
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {otherUser.nickname}
-                    </Text>
-                  ) : (
-                    <Text strong className="message-header-name">
-                      {otherUser?.nickname || "User"}
-                    </Text>
-                  )}
-                  {otherUser?.isGroup && (
-                    <Text type="secondary" className="message-header-participants">
-                      {otherUser.participants.length} participants
-                    </Text>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <Content className="message-content">
-              {messages.length === 0 ? (
-                <div className="empty-messages">
-                  <Empty description="No messages yet" />
-                  <Text type="secondary">Send a message to start the conversation</Text>
-                </div>
-              ) : (
-                <div className="messages-container">
-                  {messages.map((msg, index) => {
-                    const isCurrentUser = msg.senderId === currentUser.id;
-                    const showAvatar = index === 0 ||
-                      messages[index - 1].senderId !== msg.senderId;
-
-                    // Find sender info for all messages
-                    let senderName = isCurrentUser ? "You" : (otherUser?.nickname || "User");
-                    let senderAvatar = isCurrentUser ? selectAvatar(currentUser?.avatar) : selectAvatar(otherUser?.avatar);
-
-                    if (otherUser?.isGroup && !isCurrentUser) {
-                      // In group chats, find the sender from participants
-                      const sender = otherUser.participants?.find(
-                        p => {
-                          // Handle both possible structures
-                          if (p.user && p.user.id) {
-                            return p.user.id === msg.senderId;
-                          } else if (p.userId) {
-                            return p.userId === msg.senderId;
+                  if (currentUser) {
+                    console.log("Refreshing conversations...");
+                    client.graphql({
+                      query: queries.listUserConversations,
+                      variables: {
+                        filter: {
+                          userId: {
+                            eq: currentUser.id
                           }
-                          return false;
-                        }
-                      );
+                        },
+                        limit: 100
+                      },
+                    }).then(data => {
+                      console.log("Refreshed user conversations data:", data);
+                      if (data.data && data.data.listUserConversations && data.data.listUserConversations.items) {
+                        console.log("Found conversations:", data.data.listUserConversations.items.length);
 
-                      if (sender) {
-                        if (sender.user) {
-                          senderName = sender.user.nickname || "User";
-                          senderAvatar = selectAvatar(sender.user.avatar);
-                        } else {
-                          // Try to use the user directly if that's the structure
-                          senderName = sender.nickname || "User";
-                          senderAvatar = selectAvatar(sender.avatar);
+                        if (data.data.listUserConversations.items.length > 0) {
+                          const firstConversation = data.data.listUserConversations.items[0];
+                          console.log("Fetching details for first conversation:", firstConversation.conversationId);
+
+                          client.graphql({
+                            query: queries.getConversation,
+                            variables: {
+                              id: firstConversation.conversationId,
+                            },
+                          }).then(convData => {
+                            console.log("First conversation details:", convData);
+                          }).catch(err => {
+                            console.error("Error fetching conversation details:", err);
+                          });
                         }
                       }
-                    }
-
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`message-bubble-container ${isCurrentUser ? 'sent' : 'received'}`}
-                      >
-                        <div className="message-content-wrapper">
-                          {!isCurrentUser && showAvatar && (
-                            <Avatar
-                              size={32}
-                              src={senderAvatar}
-                              icon={!senderAvatar && <UserOutlined />}
-                              className="message-avatar-left"
-                            />
-                          )}
-                          <div className="message-bubble-wrapper">
-                            {otherUser?.isGroup && !isCurrentUser && showAvatar && (
-                              <Text className="message-sender-name" type="secondary">
-                                {senderName}
-                              </Text>
-                            )}
-                            <div className={`message-bubble ${isCurrentUser ? 'sent' : 'received'}`}>
-                              <Text className="message-text">{msg.content}</Text>
-                            </div>
-                            <Text className="message-time" type="secondary">
-                              {formatTime(msg.timestamp)}
-                            </Text>
-                          </div>
-                          {isCurrentUser && showAvatar && (
-                            <Avatar
-                              size={32}
-                              src={senderAvatar}
-                              icon={!senderAvatar && <UserOutlined />}
-                              className="message-avatar-right"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
-                </div>
-              )}
-            </Content>
-
-            <div className="message-input-container">
-              <TextArea
-                ref={messageInputRef}
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a message..."
-                autoSize={{ minRows: 2, maxRows: 6 }}
-                className="message-input"
-                style={{ fontSize: '16px' }}
-                autoFocus
-              />
+                    }).catch(err => {
+                      console.error("Error refreshing conversations:", err);
+                    });
+                  }
+                }}
+              >
+                Debug
+              </Button>
+              <Button
+                type="default"
+                onClick={() => {
+                  if (currentUser) {
+                    setLoading(true);
+                    setCurrentUser({...currentUser});
+                    message.info("Refreshing conversations...");
+                  }
+                }}
+              >
+                Refresh
+              </Button>
               <Button
                 type="primary"
-                icon={<SendOutlined style={{ fontSize: '20px' }} />}
-                onClick={handleSendMessage}
-                loading={sendingMessage}
-                className="send-button"
+                icon={<PlusOutlined />}
+                onClick={() => setIsCreateGroupChatModalOpen(true)}
+              >
+                Create Group
+              </Button>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="loading-container">
+              <Spin />
+            </div>
+          ) : conversations.length === 0 ? (
+            <>
+              <Empty description="No conversations yet" />
+              <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    console.log("Debug button clicked");
+                    console.log("Current user:", currentUser);
+                    console.log("Conversations:", conversations);
+                    console.log("Loading state:", loading);
+                  }}
+                >
+                  Debug Info
+                </Button>
+              </div>
+            </>
+          ) : (
+            <List
+              className="conversation-list"
+              dataSource={conversations}
+              renderItem={(conversation) => {
+                const participants = conversation.participants?.items || [];
+                const isGroup = participants.length > 2;
+                const isSelected = selectedConversation?.id === conversation.id;
+
+                const hasUnread = conversation.lastMessageSenderId !== currentUser.id;
+
+                let displayName = "Chat";
+                let avatarSrc = null;
+
+                if (isGroup) {
+                  displayName = conversation.name && conversation.name.trim() !== ''
+                    ? conversation.name
+                    : participants.filter(item => item.userId !== currentUser.id)
+                        .map(item => item.user?.nickname || "User").join(", ");
+                } else {
+                  const otherParticipant = participants.find(item => item.userId !== currentUser.id);
+                  displayName = otherParticipant?.user?.nickname || "User";
+                  avatarSrc = getAvatar(otherParticipant?.user?.avatar);
+                }
+
+                return (
+                  <List.Item
+                    className={`conversation-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => selectConversation(conversation)}
+                  >
+                    <List.Item.Meta
+                      avatar={
+                        <Badge dot={hasUnread} offset={[-5, 5]} color="red">
+                          <Avatar
+                            size={40}
+                            src={isGroup ? null : avatarSrc}
+                            icon={isGroup ? <UserOutlined /> : (!avatarSrc && <UserOutlined />)}
+                            style={isGroup ? { backgroundColor: '#1890ff' } : {}}
+                          >
+                            {isGroup && 'G'}
+                          </Avatar>
+                        </Badge>
+                      }
+                      title={
+                        <div className="conversation-title">
+                          <Text strong>{displayName}</Text>
+                          <Text className="conversation-time">
+                            {formatTime(conversation.lastMessageAt)}
+                          </Text>
+                        </div>
+                      }
+                      description={
+                        <Text
+                          className="conversation-preview"
+                          type={hasUnread ? "default" : "secondary"}
+                          strong={hasUnread}
+                        >
+                          {conversation.lastMessageSenderId === currentUser.id ? "You: " : ""}
+                          {conversation.lastMessageContent || "No messages yet"}
+                        </Text>
+                      }
+                    />
+                  </List.Item>
+                );
+              }}
+            />
+          )}
+        </Sider>
+
+        <Layout className="message-layout">
+          {selectedConversation ? (
+            <>
+              <div className="message-header">
+                <div className="message-header-user">
+                  {otherUser?.isGroup ? (
+                    <Avatar
+                      size={40}
+                      style={{ backgroundColor: '#1890ff' }}
+                      icon={<UserOutlined />}
+                    >
+                      G
+                    </Avatar>
+                  ) : (
+                    <Avatar
+                      size={40}
+                      src={selectAvatar(otherUser?.avatar)}
+                      icon={!otherUser?.avatar && <UserOutlined />}
+                    />
+                  )}
+                  <div className="message-header-info">
+                    {otherUser?.isGroup ? (
+                      <Text
+                        strong
+                        className="message-header-name group-name"
+                        onClick={() => {
+                          console.log("Opening edit group modal", {
+                            selectedConversation,
+                            otherUser,
+                            isGroup: otherUser?.isGroup
+                          });
+                          setIsEditGroupChatModalOpen(true);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {otherUser.nickname}
+                      </Text>
+                    ) : (
+                      <Text strong className="message-header-name">
+                        {otherUser?.nickname || "User"}
+                      </Text>
+                    )}
+                    {otherUser?.isGroup && (
+                      <Text type="secondary" className="message-header-participants">
+                        {otherUser.participants.length} participants
+                      </Text>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Content className="message-content">
+                {messages.length === 0 ? (
+                  <div className="empty-messages">
+                    <Empty description="No messages yet" />
+                    <Text type="secondary">Send a message to start the conversation</Text>
+                  </div>
+                ) : (
+                  <div className="messages-container">
+                    {messages.map((msg, index) => {
+                      const isCurrentUser = msg.senderId === currentUser.id;
+                      const showAvatar = index === 0 ||
+                        messages[index - 1].senderId !== msg.senderId;
+
+                      let senderName = isCurrentUser ? "You" : (otherUser?.nickname || "User");
+                      let senderAvatar = isCurrentUser ? selectAvatar(currentUser?.avatar) : selectAvatar(otherUser?.avatar);
+
+                      if (otherUser?.isGroup && !isCurrentUser) {
+                        const sender = otherUser.participants?.find(
+                          p => p.userId === msg.senderId
+                        );
+
+                        if (sender) {
+                          if (sender.user) {
+                            senderName = sender.user.nickname || "User";
+                            senderAvatar = selectAvatar(sender.user.avatar);
+                          } else {
+                            senderName = sender.nickname || "User";
+                            senderAvatar = selectAvatar(sender.avatar);
+                          }
+                        }
+                      }
+
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`message-bubble-container ${isCurrentUser ? 'sent' : 'received'}`}
+                        >
+                          <div className="message-content-wrapper">
+                            {!isCurrentUser && showAvatar && (
+                              <Avatar
+                                size={32}
+                                src={senderAvatar}
+                                icon={!senderAvatar && <UserOutlined />}
+                                className="message-avatar-left"
+                              />
+                            )}
+                            <div className="message-bubble-wrapper">
+                              {otherUser?.isGroup && !isCurrentUser && showAvatar && (
+                                <Text className="message-sender-name" type="secondary">
+                                  {senderName}
+                                </Text>
+                              )}
+                              <div className={`message-bubble ${isCurrentUser ? 'sent' : 'received'}`}>
+                                <Text className="message-text">{msg.content}</Text>
+                              </div>
+                              <Text className="message-time" type="secondary">
+                                {formatTime(msg.timestamp)}
+                              </Text>
+                            </div>
+                            {isCurrentUser && showAvatar && (
+                              <Avatar
+                                size={32}
+                                src={senderAvatar}
+                                icon={!senderAvatar && <UserOutlined />}
+                                className="message-avatar-right"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </Content>
+
+              <div className="message-input-container">
+                <TextArea
+                  ref={messageInputRef}
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type a message..."
+                  autoSize={{ minRows: 2, maxRows: 6 }}
+                  className="message-input"
+                  style={{ fontSize: '16px' }}
+                  autoFocus
+                />
+                <Button
+                  type="primary"
+                  icon={<SendOutlined style={{ fontSize: '20px' }} />}
+                  onClick={handleSendMessage}
+                  loading={sendingMessage}
+                  className="send-button"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="no-conversation-selected">
+              <Empty
+                description="Select a conversation or start a new one"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
               />
             </div>
-          </>
-        ) : (
-          <div className="no-conversation-selected">
-            <Empty
-              description="Select a conversation or start a new one"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />
-          </div>
-        )}
+          )}
         </Layout>
       </Layout>
 
-      {/* Always render the modals but control visibility with isOpen prop - moved outside Layout */}
       <EditGroupChatModal
         isOpen={isEditGroupChatModalOpen && selectedConversation && otherUser?.isGroup}
         onClose={() => setIsEditGroupChatModalOpen(false)}
+        conversationName={selectedConversation?.name || ""}
         conversation={selectedConversation || {}}
         currentUser={currentUser || {}}
         onGroupUpdated={handleGroupUpdate}
+        onGroupDeleted={handleGroupDeleted}
+        setConversations={setConversations}
+        selectedConversation={selectedConversation}
+        setSelectedConversation={setSelectedConversation}
       />
       <CreateGroupChatModal
         isOpen={isCreateGroupChatModalOpen}

@@ -95,9 +95,18 @@
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
+  justify-content: space-between;
   margin-top: 16px;
+}
+
+.left-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.right-actions {
+  display: flex;
+  gap: 12px;
 }
 
 /* Dark mode styles */

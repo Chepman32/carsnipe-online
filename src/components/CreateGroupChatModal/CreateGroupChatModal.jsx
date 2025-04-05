@@ -17,6 +17,7 @@ const client = generateClient();
 
 const CreateGroupChatModal = ({ isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -169,22 +170,27 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
       // Create a new conversation
       const timestamp = new Date().toISOString();
 
-      // Create a group name using the participants' names
-      let groupName = '';
-      if (selectedUsers.length <= 3) {
-        // If 3 or fewer users, include all names
-        const userNames = selectedUsers.map(user => user.nickname || 'User');
-        // Add current user's name if available
-        const allNames = currentUser?.nickname ?
-          [currentUser.nickname, ...userNames] :
-          ['You', ...userNames];
-        groupName = allNames.join(', ');
+      // Use custom group name if provided, otherwise generate one
+      let displayGroupName = '';
+      if (groupName.trim() !== '') {
+        displayGroupName = groupName.trim();
       } else {
-        // If more than 3 users, include first 2 names and show count of others
-        const userNames = selectedUsers.slice(0, 2).map(user => user.nickname || 'User');
-        const currentUserName = currentUser?.nickname || 'You';
-        const othersCount = selectedUsers.length - 2;
-        groupName = `${currentUserName}, ${userNames.join(', ')} and ${othersCount} others`;
+        // Create a group name using the participants' names
+        if (selectedUsers.length <= 3) {
+          // If 3 or fewer users, include all names
+          const userNames = selectedUsers.map(user => user.nickname || 'User');
+          // Add current user's name if available
+          const allNames = currentUser?.nickname ?
+            [currentUser.nickname, ...userNames] :
+            ['You', ...userNames];
+          displayGroupName = allNames.join(', ');
+        } else {
+          // If more than 3 users, include first 2 names and show count of others
+          const userNames = selectedUsers.slice(0, 2).map(user => user.nickname || 'User');
+          const currentUserName = currentUser?.nickname || 'You';
+          const othersCount = selectedUsers.length - 2;
+          displayGroupName = `${userNames.join(', ')} and ${othersCount} others`;
+        }
       }
 
       console.log("Creating conversation with timestamp:", timestamp);
@@ -207,17 +213,50 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
 
         // Update the conversation with additional fields
         try {
+          // Update the conversation with basic fields
           await client.graphql({
             query: mutations.updateConversation,
             variables: {
               input: {
                 id: newConversationId,
                 lastMessageAt: timestamp,
-                lastMessageContent: `${groupName} created`,
+                lastMessageContent: `${displayGroupName} created`,
                 lastMessageSenderId: currentUser.id,
               }
             },
           });
+
+          // If a group name was provided, try to update it
+          // We'll use a custom mutation to update the name field
+          if (groupName.trim() !== '') {
+            try {
+              console.log("Attempting to update conversation name to:", groupName.trim());
+
+              // Create a custom mutation to update the name field
+              const updateConversationNameMutation = /* GraphQL */ `
+                mutation UpdateConversationName($id: ID!, $name: String) {
+                  updateConversation(input: {id: $id, name: $name}) {
+                    id
+                    name
+                  }
+                }
+              `;
+
+              await client.graphql({
+                query: updateConversationNameMutation,
+                variables: {
+                  id: newConversationId,
+                  name: groupName.trim(),
+                },
+              });
+
+              console.log("Conversation name updated successfully");
+            } catch (nameError) {
+              console.error("Error updating conversation name:", nameError);
+              console.log("Error details:", JSON.stringify(nameError, null, 2));
+              // Continue even if name update fails
+            }
+          }
 
           console.log("Conversation updated with message info");
 
@@ -267,7 +306,7 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
                   input: {
                     conversationId: newConversationId,
                     senderId: currentUser.id,
-                    content: `${groupName} created`,
+                    content: `${displayGroupName} created`,
                     timestamp,
                     read: false,
                     conversationMessagesId: newConversationId, // Add this field to properly link the message to the conversation
@@ -276,7 +315,7 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
               });
 
               console.log("Initial message created");
-              message.success(`${groupName} created successfully!`);
+              message.success(`${displayGroupName} created successfully!`);
               onClose();
 
               // Navigate to the new conversation
@@ -286,7 +325,7 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
               console.log("Error details:", JSON.stringify(err, null, 2));
 
               // Still consider it a success if only the message creation failed
-              message.success(`${groupName} created, but initial message failed`);
+              message.success(`${displayGroupName} created, but initial message failed`);
               onClose();
               navigate(`/messenger/${newConversationId}`);
             }
@@ -326,6 +365,17 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
     <div className="modal-overlay">
       <div className="modal">
         <h2>Create Group Chat</h2>
+
+        {/* Group name input */}
+        <div className="group-name-input">
+          <label>Group Name</label>
+          <Input
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            placeholder="Enter group name (optional)"
+            className="group-name-field"
+          />
+        </div>
 
         {/* Selected users display */}
         {selectedUsers.length > 0 && (

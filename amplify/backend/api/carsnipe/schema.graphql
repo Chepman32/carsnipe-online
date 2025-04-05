@@ -76,6 +76,7 @@ type Conversation @model
     { allow: public, operations: [create, update, delete, read] }
   ]) {
   id: ID!
+  name: String
   participants: [User] @manyToMany(relationName: "UserConversation")
   messages: [Message] @hasMany
   lastMessageAt: String

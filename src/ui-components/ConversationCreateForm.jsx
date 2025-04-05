@@ -23,10 +23,12 @@ export default function ConversationCreateForm(props) {
     ...rest
   } = props;
   const initialValues = {
+    name: "",
     lastMessageAt: "",
     lastMessageContent: "",
     lastMessageSenderId: "",
   };
+  const [name, setName] = React.useState(initialValues.name);
   const [lastMessageAt, setLastMessageAt] = React.useState(
     initialValues.lastMessageAt
   );
@@ -38,12 +40,14 @@ export default function ConversationCreateForm(props) {
   );
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
+    setName(initialValues.name);
     setLastMessageAt(initialValues.lastMessageAt);
     setLastMessageContent(initialValues.lastMessageContent);
     setLastMessageSenderId(initialValues.lastMessageSenderId);
     setErrors({});
   };
   const validations = {
+    name: [],
     lastMessageAt: [],
     lastMessageContent: [],
     lastMessageSenderId: [],
@@ -74,6 +78,7 @@ export default function ConversationCreateForm(props) {
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
+          name,
           lastMessageAt,
           lastMessageContent,
           lastMessageSenderId,
@@ -131,6 +136,33 @@ export default function ConversationCreateForm(props) {
       {...rest}
     >
       <TextField
+        label="Name"
+        isRequired={false}
+        isReadOnly={false}
+        value={name}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              name: value,
+              lastMessageAt,
+              lastMessageContent,
+              lastMessageSenderId,
+            };
+            const result = onChange(modelFields);
+            value = result?.name ?? value;
+          }
+          if (errors.name?.hasError) {
+            runValidationTasks("name", value);
+          }
+          setName(value);
+        }}
+        onBlur={() => runValidationTasks("name", name)}
+        errorMessage={errors.name?.errorMessage}
+        hasError={errors.name?.hasError}
+        {...getOverrideProps(overrides, "name")}
+      ></TextField>
+      <TextField
         label="Last message at"
         isRequired={false}
         isReadOnly={false}
@@ -139,6 +171,7 @@ export default function ConversationCreateForm(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
+              name,
               lastMessageAt: value,
               lastMessageContent,
               lastMessageSenderId,
@@ -165,6 +198,7 @@ export default function ConversationCreateForm(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
+              name,
               lastMessageAt,
               lastMessageContent: value,
               lastMessageSenderId,
@@ -193,6 +227,7 @@ export default function ConversationCreateForm(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
+              name,
               lastMessageAt,
               lastMessageContent,
               lastMessageSenderId: value,

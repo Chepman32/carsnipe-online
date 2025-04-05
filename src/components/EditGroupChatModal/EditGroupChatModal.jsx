@@ -1,15 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import './styles.css';
 import { generateClient } from 'aws-amplify/api';
-import { Input, Avatar, Button, List, Tag, Spin, message } from 'antd';
-import { UserOutlined, SearchOutlined, CloseOutlined } from '@ant-design/icons';
+import { Input, Avatar, Button, List, Tag, Spin, message, Modal, Divider } from 'antd';
+import { UserOutlined, SearchOutlined, CloseOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import * as queries from '../../graphql/queries';
 import * as mutations from '../../graphql/mutations';
 import { selectAvatar } from '../../functions';
+import { useNavigate } from 'react-router-dom';
+import './styles.css';
 
 const client = generateClient();
 
-const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGroupUpdated }) => {
+const EditGroupChatModal = ({
+  isOpen,
+  onClose,
+  conversationName,
+  conversation,
+  currentUser,
+  onGroupUpdated,
+  onGroupDeleted,
+  setConversations,
+  selectedConversation,
+  setSelectedConversation
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [groupName, setGroupName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -17,26 +29,47 @@ const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGrou
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [participants, setParticipants] = useState([]);
 
-  // Initialize group name and participants when conversation changes
+  const navigate = useNavigate();
+
+  // Log conversation data when the modal opens
   useEffect(() => {
-    if (conversation && conversation.id) {
-      setGroupName(conversation.name || '');
-      
+    if (isOpen) {
+      console.log("Modal opened with conversation data:", conversation);
+      console.log("Current user:", currentUser);
+    }
+  }, [isOpen, conversation, currentUser]);
+
+  // Initialize group name and participants when the modal opens or conversation changes
+  useEffect(() => {
+    if (isOpen && conversation) {
+      // Ensure group name is set to the current conversation name
+      const currentName = conversation.name || '';
+      console.log("Setting group name to:", currentName);
+      setGroupName(currentName);
+
       if (conversation.participants && conversation.participants.items) {
-        // Get all participants except the current user
+        console.log("Participants:", conversation.participants.items);
         const participantUsers = conversation.participants.items
-          .filter(item => item.userId !== currentUser.id)
+          .filter(item => item.userId !== currentUser?.id)
           .map(item => item.user);
-        
+
         setParticipants(participantUsers);
         setSelectedUsers(participantUsers);
       }
     }
-  }, [conversation, currentUser]);
+  }, [isOpen, conversation, currentUser]);
 
-  // Fetch all users when modal opens
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchQuery('');
+      setFilteredUsers([]);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen && currentUser) {
       fetchUsers();
@@ -56,7 +89,7 @@ const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGrou
       const userData = await client.graphql({
         query: queries.listUsers,
         variables: {
-          limit: 100 // Increase limit to get more users
+          limit: 100
         }
       });
 
@@ -68,7 +101,6 @@ const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGrou
         return;
       }
 
-      // Filter out the current user from the list
       const otherUsers = userData.data.listUsers.items.filter(
         user => user.id !== currentUser.id
       );
@@ -129,154 +161,189 @@ const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGrou
       console.log("Current user:", currentUser);
       console.log("Selected users:", selectedUsers);
 
-      // Update conversation name if changed
-      if (groupName !== conversation.name) {
-        console.log(`Updating group name from "${conversation.name}" to "${groupName}"`);
-        try {
-          await client.graphql({
-            query: mutations.updateConversation,
-            variables: {
-              input: {
-                id: conversation.id,
-                name: groupName || `Group Chat`,
-              }
-            },
-          });
-          console.log("Group name updated successfully");
-        } catch (err) {
-          console.error("Error updating group name:", err);
-          console.log("Error details:", JSON.stringify(err, null, 2));
-        }
-      }
-
-      // Get current participants
-      const currentParticipantIds = conversation.participants.items.map(item => item.userId);
-      console.log("Current participant IDs:", currentParticipantIds);
-
-      // Find users to add (in selectedUsers but not in current participants)
-      const usersToAdd = selectedUsers.filter(user =>
-        !currentParticipantIds.includes(user.id)
-      );
-      console.log("Users to add:", usersToAdd);
-
-      // Find users to remove (in current participants but not in selectedUsers)
-      const userConversationsToRemove = conversation.participants.items.filter(item =>
-        item.userId !== currentUser.id && // Don't remove current user
-        !selectedUsers.some(user => user.id === item.userId)
-      );
-      console.log("User conversations to remove:", userConversationsToRemove);
-
-      // Add new users to the conversation
-      if (usersToAdd.length > 0) {
-        console.log("Adding new users to conversation");
-        for (const user of usersToAdd) {
-          try {
-            console.log(`Adding user ${user.id} to conversation`);
-            await client.graphql({
-              query: mutations.createUserConversation,
-              variables: {
-                input: {
-                  userId: user.id,
-                  conversationId: conversation.id,
-                }
-              },
-            });
-            console.log(`User ${user.id} added successfully`);
-          } catch (err) {
-            console.error(`Error adding user ${user.id} to conversation:`, err);
-            console.log("Error details:", JSON.stringify(err, null, 2));
-          }
-        }
-      }
-
-      // Remove users from the conversation
-      if (userConversationsToRemove.length > 0) {
-        console.log("Removing users from conversation");
-        for (const item of userConversationsToRemove) {
-          try {
-            console.log(`Removing user conversation ${item.id}`);
-            await client.graphql({
-              query: mutations.deleteUserConversation,
-              variables: {
-                input: {
-                  id: item.id
-                }
-              },
-            });
-            console.log(`User conversation ${item.id} removed successfully`);
-          } catch (err) {
-            console.error(`Error removing user conversation ${item.id}:`, err);
-            console.log("Error details:", JSON.stringify(err, null, 2));
-          }
-        }
-      }
-
-      // Create a system message about the changes
       const timestamp = new Date().toISOString();
       let changeMessage = "Group updated";
 
       if (groupName !== conversation.name) {
         changeMessage = `Group name changed to "${groupName}"`;
-      } else if (usersToAdd.length > 0 || userConversationsToRemove.length > 0) {
-        changeMessage = "Group members updated";
-      }
-
-      console.log("Creating system message about changes:", changeMessage);
-      try {
-        await client.graphql({
-          query: mutations.createMessage,
-          variables: {
-            input: {
-              conversationId: conversation.id,
-              senderId: currentUser.id,
-              content: changeMessage,
-              timestamp,
-              read: false,
-            }
-          },
-        });
-        console.log("System message created successfully");
-      } catch (err) {
-        console.error("Error creating system message:", err);
-        console.log("Error details:", JSON.stringify(err, null, 2));
-        // Continue even if message creation fails
-      }
-
-      // Update conversation with last message info
-      try {
-        console.log("Updating conversation with last message info");
         await client.graphql({
           query: mutations.updateConversation,
           variables: {
             input: {
               id: conversation.id,
-              lastMessageAt: timestamp,
-              lastMessageContent: changeMessage,
-              lastMessageSenderId: currentUser.id,
+              name: groupName,
             }
           },
         });
-        console.log("Conversation updated with last message info");
-      } catch (err) {
-        console.error("Error updating conversation with last message info:", err);
-        console.log("Error details:", JSON.stringify(err, null, 2));
+        console.log("Group name updated successfully");
+
+        setConversations(prevConversations =>
+          prevConversations.map(conv =>
+            conv.id === conversation.id ? { ...conv, name: groupName } : conv
+          )
+        );
+
+        if (selectedConversation && selectedConversation.id === conversation.id) {
+          setSelectedConversation({ ...selectedConversation, name: groupName });
+        }
       }
+
+      const currentParticipantIds = conversation.participants.items.map(item => item.userId);
+      const usersToAdd = selectedUsers.filter(user => !currentParticipantIds.includes(user.id));
+      const userConversationsToRemove = conversation.participants.items.filter(item =>
+        item.userId !== currentUser.id && !selectedUsers.some(user => user.id === item.userId)
+      );
+
+      if (usersToAdd.length > 0) {
+        for (const user of usersToAdd) {
+          await client.graphql({
+            query: mutations.createUserConversation,
+            variables: {
+              input: {
+                userId: user.id,
+                conversationId: conversation.id,
+              }
+            },
+          });
+        }
+      }
+
+      if (userConversationsToRemove.length > 0) {
+        for (const item of userConversationsToRemove) {
+          await client.graphql({
+            query: mutations.deleteUserConversation,
+            variables: {
+              input: {
+                id: item.id
+              }
+            },
+          });
+        }
+      }
+
+      await client.graphql({
+        query: mutations.createMessage,
+        variables: {
+          input: {
+            conversationId: conversation.id,
+            senderId: currentUser.id,
+            content: changeMessage,
+            timestamp,
+            read: false,
+          }
+        },
+      });
+
+      await client.graphql({
+        query: mutations.updateConversation,
+        variables: {
+          input: {
+            id: conversation.id,
+            lastMessageAt: timestamp,
+            lastMessageContent: changeMessage,
+            lastMessageSenderId: currentUser.id,
+          }
+        },
+      });
 
       message.success("Group chat updated successfully!");
 
-      // Notify parent component to refresh conversation data
       if (onGroupUpdated) {
-        console.log("Notifying parent component to refresh conversation data");
         onGroupUpdated();
       }
 
       onClose();
     } catch (error) {
       console.error("Error updating group chat:", error);
-      console.log("Error details:", JSON.stringify(error, null, 2));
       message.error("Failed to update group chat");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteGroup = () => {
+    console.log("Delete button clicked");
+    console.log("Current conversation:", conversation);
+
+    // Create a simpler confirmation dialog
+    if (window.confirm('Are you sure you want to delete this group chat? This action cannot be undone. All messages will be permanently deleted.')) {
+      console.log("User confirmed deletion");
+      deleteGroupChat();
+    } else {
+      console.log("User cancelled deletion");
+    }
+  };
+
+  const deleteGroupChat = async () => {
+    console.log("deleteGroupChat function called");
+    console.log("Conversation data:", conversation);
+
+    if (!conversation || !conversation.id) {
+      message.error("Invalid conversation data");
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      console.log("Deleting group chat with ID:", conversation.id);
+
+      // Store the ID before deletion for reference
+      const conversationId = conversation.id;
+
+      // Delete all participants
+      if (conversation.participants && conversation.participants.items) {
+        console.log("Deleting participants:", conversation.participants.items.length);
+        for (const participant of conversation.participants.items) {
+          await client.graphql({
+            query: mutations.deleteUserConversation,
+            variables: { input: { id: participant.id } },
+          });
+        }
+      }
+
+      // Delete all messages in the conversation
+      const messagesData = await client.graphql({
+        query: queries.listMessages,
+        variables: {
+          filter: { conversationId: { eq: conversationId } },
+          limit: 1000,
+        },
+      });
+
+      if (messagesData.data && messagesData.data.listMessages && messagesData.data.listMessages.items) {
+        console.log("Deleting messages:", messagesData.data.listMessages.items.length);
+        for (const msg of messagesData.data.listMessages.items) {
+          await client.graphql({
+            query: mutations.deleteMessage,
+            variables: { input: { id: msg.id } },
+          });
+        }
+      }
+
+      // Delete the conversation itself
+      console.log("Deleting conversation:", conversationId);
+      await client.graphql({
+        query: mutations.deleteConversation,
+        variables: { input: { id: conversationId } },
+      });
+
+      message.success("Group chat deleted successfully");
+
+      // Close the modal first to prevent any state issues
+      onClose();
+
+      // Then call the onGroupDeleted callback
+      if (onGroupDeleted) {
+        console.log("Calling onGroupDeleted with ID:", conversationId);
+        onGroupDeleted(conversationId);
+      } else {
+        console.warn("onGroupDeleted callback is not defined");
+      }
+    } catch (error) {
+      console.error("Error deleting group chat:", error);
+      message.error("Failed to delete group chat");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -293,7 +360,6 @@ const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGrou
       <div className="modal">
         <h2>Edit Group Chat</h2>
 
-        {/* Group name input */}
         <div className="group-name-input">
           <label>Group Name</label>
           <Input
@@ -304,7 +370,8 @@ const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGrou
           />
         </div>
 
-        {/* Selected users display */}
+        <Divider orientation="left">Group Members</Divider>
+
         {selectedUsers.length > 0 && (
           <div className="selected-users">
             {selectedUsers.map(user => (
@@ -320,7 +387,6 @@ const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGrou
           </div>
         )}
 
-        {/* Search input */}
         <Input
           prefix={<SearchOutlined />}
           placeholder="Search users to add..."
@@ -329,7 +395,6 @@ const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGrou
           className="user-search-input"
         />
 
-        {/* User list */}
         <div className="user-list">
           {loading ? (
             <div className="loading-container">
@@ -363,19 +428,38 @@ const EditGroupChatModal = ({ isOpen, onClose, conversation, currentUser, onGrou
           )}
         </div>
 
-        {/* Action buttons */}
+        <Divider />
+
         <div className="modal-actions">
-          <Button
-            type="primary"
-            onClick={handleSaveChanges}
-            loading={saving}
-            disabled={selectedUsers.length === 0}
-          >
-            Save Changes
-          </Button>
-          <Button onClick={onClose}>
-            Cancel
-          </Button>
+          <div className="left-actions">
+            <Button
+              danger
+              type="primary"
+              icon={<DeleteOutlined />}
+              onClick={(e) => {
+                // Prevent event propagation
+                e.stopPropagation();
+                console.log("Delete button clicked with event prevention");
+                handleDeleteGroup();
+              }}
+              loading={deleting}
+            >
+              Delete Group
+            </Button>
+          </div>
+          <div className="right-actions">
+            <Button
+              type="primary"
+              onClick={handleSaveChanges}
+              loading={saving}
+              disabled={selectedUsers.length === 0}
+            >
+              Save Changes
+            </Button>
+            <Button onClick={onClose}>
+              Cancel
+            </Button>
+          </div>
         </div>
       </div>
     </div>

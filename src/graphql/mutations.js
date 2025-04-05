@@ -320,6 +320,7 @@ export const createConversation = /* GraphQL */ `
   ) {
     createConversation(input: $input, condition: $condition) {
       id
+      name
       participants {
         nextToken
         __typename
@@ -344,6 +345,7 @@ export const updateConversation = /* GraphQL */ `
   ) {
     updateConversation(input: $input, condition: $condition) {
       id
+      name
       participants {
         nextToken
         __typename
@@ -368,6 +370,7 @@ export const deleteConversation = /* GraphQL */ `
   ) {
     deleteConversation(input: $input, condition: $condition) {
       id
+      name
       participants {
         nextToken
         __typename
@@ -399,6 +402,7 @@ export const createMessage = /* GraphQL */ `
       read
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -427,6 +431,7 @@ export const updateMessage = /* GraphQL */ `
       read
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -455,6 +460,7 @@ export const deleteMessage = /* GraphQL */ `
       read
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -798,6 +804,7 @@ export const createUserConversation = /* GraphQL */ `
       }
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -840,6 +847,7 @@ export const updateUserConversation = /* GraphQL */ `
       }
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -882,6 +890,7 @@ export const deleteUserConversation = /* GraphQL */ `
       }
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId

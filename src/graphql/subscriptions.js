@@ -292,6 +292,7 @@ export const onCreateConversation = /* GraphQL */ `
   ) {
     onCreateConversation(filter: $filter) {
       id
+      name
       participants {
         nextToken
         __typename
@@ -315,6 +316,7 @@ export const onUpdateConversation = /* GraphQL */ `
   ) {
     onUpdateConversation(filter: $filter) {
       id
+      name
       participants {
         nextToken
         __typename
@@ -338,6 +340,7 @@ export const onDeleteConversation = /* GraphQL */ `
   ) {
     onDeleteConversation(filter: $filter) {
       id
+      name
       participants {
         nextToken
         __typename
@@ -366,6 +369,7 @@ export const onCreateMessage = /* GraphQL */ `
       read
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -391,6 +395,7 @@ export const onUpdateMessage = /* GraphQL */ `
       read
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -416,6 +421,7 @@ export const onDeleteMessage = /* GraphQL */ `
       read
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -746,6 +752,7 @@ export const onCreateUserConversation = /* GraphQL */ `
       }
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -787,6 +794,7 @@ export const onUpdateUserConversation = /* GraphQL */ `
       }
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -828,6 +836,7 @@ export const onDeleteUserConversation = /* GraphQL */ `
       }
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId

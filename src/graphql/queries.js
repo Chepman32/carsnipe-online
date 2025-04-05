@@ -1,38 +1,6 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-export const messagesByConversationId = /* GraphQL */ `
-  query MessagesByConversationId(
-    $conversationId: ID!
-    $sortDirection: ModelSortDirection
-    $filter: ModelMessageFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    messagesByConversationId(
-      conversationId: $conversationId
-      sortDirection: $sortDirection
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        conversationId
-        senderId
-        content
-        timestamp
-        read
-        createdAt
-        updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-
 export const getUser = /* GraphQL */ `
   query GetUser($id: ID!) {
     getUser(id: $id) {
@@ -220,6 +188,7 @@ export const getConversation = /* GraphQL */ `
   query GetConversation($id: ID!) {
     getConversation(id: $id) {
       id
+      name
       participants {
         nextToken
         __typename
@@ -246,6 +215,7 @@ export const listConversations = /* GraphQL */ `
     listConversations(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -269,6 +239,7 @@ export const getMessage = /* GraphQL */ `
       read
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
@@ -579,6 +550,7 @@ export const getUserConversation = /* GraphQL */ `
       }
       conversation {
         id
+        name
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
