@@ -310,6 +310,7 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
                     content: `${displayGroupName} created`,
                     timestamp,
                     read: false,
+                    isEvent: true,
                     conversationMessagesId: newConversationId, // Add this field to properly link the message to the conversation
                   }
                 },

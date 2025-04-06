@@ -1143,6 +1143,31 @@ const MessengerPage = () => {
                 ) : (
                   <div className="messages-container" style={{ display: 'flex', flexDirection: 'column' }}>
                     {messages.map((msg, index) => {
+                      // Check if this is a system message (e.g., chat renamed, user added/removed)
+                      const isSystemMessage = msg.content && (
+                        msg.content.includes("renamed the group to") ||
+                        msg.content.includes("added") ||
+                        msg.content.includes("removed") ||
+                        msg.content.includes("left the group") ||
+                        msg.content.includes("joined the group") ||
+                        msg.content.includes("created the group")
+                      );
+
+                      if (isSystemMessage) {
+                        // Render system message with special styling
+                        return (
+                          <div key={msg.id} style={{ width: '100%', textAlign: 'center' }}>
+                            <div className="message-bubble system">
+                              <Text className="message-text">{msg.content}</Text>
+                            </div>
+                            <Text className="message-time" type="secondary" style={{ textAlign: 'center', display: 'block', fontSize: '10px' }}>
+                              {formatTime(msg.timestamp)}
+                            </Text>
+                          </div>
+                        );
+                      }
+
+                      // Regular message rendering
                       const isCurrentUser = msg.senderId === currentUser.id;
                       const showAvatar = index === 0 ||
                         messages[index - 1].senderId !== msg.senderId;
@@ -1169,11 +1194,16 @@ const MessengerPage = () => {
                       return (
                         <div
                           key={msg.id}
-                          className={`message-bubble-container ${isCurrentUser ? 'sent' : 'received'}`}
-                          style={{ display: 'flex', width: '100%' }}
+                          className={`message-bubble-container ${msg.isEvent ? 'event' : isCurrentUser ? 'sent' : 'received'}`}
+                          style={{ display: 'flex', width: '100%', justifyContent: msg.isEvent ? 'center' : 'flex-start' }}
                         >
-                          <div className="message-content-wrapper" style={{ display: 'flex', width: '100%' }}>
-                            {!isCurrentUser && showAvatar && (
+                          <div className="message-content-wrapper" style={{
+                              display: 'flex',
+                              width: '100%',
+                              justifyContent: msg.isEvent ? 'center' : 'flex-start',
+                              margin: msg.isEvent ? '0' : undefined
+                            }}>
+                            {!msg.isEvent && !isCurrentUser && showAvatar && (
                               <Avatar
                                 size={32}
                                 src={senderAvatar}
@@ -1181,20 +1211,33 @@ const MessengerPage = () => {
                                 className="message-avatar-left"
                               />
                             )}
-                            <div className="message-bubble-wrapper">
-                              {otherUser?.isGroup && !isCurrentUser && showAvatar && (
+                            <div className="message-bubble-wrapper" style={{
+                              margin: msg.isEvent ? '0' : undefined,
+                              maxWidth: msg.isEvent ? '70%' : undefined
+                            }}>
+                              {!msg.isEvent && otherUser?.isGroup && !isCurrentUser && showAvatar && (
                                 <Text className="message-sender-name" type="secondary">
                                   {senderName}
                                 </Text>
                               )}
-                              <div className={`message-bubble ${isCurrentUser ? 'sent' : 'received'}`}>
-                                <Text className="message-text">{msg.content}</Text>
-                              </div>
-                              <Text className="message-time" type="secondary">
+                              {msg.isEvent ? (
+                                <div className="message-bubble event">
+                                  <Text className="message-text" style={{ fontSize: '11px', lineHeight: '1.2' }}>{msg.content}</Text>
+                                </div>
+                              ) : (
+                                <div className={`message-bubble ${isCurrentUser ? 'sent' : 'received'}`}>
+                                  <Text className="message-text">{msg.content}</Text>
+                                </div>
+                              )}
+                              <Text
+                                className="message-time"
+                                type="secondary"
+                                style={msg.isEvent ? { fontSize: '9px', opacity: 0.7 } : undefined}
+                              >
                                 {formatTime(msg.timestamp)}
                               </Text>
                             </div>
-                            {isCurrentUser && showAvatar && (
+                            {!msg.isEvent && isCurrentUser && showAvatar && (
                               <Avatar
                                 size={32}
                                 src={senderAvatar}

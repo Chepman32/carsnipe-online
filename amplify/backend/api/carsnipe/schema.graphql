@@ -95,5 +95,6 @@ type Message @model
   content: String!
   timestamp: String!
   read: Boolean
+  isEvent: Boolean
   conversation: Conversation @belongsTo(fields: ["conversationId"])
 }

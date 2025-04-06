@@ -269,6 +269,7 @@ const EditGroupChatModal = ({
             content: changeMessage,
             timestamp,
             read: false,
+            isEvent: true,
           }
         },
       });

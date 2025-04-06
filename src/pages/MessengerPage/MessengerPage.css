@@ -176,6 +176,18 @@
   border-bottom-left-radius: 4px;
 }
 
+.message-bubble.event {
+  background-color: rgba(24, 144, 255, 0.1);
+  color: #666;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 70%;
+  margin: 4px auto;
+  font-style: italic;
+}
+
 .message-text {
   color: inherit;
 }
@@ -195,6 +207,22 @@
 
 .message-bubble-container.received .message-bubble-wrapper .message-time {
   align-self: flex-start;
+}
+
+.message-bubble-container.event {
+  justify-content: center;
+  margin: 2px 0;
+}
+
+.message-bubble-container.event .message-bubble-wrapper {
+  max-width: 70%;
+}
+
+.message-bubble-container.event .message-bubble-wrapper .message-time {
+  align-self: center;
+  margin-top: 0;
+  font-size: 9px;
+  opacity: 0.7;
 }
 
 .message-input-container {
@@ -323,6 +351,12 @@
   .message-bubble {
     padding: 6px 10px;
     border-radius: 12px;
+  }
+
+  .message-bubble.system {
+    padding: 4px 8px;
+    font-size: 11px;
+    max-width: 90%;
   }
 
   .message-input {

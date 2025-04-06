@@ -593,7 +593,7 @@ export async function createConversation(userId1, userId2) {
   }
 }
 
-export async function sendMessage(conversationId, senderId, content) {
+export async function sendMessage(conversationId, senderId, content, isEvent = false) {
   try {
     // Define the mutations inline
     const createMessageMutation = /* GraphQL */ `
@@ -608,6 +608,7 @@ export async function sendMessage(conversationId, senderId, content) {
           content
           timestamp
           read
+          isEvent
           createdAt
           updatedAt
         }
@@ -641,6 +642,7 @@ export async function sendMessage(conversationId, senderId, content) {
           content,
           timestamp,
           read: false,
+          isEvent,
         },
       },
     });

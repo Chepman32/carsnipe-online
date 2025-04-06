@@ -403,6 +403,7 @@ export const createMessage = /* GraphQL */ `
       content
       timestamp
       read
+      isEvent
       conversation {
         id
         name
@@ -433,6 +434,7 @@ export const updateMessage = /* GraphQL */ `
       content
       timestamp
       read
+      isEvent
       conversation {
         id
         name
@@ -463,6 +465,7 @@ export const deleteMessage = /* GraphQL */ `
       content
       timestamp
       read
+      isEvent
       conversation {
         id
         name

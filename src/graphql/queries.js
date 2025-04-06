@@ -239,6 +239,7 @@ export const getMessage = /* GraphQL */ `
       content
       timestamp
       read
+      isEvent
       conversation {
         id
         name
@@ -271,6 +272,7 @@ export const listMessages = /* GraphQL */ `
         content
         timestamp
         read
+        isEvent
         createdAt
         updatedAt
         conversationMessagesId
