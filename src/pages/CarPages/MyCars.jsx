@@ -84,7 +84,11 @@ const MyCars = ({ playerInfo }) => {
       const topRowCars = [];
       const bottomRowCars = [];
       Object.entries(groupCarsByMake(cars)).forEach(([make, makeCars]) => {
-        makeCars.forEach((car, index) => {
+        // Ensure consistent sorting within each make before assigning to rows
+        const sortedMakeCars = [...makeCars].sort((a, b) =>
+          (a.model || "").localeCompare(b.model || "")
+        );
+        sortedMakeCars.forEach((car, index) => {
           if (index % 2 === 0) topRowCars.push(car);
           else bottomRowCars.push(car);
         });
@@ -92,7 +96,7 @@ const MyCars = ({ playerInfo }) => {
       setAllTopRowCars(topRowCars);
       setAllBottomRowCars(bottomRowCars);
     }
-  }, [cars]);
+  }, [cars, groupCarsByMake]);
 
   useEffect(() => {
     dispatch(setFocusedZone(FOCUS_ZONES.PAGE));
@@ -172,12 +176,32 @@ const MyCars = ({ playerInfo }) => {
           }
           break;
 
-        case "ArrowUp":
+        case "ArrowDown":
           event.preventDefault();
-          dispatch(setFocusedZone(FOCUS_ZONES.HEADER));
-          dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU));
-          setFocusedCar(null);
-          if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          // Move 2 positions forward (to the item below in the grid)
+          if (currentIndex + 2 < allCarsFlat.length) {
+            setFocusedCar(allCarsFlat[currentIndex + 2]);
+            setSelectedCarIndex(currentIndex + 2);
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          }
+          break;
+
+        case "ArrowUp":
+          // If we're in the first row, go to header
+          if (currentIndex < 2) {
+            event.preventDefault();
+            dispatch(setFocusedZone(FOCUS_ZONES.HEADER));
+            dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU));
+            setFocusedCar(null);
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          }
+          // Otherwise move 2 positions backward (to the item above in the grid)
+          else if (currentIndex >= 2) {
+            event.preventDefault();
+            setFocusedCar(allCarsFlat[currentIndex - 2]);
+            setSelectedCarIndex(currentIndex - 2);
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          }
           break;
 
         case "Enter":
@@ -422,16 +446,20 @@ const MyCars = ({ playerInfo }) => {
   };
 
   return (
-    <div className={`cars ${isMobile ? "mobile-vertical" : ""}`} ref={scroller}>
+    <div className="cars" tabIndex="-1" ref={scroller}>
       {loading ? (
-        <Spin size="large" />
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+          <Spin size="large" />
+        </div>
       ) : cars && cars.length ? (
-        <div className="cars__container">
+        <div className={`cars__container ${isMobile ? "mobile-vertical" : ""}`}>
           {isMobile ? (
+            // --- Mobile Layout ---
             Object.entries(groupCarsByMake(cars)).map(([make, makeCars]) => (
               <div key={make} className="mobile-maker-section">
                 <h2 className="mobile-make-title">{make}</h2>
                 <div className="mobile-car-grid">
+                  {/* 2-column grid for mobile */}
                   {chunkCars(makeCars, 2).map((row, rowIndex) => (
                     <div key={rowIndex} className="mobile-car-row">
                       {row.map((car) => {
@@ -440,6 +468,7 @@ const MyCars = ({ playerInfo }) => {
                           <div key={car.id} className="mobile-car-wrapper">
                             <CarCard
                               car={car}
+                              isMobile={isMobile}
                               focusedCar={focusedCar}
                               selectedCar={realIndex === selectedCarIndex ? car : null}
                               setSelectedCar={(selectedCar) => {
@@ -453,6 +482,7 @@ const MyCars = ({ playerInfo }) => {
                               setFocusedCar={setFocusedCar}
                               cars={cars.map((c) => c.car)}
                               setFocusPosition={() => {}}
+                              isFocused={focusedCar?.id === car.id}
                             />
                           </div>
                         );
@@ -463,73 +493,90 @@ const MyCars = ({ playerInfo }) => {
               </div>
             ))
           ) : (
+            // --- Desktop Layout ---
             Object.entries(groupCarsByMake(cars)).map(([make, makeCars], makeIndex) => {
-              const topRowCars = [];
-              const bottomRowCars = [];
-              makeCars.forEach((car, index) => {
-                if (index % 2 === 0) topRowCars.push(car);
-                else bottomRowCars.push(car);
-              });
+              // Ensure makeCars are sorted by model for consistent row assignment
+              const sortedMakeCars = [...makeCars].sort((a,b)=>(a.model||"").localeCompare(b.model||""));
+              const topRowCars = sortedMakeCars.filter((_, index) => index % 2 === 0);
+              const bottomRowCars = sortedMakeCars.filter((_, index) => index % 2 === 1);
 
               return (
                 <div
                   key={make}
-                  className="make-section"
+                  className={`make-section ${focusedMake === make ? 'make-focused' : ''}`}
                   data-make-index={makeIndex}
-                  data-focused={focusedMake === make}
+                  aria-label={`Manufacturer: ${make}`}
                 >
-                  <h2 className="make-name" data-make={make}>
+                  {/* Make Title - Acts as a focus target */}
+                  <h2
+                    className={`make-name ${focusedMake === make ? 'focused' : ''}`}
+                    data-make={make}
+                    tabIndex={-1}
+                    aria-selected={focusedMake === make}
+                    onClick={() => {
+                      if (focusedMake !== make) {
+                        setFocusedMake(make);
+                        setFocusedCar(null);
+                        if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+                      }
+                    }}
+                  >
                     {make}
                   </h2>
+                  {/* Grid for Cars */}
                   <div className="make-grid">
-                    <div className="make-row">
+                    {/* Top Row */}
+                    <div className="make-row top-row">
                       {topRowCars.map((car) => {
                         const realIndex = cars.findIndex((c) => c.car.id === car.id);
+                        const isFocused = focusedCar?.id === car.id;
                         return (
                           <CarCard
                             key={car.id}
+                            car={car}
+                            isMobile={isMobile}
                             focusedCar={focusedCar}
+                            isFocused={isFocused}
                             selectedCar={realIndex === selectedCarIndex ? car : null}
                             setSelectedCar={(selectedCar) => {
                               setSelectedCar(selectedCar);
                               setSelectedCarIndex(realIndex);
+                              setFocusedCar(selectedCar);
                               showCarDetailsModal();
                             }}
                             showCarDetailsModal={showCarDetailsModal}
-                            car={car}
                             getImageSource={getImageSource}
                             showPrice={false}
                             setFocusedCar={setFocusedCar}
-                            cars={cars.map((c) => c.car)}
-                            setFocusPosition={() => {}}
-                            column={allTopRowCars.indexOf(car)}
-                            row={2}
+                            index={realIndex}
                           />
                         );
                       })}
                     </div>
-                    <div className="make-row">
+                    {/* Bottom Row */}
+                    <div className="make-row bottom-row">
                       {bottomRowCars.map((car) => {
                         const realIndex = cars.findIndex((c) => c.car.id === car.id);
+                        const isFocused = focusedCar?.id === car.id;
                         return (
                           <CarCard
                             key={car.id}
+                            car={car}
+                            isMobile={isMobile}
                             focusedCar={focusedCar}
+                            isFocused={isFocused}
                             selectedCar={realIndex === selectedCarIndex ? car : null}
                             setSelectedCar={(selectedCar) => {
                               setSelectedCar(selectedCar);
                               setSelectedCarIndex(realIndex);
+                              setFocusedCar(selectedCar);
                               showCarDetailsModal();
                             }}
                             showCarDetailsModal={showCarDetailsModal}
-                            car={car}
                             getImageSource={getImageSource}
                             showPrice={false}
                             setFocusedCar={setFocusedCar}
-                            cars={cars.map((c) => c.car)}
-                            setFocusPosition={() => {}}
-                            column={allBottomRowCars.indexOf(car)}
-                            row={3}
+                            index={realIndex}
                           />
                         );
                       })}

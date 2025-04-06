@@ -312,7 +312,6 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
       switch (key) {
         case "ArrowRight":
-        case "ArrowDown": // Treat Down as Right on mobile
           event.preventDefault();
           if (currentMobileIndex < allCarsFlat.length - 1) {
             const nextCar = allCarsFlat[currentMobileIndex + 1];
@@ -324,22 +323,46 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           break;
 
         case "ArrowLeft":
-        case "ArrowUp": // Treat Up as Left on mobile
           event.preventDefault();
-           if (currentMobileIndex > 0) {
+          if (currentMobileIndex > 0) {
             const prevCar = allCarsFlat[currentMobileIndex - 1];
             setFocusedCar(prevCar);
             setSelectedCarIndex(currentMobileIndex - 1); // Update index based on flat list
             setFocusedMake(null);
             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
-          } else if (currentMobileIndex === 0) {
-            // If at the first car, ArrowUp goes to header
-             console.log("Mobile: Moving to header from first car");
-             dispatch(setFocusedZone(FOCUS_ZONES.HEADER));
-             dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU));
-             setFocusedCar(null); // Clear car focus
-             setFocusedMake(null);
-             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          }
+          break;
+
+        case "ArrowDown":
+          event.preventDefault();
+          // Move 2 positions forward (to the item below in the grid)
+          if (currentMobileIndex + 2 < allCarsFlat.length) {
+            const nextCar = allCarsFlat[currentMobileIndex + 2];
+            setFocusedCar(nextCar);
+            setSelectedCarIndex(currentMobileIndex + 2); // Update index based on flat list
+            setFocusedMake(null);
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          }
+          break;
+
+        case "ArrowUp":
+          // If we're in the first row, go to header
+          if (currentMobileIndex < 2) {
+            event.preventDefault();
+            dispatch(setFocusedZone(FOCUS_ZONES.HEADER));
+            dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU));
+            setFocusedCar(null); // Clear car focus
+            setFocusedMake(null);
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          }
+          // Otherwise move 2 positions backward (to the item above in the grid)
+          else if (currentMobileIndex >= 2) {
+            event.preventDefault();
+            const prevCar = allCarsFlat[currentMobileIndex - 2];
+            setFocusedCar(prevCar);
+            setSelectedCarIndex(currentMobileIndex - 2); // Update index based on flat list
+            setFocusedMake(null);
+            if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           }
           break;
 
@@ -671,36 +694,40 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
               <div key={make} className="mobile-maker-section">
                 <h2 className="mobile-make-title">{make}</h2>
                 <div className="mobile-car-grid">
-                  {/* Flat list rendering for simpler mobile navigation */}
-                  {makeCars.map((car) => {
-                      const globalIndex = cars.findIndex(c => c.id === car.id); // Find index in original sorted list
-                      return (
+                  {/* 2-column grid for mobile */}
+                  {chunkCars(makeCars, 2).map((row, rowIndex) => (
+                    <div key={rowIndex} className="mobile-car-row">
+                      {row.map((car) => {
+                        const globalIndex = cars.findIndex(c => c.id === car.id); // Find index in original sorted list
+                        return (
                           <div key={car.id} className="mobile-car-wrapper">
-                              <CarCard
-                                  car={car}
-                                  isMobile={isMobile}
-                                  focusedCar={focusedCar}
-                                  // selectedCar prop might not be needed if details modal handles selection
-                                  setSelectedCar={(selectedCar) => {
-                                      setSelectedCar(selectedCar);
-                                      setSelectedCarIndex(globalIndex); // Use global index
-                                      setFocusedCar(selectedCar); // Ensure focus follows selection
-                                      showCarDetailsModal();
-                                  }}
-                                  showCarDetailsModal={showCarDetailsModal} // Pass function directly
-                                  getImageSource={getImageSource}
-                                  showPrice={true}
-                                  // For mobile, setFocusedCar is enough, no complex row/col needed
-                                  setFocusedCar={setFocusedCar}
-                                  // No setFocusPosition needed for simplified mobile layout
-                                  // Pass index for potential use within CarCard if needed
-                                  index={globalIndex}
-                                  // Make card focusable for accessibility/interaction
-                                  isFocused={focusedCar?.id === car.id}
-                              />
+                            <CarCard
+                              car={car}
+                              isMobile={isMobile}
+                              focusedCar={focusedCar}
+                              // selectedCar prop might not be needed if details modal handles selection
+                              setSelectedCar={(selectedCar) => {
+                                setSelectedCar(selectedCar);
+                                setSelectedCarIndex(globalIndex); // Use global index
+                                setFocusedCar(selectedCar); // Ensure focus follows selection
+                                showCarDetailsModal();
+                              }}
+                              showCarDetailsModal={showCarDetailsModal} // Pass function directly
+                              getImageSource={getImageSource}
+                              showPrice={true}
+                              // For mobile, setFocusedCar is enough, no complex row/col needed
+                              setFocusedCar={setFocusedCar}
+                              // No setFocusPosition needed for simplified mobile layout
+                              // Pass index for potential use within CarCard if needed
+                              index={globalIndex}
+                              // Make card focusable for accessibility/interaction
+                              isFocused={focusedCar?.id === car.id}
+                            />
                           </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
               </div>
             ))
