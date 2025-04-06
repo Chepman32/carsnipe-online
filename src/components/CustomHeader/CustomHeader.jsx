@@ -17,6 +17,10 @@ import {
   HEADER_MAIN_MENU,
   HEADER_PROFILE,
   HEADER_STORE,
+  HEADER_CARS_STORE,
+  HEADER_MY_CARS,
+  HEADER_AUCTIONS,
+  HEADER_MESSENGER,
   QUICK_MENU_DARK_MODE,
   QUICK_MENU_MUSIC,
   QUICK_MENU_SOUND,
@@ -51,7 +55,11 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   const { currentStation } = useSelector((state) => state.musicPlayer);
 
   const toggleDrawer = () => {
-    setDrawerVisible(!drawerVisible);
+    console.log('Toggle drawer, current state:', drawerVisible);
+    setDrawerVisible(prevState => {
+      console.log('Setting drawer to:', !prevState);
+      return !prevState;
+    });
   };
 
   const closeDrawer = () => {
@@ -159,6 +167,14 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   }, [currentFocusedElement, focusedZone, dispatch]);
 
   useEffect(() => {
+    console.log('Drawer visibility changed to:', drawerVisible);
+    // Close drawer when switching from mobile to desktop
+    if (!isMobile && drawerVisible) {
+      setDrawerVisible(false);
+    }
+  }, [isMobile, drawerVisible]);
+
+  useEffect(() => {
     return () => {
       if (closeMenuTimeout.current) {
         clearTimeout(closeMenuTimeout.current);
@@ -193,15 +209,21 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             alignItems: 'center'
           }}
         >
-          <Button
-            aria-label="Open Menu"
-            className="burgerMenuButton"
-            icon={<img src={drawer} className='burgerMenuIcon' alt="drawer" />}
+          <div
             onClick={toggleDrawer}
-            style={{ display: window.innerWidth < 768 ? 'block' : 'none' }}
-          />
-          {window.innerWidth >= 768 && <MenuItems />}
-          {window.innerWidth >= 768 && (
+            style={{
+              display: isMobile ? 'flex' : 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              padding: '8px',
+              marginRight: '8px'
+            }}
+          >
+            <img src={drawer} className='burgerMenuIcon' alt="drawer" style={{ width: '24px', height: '24px' }} />
+          </div>
+          {!isMobile && <MenuItems />}
+          {!isMobile && (
             <section style={{ display: 'flex', alignItems: 'center' }}>
               <Link
                 to="/store"
@@ -393,61 +415,63 @@ const CustomHeader = ({ nickname, avatar, money }) => {
           )}
         </div>
       </Menu>
-      <Drawer
-        title="Menu"
-        placement="left"
-        closable={true}
-        onClose={toggleDrawer}
-        open={drawerVisible}
-        width="289px"  /* Reduced by an additional 15% from 340px (340px * 0.85 = 289px) */
-      >
-        <Menu mode="vertical">
-          {window.innerWidth < 768 && (
-            <Link
-              to="/profileEditPage"
-              className="drawer__avatar"
-              onClick={closeDrawer}
+      {/* Custom Mobile Drawer */}
+      <div className={`custom-mobile-drawer-overlay ${drawerVisible ? 'open' : ''}`} onClick={closeDrawer}></div>
+      <div className={`custom-mobile-drawer ${drawerVisible ? 'open' : ''}`}>
+        <div className="custom-mobile-drawer-header">
+          <h3 className="custom-mobile-drawer-title">Menu</h3>
+          <button className="custom-mobile-drawer-close" onClick={closeDrawer} aria-label="Close menu">×</button>
+        </div>
+        <div className="custom-mobile-drawer-content">
+          {/* Profile Link */}
+          <Link
+            to="/profileEditPage"
+            className="drawer__avatar"
+            onClick={closeDrawer}
+            style={{
+              padding: '12px 16px',
+              background:
+                location.pathname === '/profileEditPage' ||
+                location.pathname === '/achievements'
+                  ? 'rgba(42, 72, 234, 0.57)'
+                  : 'transparent',
+              border:
+                focusedZone === FOCUS_ZONES.HEADER &&
+                currentFocusedElement === HEADER_PROFILE
+                  ? '2px solid red'
+                  : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              textDecoration: 'none'
+            }}
+          >
+            <Text
               style={{
-                padding: '12px 16px',
-                background:
-                  location.pathname === '/profileEditPage' ||
-                  location.pathname === '/achievements'
-                    ? 'rgba(42, 72, 234, 0.57)'
-                    : 'transparent',
-                border:
-                  focusedZone === FOCUS_ZONES.HEADER &&
-                  currentFocusedElement === HEADER_PROFILE
-                    ? '2px solid red'
-                    : 'none',
-                display: 'flex',
-                alignItems: 'center',
-                textDecoration: 'none'
+                marginRight: 15,
+                color: 'var(--text-color)',
+                fontSize: '1.6rem',
+                fontWeight: '700',
+                maxWidth: '150px',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis'
               }}
-              tabIndex={0}
             >
-              <Text
-                style={{
-                  marginRight: 15,
-                  color: 'var(--text-color)',
-                  fontSize: '1.6rem', /* Increased font size */
-                  fontWeight: '700',  /* Made bolder (from 600 to 700) */
-                  maxWidth: '150px',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {nickname}
-              </Text>
-              <img src={avatar} alt="avatar" />
-            </Link>
-          )}
-          {window.innerWidth < 768 && (
+              {nickname}
+            </Text>
+            <img src={avatar} alt="avatar" />
+          </Link>
+
+          {/* Store Link */}
+          <div className="header__drawer__item" style={{ width: '100%' }}>
             <Link
               to="/store"
-              className="header__drawer__item"
               onClick={closeDrawer}
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                textDecoration: 'none',
                 background:
                   location.pathname === '/store'
                     ? 'rgba(42, 72, 234, 0.57)'
@@ -458,10 +482,9 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               <Text
                 style={{
                   marginLeft: 10,
-                  fontWeight: '700',  /* Made bolder (from 600 to 700) */
+                  fontWeight: '700',
                   color: darkMode ? '#ffdd00' : '#000000',
-                  fontSize: '1.6rem', /* Increased font size */
-                  maxWidth: '100px',
+                  fontSize: '1.6rem',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   textOverflow: 'ellipsis'
@@ -470,10 +493,74 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                 {'$' + money}
               </Text>
             </Link>
-          )}
-          <MenuItems />
-        </Menu>
-      </Drawer>
+          </div>
+
+          {/* Main Menu Link */}
+          <div
+            className="header__drawer__item"
+            style={{
+              background: location.pathname === '/' ? 'rgba(42, 72, 234, 0.57)' : 'transparent',
+              border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_MAIN_MENU ? '2px solid red' : 'none',
+            }}
+          >
+            <Link to="/" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>Main Menu</Text>
+            </Link>
+          </div>
+
+          {/* Cars Store Link */}
+          <div
+            className="header__drawer__item"
+            style={{
+              background: location.pathname === '/carsStore' ? 'rgba(42, 72, 234, 0.57)' : 'transparent',
+              border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_CARS_STORE ? '2px solid red' : 'none',
+            }}
+          >
+            <Link to="/carsStore" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>Cars Store</Text>
+            </Link>
+          </div>
+
+          {/* My Cars Link */}
+          <div
+            className="header__drawer__item"
+            style={{
+              background: location.pathname === '/myCars' ? 'rgba(42, 72, 234, 0.57)' : 'transparent',
+              border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_MY_CARS ? '2px solid red' : 'none',
+            }}
+          >
+            <Link to="/myCars" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>My Cars</Text>
+            </Link>
+          </div>
+
+          {/* Auctions Link */}
+          <div
+            className="header__drawer__item"
+            style={{
+              background: location.pathname === '/auctionsHub' ? 'rgba(42, 72, 234, 0.57)' : 'transparent',
+              border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_AUCTIONS ? '2px solid red' : 'none',
+            }}
+          >
+            <Link to="/auctionsHub" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>Auctions</Text>
+            </Link>
+          </div>
+
+          {/* Messages Link */}
+          <div
+            className="header__drawer__item"
+            style={{
+              background: location.pathname === '/messenger' ? 'rgba(42, 72, 234, 0.57)' : 'transparent',
+              border: focusedZone === FOCUS_ZONES.HEADER && currentFocusedElement === HEADER_MESSENGER ? '2px solid red' : 'none',
+            }}
+          >
+            <Link to="/messenger" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>Messages</Text>
+            </Link>
+          </div>
+        </div>
+      </div>
       <div className="headerPlaceholder"></div>
     </ConfigProvider>
   );
