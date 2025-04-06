@@ -12,7 +12,7 @@ import {
   Badge,
   message,
 } from "antd";
-import { SendOutlined, UserOutlined, PlusOutlined } from "@ant-design/icons";
+import { SendOutlined, UserOutlined, PlusOutlined, ArrowLeftOutlined, MenuOutlined } from "@ant-design/icons";
 import { generateClient } from 'aws-amplify/api';
 import { useParams, useNavigate } from "react-router-dom";
 import CreateGroupChatModal from '../../components/CreateGroupChatModal/CreateGroupChatModal';
@@ -199,10 +199,39 @@ const MessengerPage = () => {
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [isEditGroupChatModalOpen, setIsEditGroupChatModalOpen] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [showConversationList, setShowConversationList] = useState(true);
 
   useEffect(() => {
     console.log("Edit group chat modal state changed:", isEditGroupChatModalOpen);
   }, [isEditGroupChatModalOpen]);
+
+  // Handle responsive layout
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobile = window.innerWidth <= 768;
+      setIsMobileView(isMobile);
+
+      // If switching to mobile view and no conversation is selected, ensure conversation list is shown
+      if (isMobile && !selectedConversation) {
+        setShowConversationList(true);
+      }
+
+      // If switching from mobile to desktop, always show conversation list
+      if (!isMobile) {
+        setShowConversationList(true);
+      }
+    };
+
+    // Initial check
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, [selectedConversation]);
 
   const messagesEndRef = useRef(null);
   const messageInputRef = useRef(null);
@@ -405,8 +434,20 @@ const MessengerPage = () => {
     const selectedConv = conversations.find(conv => conv.id === conversationId);
     if (selectedConv) {
       setSelectedConversation(selectedConv);
+
+      // In mobile view, hide the conversation list when a conversation is selected via URL
+      if (isMobileView) {
+        console.log("Mobile view: hiding conversation list (from URL)");
+        setShowConversationList(false);
+
+        // Force a re-render to ensure the message layout is displayed
+        setTimeout(() => {
+          console.log("Forcing re-render after URL navigation");
+          setSelectedConversation({...selectedConv});
+        }, 50);
+      }
     }
-  }, [conversationId, conversations]);
+  }, [conversationId, conversations, isMobileView]);
 
   useEffect(() => {
     if (selectedConversation && messageInputRef.current) {
@@ -414,7 +455,12 @@ const MessengerPage = () => {
         messageInputRef.current.focus();
       }, 100);
     }
-  }, [selectedConversation]);
+
+    // In mobile view, if no conversation is selected, show the conversation list
+    if (isMobileView && !selectedConversation) {
+      setShowConversationList(true);
+    }
+  }, [selectedConversation, isMobileView]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -804,6 +850,11 @@ const MessengerPage = () => {
       setMessages([]);
       setOtherUser(null);
 
+      // In mobile view, show the conversation list
+      if (isMobileView) {
+        setShowConversationList(true);
+      }
+
       // Use setTimeout to ensure state updates are processed before navigation
       setTimeout(() => {
         navigate('/messenger');
@@ -821,6 +872,29 @@ const MessengerPage = () => {
   const selectConversation = (conversation) => {
     setSelectedConversation(conversation);
     navigate(`/messenger/${conversation.id}`);
+
+    // In mobile view, hide the conversation list when a conversation is selected
+    if (isMobileView) {
+      console.log("Mobile view: hiding conversation list");
+      setShowConversationList(false);
+
+      // Force a re-render to ensure the message layout is displayed
+      setTimeout(() => {
+        console.log("Forcing re-render after conversation selection");
+        setSelectedConversation({...conversation});
+      }, 50);
+    }
+  };
+
+  const handleBackToConversations = () => {
+    console.log("Showing conversation list (back button)");
+    setShowConversationList(true);
+
+    // Force a re-render to ensure the conversation list is displayed
+    setTimeout(() => {
+      console.log("Forcing re-render after back button");
+      setShowConversationList(true);
+    }, 50);
   };
 
   const formatTime = (timestamp) => {
@@ -846,7 +920,16 @@ const MessengerPage = () => {
     console.log("Conversations data:", JSON.stringify(conversations, null, 2));
     console.log("Loading state:", loading);
     console.log("Current user:", currentUser?.id);
-  }, [conversations, loading, currentUser]);
+    console.log("Mobile view:", isMobileView);
+    console.log("Show conversation list:", showConversationList);
+  }, [conversations, loading, currentUser, isMobileView, showConversationList]);
+
+  // Ensure conversation list is shown when no conversation is selected in mobile view
+  useEffect(() => {
+    if (isMobileView && !selectedConversation && !showConversationList) {
+      setShowConversationList(true);
+    }
+  }, [isMobileView, selectedConversation, showConversationList]);
 
   if (loading && !currentUser) {
     return <Spin size="large" fullscreen />;
@@ -855,68 +938,25 @@ const MessengerPage = () => {
   console.log("About to render with:", {
     conversationsLength: conversations.length,
     loading,
-    currentUser: currentUser?.id
+    currentUser: currentUser?.id,
+    isMobileView,
+    showConversationList
   });
 
   return (
     <>
       <Layout className="messenger-layout">
-        <Sider width={300} className="conversation-sider">
+        <Sider
+          width={300}
+          className={`conversation-sider ${isMobileView && !showConversationList ? 'hidden' : ''}`}
+        >
           <div className="conversations-header">
             <Title level={4} onClick={() => {
               console.log("Current conversations state:", conversations);
               console.log("Other user:", otherUser);
             }}>Messages</Title>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <Button
-                type="default"
-                onClick={() => {
-                  console.log("Debug button clicked");
-                  console.log("Current user:", currentUser);
-                  console.log("Conversations:", conversations);
-                  console.log("Loading state:", loading);
 
-                  if (currentUser) {
-                    console.log("Refreshing conversations...");
-                    client.graphql({
-                      query: queries.listUserConversations,
-                      variables: {
-                        filter: {
-                          userId: {
-                            eq: currentUser.id
-                          }
-                        },
-                        limit: 100
-                      },
-                    }).then(data => {
-                      console.log("Refreshed user conversations data:", data);
-                      if (data.data && data.data.listUserConversations && data.data.listUserConversations.items) {
-                        console.log("Found conversations:", data.data.listUserConversations.items.length);
-
-                        if (data.data.listUserConversations.items.length > 0) {
-                          const firstConversation = data.data.listUserConversations.items[0];
-                          console.log("Fetching details for first conversation:", firstConversation.conversationId);
-
-                          client.graphql({
-                            query: queries.getConversation,
-                            variables: {
-                              id: firstConversation.conversationId,
-                            },
-                          }).then(convData => {
-                            console.log("First conversation details:", convData);
-                          }).catch(err => {
-                            console.error("Error fetching conversation details:", err);
-                          });
-                        }
-                      }
-                    }).catch(err => {
-                      console.error("Error refreshing conversations:", err);
-                    });
-                  }
-                }}
-              >
-                Debug
-              </Button>
               <Button
                 type="default"
                 onClick={() => {
@@ -934,7 +974,7 @@ const MessengerPage = () => {
                 icon={<PlusOutlined />}
                 onClick={() => setIsCreateGroupChatModalOpen(true)}
               >
-                Create Group
+                {isMobileView ? '' : 'Create Group Chat'}
               </Button>
             </div>
           </div>
@@ -946,24 +986,12 @@ const MessengerPage = () => {
           ) : conversations.length === 0 ? (
             <>
               <Empty description="No conversations yet" />
-              <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    console.log("Debug button clicked");
-                    console.log("Current user:", currentUser);
-                    console.log("Conversations:", conversations);
-                    console.log("Loading state:", loading);
-                  }}
-                >
-                  Debug Info
-                </Button>
-              </div>
             </>
           ) : (
             <List
               className="conversation-list"
               dataSource={conversations}
+              style={{ display: 'block' }}
               renderItem={(conversation) => {
                 const participants = conversation.participants?.items || [];
                 // A conversation is a group chat if:
@@ -1034,11 +1062,18 @@ const MessengerPage = () => {
           )}
         </Sider>
 
-        <Layout className="message-layout">
+        <Layout
+          className={`message-layout ${isMobileView && !showConversationList ? 'active' : ''}`}
+          style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           {selectedConversation ? (
             <>
               <div className="message-header">
                 <div className="message-header-user">
+                  {isMobileView && (
+                    <div className="back-to-conversations" onClick={handleBackToConversations}>
+                      <ArrowLeftOutlined style={{ fontSize: '18px', marginRight: '8px' }} />
+                    </div>
+                  )}
                   {otherUser?.isGroup ? (
                     <Avatar
                       size={40}
@@ -1099,14 +1134,14 @@ const MessengerPage = () => {
                 </div>
               </div>
 
-              <Content className="message-content">
+              <Content className="message-content" style={{ flex: 1, display: 'block', overflowY: 'auto' }}>
                 {messages.length === 0 ? (
                   <div className="empty-messages">
                     <Empty description="No messages yet" />
                     <Text type="secondary">Send a message to start the conversation</Text>
                   </div>
                 ) : (
-                  <div className="messages-container">
+                  <div className="messages-container" style={{ display: 'flex', flexDirection: 'column' }}>
                     {messages.map((msg, index) => {
                       const isCurrentUser = msg.senderId === currentUser.id;
                       const showAvatar = index === 0 ||
@@ -1135,8 +1170,9 @@ const MessengerPage = () => {
                         <div
                           key={msg.id}
                           className={`message-bubble-container ${isCurrentUser ? 'sent' : 'received'}`}
+                          style={{ display: 'flex', width: '100%' }}
                         >
-                          <div className="message-content-wrapper">
+                          <div className="message-content-wrapper" style={{ display: 'flex', width: '100%' }}>
                             {!isCurrentUser && showAvatar && (
                               <Avatar
                                 size={32}
@@ -1175,7 +1211,7 @@ const MessengerPage = () => {
                 )}
               </Content>
 
-              <div className="message-input-container">
+              <div className="message-input-container" style={{ display: 'flex', width: '100%' }}>
                 <TextArea
                   ref={messageInputRef}
                   value={newMessage}
@@ -1198,10 +1234,21 @@ const MessengerPage = () => {
             </>
           ) : (
             <div className="no-conversation-selected">
-              <Empty
-                description="Select a conversation or start a new one"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
+              {isMobileView ? (
+                <Empty
+                  description={
+                    showConversationList
+                      ? "Select a conversation to start messaging"
+                      : "Select a conversation or start a new one"
+                  }
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              ) : (
+                <Empty
+                  description="Select a conversation or start a new one"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              )}
             </div>
           )}
         </Layout>
