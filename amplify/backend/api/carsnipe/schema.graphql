@@ -82,6 +82,7 @@ type Conversation @model
   lastMessageAt: String
   lastMessageContent: String
   lastMessageSenderId: ID
+  isGroup: Boolean
 }
 
 type Message @model

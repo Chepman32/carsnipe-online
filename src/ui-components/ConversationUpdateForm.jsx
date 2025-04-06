@@ -6,7 +6,13 @@
 
 /* eslint-disable */
 import * as React from "react";
-import { Button, Flex, Grid, TextField } from "@aws-amplify/ui-react";
+import {
+  Button,
+  Flex,
+  Grid,
+  SwitchField,
+  TextField,
+} from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
 import { getConversation } from "../graphql/queries";
@@ -29,6 +35,7 @@ export default function ConversationUpdateForm(props) {
     lastMessageAt: "",
     lastMessageContent: "",
     lastMessageSenderId: "",
+    isGroup: false,
   };
   const [name, setName] = React.useState(initialValues.name);
   const [lastMessageAt, setLastMessageAt] = React.useState(
@@ -40,6 +47,7 @@ export default function ConversationUpdateForm(props) {
   const [lastMessageSenderId, setLastMessageSenderId] = React.useState(
     initialValues.lastMessageSenderId
   );
+  const [isGroup, setIsGroup] = React.useState(initialValues.isGroup);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     const cleanValues = conversationRecord
@@ -49,6 +57,7 @@ export default function ConversationUpdateForm(props) {
     setLastMessageAt(cleanValues.lastMessageAt);
     setLastMessageContent(cleanValues.lastMessageContent);
     setLastMessageSenderId(cleanValues.lastMessageSenderId);
+    setIsGroup(cleanValues.isGroup);
     setErrors({});
   };
   const [conversationRecord, setConversationRecord] = React.useState(
@@ -74,6 +83,7 @@ export default function ConversationUpdateForm(props) {
     lastMessageAt: [],
     lastMessageContent: [],
     lastMessageSenderId: [],
+    isGroup: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -105,6 +115,7 @@ export default function ConversationUpdateForm(props) {
           lastMessageAt: lastMessageAt ?? null,
           lastMessageContent: lastMessageContent ?? null,
           lastMessageSenderId: lastMessageSenderId ?? null,
+          isGroup: isGroup ?? null,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -169,6 +180,7 @@ export default function ConversationUpdateForm(props) {
               lastMessageAt,
               lastMessageContent,
               lastMessageSenderId,
+              isGroup,
             };
             const result = onChange(modelFields);
             value = result?.name ?? value;
@@ -196,6 +208,7 @@ export default function ConversationUpdateForm(props) {
               lastMessageAt: value,
               lastMessageContent,
               lastMessageSenderId,
+              isGroup,
             };
             const result = onChange(modelFields);
             value = result?.lastMessageAt ?? value;
@@ -223,6 +236,7 @@ export default function ConversationUpdateForm(props) {
               lastMessageAt,
               lastMessageContent: value,
               lastMessageSenderId,
+              isGroup,
             };
             const result = onChange(modelFields);
             value = result?.lastMessageContent ?? value;
@@ -252,6 +266,7 @@ export default function ConversationUpdateForm(props) {
               lastMessageAt,
               lastMessageContent,
               lastMessageSenderId: value,
+              isGroup,
             };
             const result = onChange(modelFields);
             value = result?.lastMessageSenderId ?? value;
@@ -268,6 +283,34 @@ export default function ConversationUpdateForm(props) {
         hasError={errors.lastMessageSenderId?.hasError}
         {...getOverrideProps(overrides, "lastMessageSenderId")}
       ></TextField>
+      <SwitchField
+        label="Is group"
+        defaultChecked={false}
+        isDisabled={false}
+        isChecked={isGroup}
+        onChange={(e) => {
+          let value = e.target.checked;
+          if (onChange) {
+            const modelFields = {
+              name,
+              lastMessageAt,
+              lastMessageContent,
+              lastMessageSenderId,
+              isGroup: value,
+            };
+            const result = onChange(modelFields);
+            value = result?.isGroup ?? value;
+          }
+          if (errors.isGroup?.hasError) {
+            runValidationTasks("isGroup", value);
+          }
+          setIsGroup(value);
+        }}
+        onBlur={() => runValidationTasks("isGroup", isGroup)}
+        errorMessage={errors.isGroup?.errorMessage}
+        hasError={errors.isGroup?.hasError}
+        {...getOverrideProps(overrides, "isGroup")}
+      ></SwitchField>
       <Flex
         justifyContent="space-between"
         {...getOverrideProps(overrides, "CTAFlex")}

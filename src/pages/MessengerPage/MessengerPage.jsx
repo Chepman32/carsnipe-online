@@ -28,6 +28,7 @@ const customQueries = {
       getConversation(id: $id) {
         id
         name
+        isGroup
         participants {
           items {
             id
@@ -135,6 +136,7 @@ const customQueries = {
       getConversation(id: $id) {
         id
         name
+        isGroup
         participants {
           items {
             id
@@ -454,7 +456,15 @@ const MessengerPage = () => {
           const participants = selectedConversation.participants.items;
           console.log("Conversation participants:", JSON.stringify(participants, null, 2));
 
-          if (participants.length > 2) {
+          // Check if this is a group chat
+          // A conversation is a group chat if:
+          // 1. It has the isGroup flag set to true, OR
+          // 2. It has a name (which means it was created as a group)
+          // Note: The number of participants doesn't determine if it's a group chat
+          const hasGroupName = selectedConversation.name && selectedConversation.name.trim() !== '';
+          const isGroup = selectedConversation.isGroup === true || hasGroupName;
+
+          if (isGroup) {
             const otherParticipants = participants.filter(
               item => item.userId !== currentUser.id
             );
@@ -956,7 +966,12 @@ const MessengerPage = () => {
               dataSource={conversations}
               renderItem={(conversation) => {
                 const participants = conversation.participants?.items || [];
-                const isGroup = participants.length > 2;
+                // A conversation is a group chat if:
+                // 1. It has the isGroup flag set to true, OR
+                // 2. It has a name (which means it was created as a group)
+                // Note: The number of participants doesn't determine if it's a group chat
+                const hasGroupName = conversation.name && conversation.name.trim() !== '';
+                const isGroup = conversation.isGroup === true || hasGroupName;
                 const isSelected = selectedConversation?.id === conversation.id;
 
                 const hasUnread = conversation.lastMessageSenderId !== currentUser.id;

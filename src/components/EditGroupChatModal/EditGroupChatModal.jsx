@@ -47,9 +47,19 @@ const EditGroupChatModal = ({
       console.log("Modal opened with conversation data:", conversation);
       console.log("Current user:", currentUser);
 
-      // Determine if this is a direct chat (2 participants) or a group chat
+      // Determine if this is a direct chat or a group chat
+      // A direct chat is one that was created as a direct message between two users
+      // A group chat is one that was created as a group, regardless of the number of participants
       if (conversation?.participants?.items) {
-        const isDirectChatConversation = conversation.participants.items.length === 2;
+        // A conversation is a group chat if:
+        // 1. It has the isGroup flag set to true, OR
+        // 2. It has a name (which means it was created as a group)
+        // Note: The number of participants doesn't determine if it's a group chat
+        const hasGroupName = conversation.name && conversation.name.trim() !== '';
+        const isMarkedAsGroup = conversation.isGroup === true;
+
+        // If the conversation has a name or is marked as a group, it's a group chat
+        const isDirectChatConversation = !hasGroupName && !isMarkedAsGroup;
         setIsDirectChat(isDirectChatConversation);
 
         if (isDirectChatConversation) {
@@ -200,6 +210,7 @@ const EditGroupChatModal = ({
             input: {
               id: conversation.id,
               name: groupName,
+              isGroup: true, // Explicitly mark as a group chat
             }
           },
         });
@@ -207,12 +218,12 @@ const EditGroupChatModal = ({
 
         setConversations(prevConversations =>
           prevConversations.map(conv =>
-            conv.id === conversation.id ? { ...conv, name: groupName } : conv
+            conv.id === conversation.id ? { ...conv, name: groupName, isGroup: true } : conv
           )
         );
 
         if (selectedConversation && selectedConversation.id === conversation.id) {
-          setSelectedConversation({ ...selectedConversation, name: groupName });
+          setSelectedConversation({ ...selectedConversation, name: groupName, isGroup: true });
         }
       }
 

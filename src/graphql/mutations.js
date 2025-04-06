@@ -332,6 +332,7 @@ export const createConversation = /* GraphQL */ `
       lastMessageAt
       lastMessageContent
       lastMessageSenderId
+      isGroup
       createdAt
       updatedAt
       __typename
@@ -357,6 +358,7 @@ export const updateConversation = /* GraphQL */ `
       lastMessageAt
       lastMessageContent
       lastMessageSenderId
+      isGroup
       createdAt
       updatedAt
       __typename
@@ -382,6 +384,7 @@ export const deleteConversation = /* GraphQL */ `
       lastMessageAt
       lastMessageContent
       lastMessageSenderId
+      isGroup
       createdAt
       updatedAt
       __typename
@@ -406,6 +409,7 @@ export const createMessage = /* GraphQL */ `
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
+        isGroup
         createdAt
         updatedAt
         __typename
@@ -435,6 +439,7 @@ export const updateMessage = /* GraphQL */ `
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
+        isGroup
         createdAt
         updatedAt
         __typename
@@ -464,6 +469,7 @@ export const deleteMessage = /* GraphQL */ `
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
+        isGroup
         createdAt
         updatedAt
         __typename
@@ -808,6 +814,7 @@ export const createUserConversation = /* GraphQL */ `
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
+        isGroup
         createdAt
         updatedAt
         __typename
@@ -851,6 +858,7 @@ export const updateUserConversation = /* GraphQL */ `
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
+        isGroup
         createdAt
         updatedAt
         __typename
@@ -894,6 +902,7 @@ export const deleteUserConversation = /* GraphQL */ `
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
+        isGroup
         createdAt
         updatedAt
         __typename

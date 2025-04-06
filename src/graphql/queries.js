@@ -200,6 +200,7 @@ export const getConversation = /* GraphQL */ `
       lastMessageAt
       lastMessageContent
       lastMessageSenderId
+      isGroup
       createdAt
       updatedAt
       __typename
@@ -219,6 +220,7 @@ export const listConversations = /* GraphQL */ `
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
+        isGroup
         createdAt
         updatedAt
         __typename
@@ -243,6 +245,7 @@ export const getMessage = /* GraphQL */ `
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
+        isGroup
         createdAt
         updatedAt
         __typename
@@ -554,6 +557,7 @@ export const getUserConversation = /* GraphQL */ `
         lastMessageAt
         lastMessageContent
         lastMessageSenderId
+        isGroup
         createdAt
         updatedAt
         __typename

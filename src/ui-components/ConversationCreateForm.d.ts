@@ -5,7 +5,7 @@
  **************************************************************************/
 
 import * as React from "react";
-import { GridProps, TextFieldProps } from "@aws-amplify/ui-react";
+import { GridProps, SwitchFieldProps, TextFieldProps } from "@aws-amplify/ui-react";
 export declare type EscapeHatchProps = {
     [elementHierarchy: string]: Record<string, unknown>;
 } | null;
@@ -26,12 +26,14 @@ export declare type ConversationCreateFormInputValues = {
     lastMessageAt?: string;
     lastMessageContent?: string;
     lastMessageSenderId?: string;
+    isGroup?: boolean;
 };
 export declare type ConversationCreateFormValidationValues = {
     name?: ValidationFunction<string>;
     lastMessageAt?: ValidationFunction<string>;
     lastMessageContent?: ValidationFunction<string>;
     lastMessageSenderId?: ValidationFunction<string>;
+    isGroup?: ValidationFunction<boolean>;
 };
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type ConversationCreateFormOverridesProps = {
@@ -40,6 +42,7 @@ export declare type ConversationCreateFormOverridesProps = {
     lastMessageAt?: PrimitiveOverrideProps<TextFieldProps>;
     lastMessageContent?: PrimitiveOverrideProps<TextFieldProps>;
     lastMessageSenderId?: PrimitiveOverrideProps<TextFieldProps>;
+    isGroup?: PrimitiveOverrideProps<SwitchFieldProps>;
 } & EscapeHatchProps;
 export declare type ConversationCreateFormProps = React.PropsWithChildren<{
     overrides?: ConversationCreateFormOverridesProps | undefined | null;

@@ -222,6 +222,7 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
                 lastMessageAt: timestamp,
                 lastMessageContent: `${displayGroupName} created`,
                 lastMessageSenderId: currentUser.id,
+                isGroup: true, // Explicitly mark as a group chat
               }
             },
           });
