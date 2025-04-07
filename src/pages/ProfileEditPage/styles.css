@@ -1,6 +1,15 @@
 /* styles.css */
 @import url("../../shared/darkTheme.css");
 
+/* Prevent scrolling on the page */
+html, body {
+  overflow: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
 :root {
   --background-image: url('../../assets/images/a9bdf515-102c-4bf3-abb4-afca1e533796.png');
   --background-color: #f0f2f5;
@@ -24,27 +33,38 @@
 
 .profile-container {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start; /* Align to top */
   align-items: center;
-  min-height: 100vh;
+  height: 100vh; /* Use viewport height */
   background-color: var(--background-color);
   background: var(--background-image);
   transition: background-color 0.3s ease;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  padding: 1rem; /* Add padding for mobile edges */
+  padding: 0; /* No padding */
+  padding-top: 12vh; /* Push down from the top by 12% of viewport height */
+  margin: 0; /* No margin */
+  overflow: hidden; /* Prevent scrolling */
 }
 
 .profile-box {
   background-color: var(--box-background);
-  padding: clamp(16px, 5vw, 24px); /* Responsive padding */
+  padding: clamp(12px, 3vw, 16px); /* Reduced padding */
+  padding-top: clamp(8px, 2vw, 12px); /* Even less padding at top */
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px;
+  width: 95%; /* Increased width for wider avatar grid */
+  max-width: 650px; /* Increased max-width for wider avatar grid */
+  height: auto;
+  max-height: 85vh; /* Reduced max height */
+  overflow: hidden; /* Prevent scrolling on the box itself */
+  display: flex;
+  flex-direction: column;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   margin: 0 auto;
+  position: relative; /* Ensure proper positioning */
+  z-index: 10; /* Ensure visibility */
 }
 
 .dark-mode .profile-title {
@@ -58,10 +78,12 @@
 
 .avatar-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Larger avatars by default */
-  gap: 0.75rem; /* Increased gap for better spacing */
+  grid-template-columns: repeat(6, 1fr); /* Reduced to 6 columns to accommodate larger avatars */
+  gap: 1rem; /* Increased gap to prevent overlap */
   justify-content: center;
-  margin-bottom: clamp(16px, 4vw, 24px);
+  margin-bottom: clamp(12px, 3vw, 16px);
+  padding: 0.5rem;
+  overflow: visible; /* No scrolling needed */
 }
 
 .avatar-item {
@@ -70,22 +92,25 @@
   margin: 0;
   border-radius: 50%;
   cursor: pointer;
-  border: 4px solid transparent; /* Thicker border for visibility */
+  border: 3px solid transparent;
   transition: border-color 0.3s, transform 0.3s;
   object-fit: cover;
+  max-width: 105px; /* 1.5x bigger (70px * 1.5) */
+  min-width: 60px; /* 1.5x bigger (40px * 1.5) */
+  justify-self: center; /* Center in grid cell */
 }
 
 .avatar-item.selected {
   border-color: var(--avatar-border);
-  transform: scale(1.15); /* Slightly larger scale on selection */
+  transform: scale(1.08); /* Reduced scale to prevent overlap */
 }
 
 .avatar-item:hover {
-  transform: scale(1.1); /* Slightly larger hover effect */
+  transform: scale(1.05); /* Reduced scale to prevent overlap */
 }
 
 .input-field {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .input-field input {
@@ -93,13 +118,13 @@
   color: var(--input-text);
   border: 1px solid var(--border-color);
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  font-size: clamp(1rem, 4vw, 1.1rem);
-  padding: 1rem; /* Larger padding for better touch areas */
+  font-size: clamp(0.9rem, 3vw, 1rem);
+  padding: 0.5rem 0.75rem; /* Reduced padding */
   height: auto;
 }
 
 .textarea-field {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .textarea-field textarea {
@@ -107,20 +132,21 @@
   color: var(--textarea-text);
   border: 1px solid var(--border-color);
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  font-size: clamp(1rem, 4vw, 1.1rem);
-  min-height: 120px; /* Increased height for better mobile usability */
-  padding: 1rem; /* Larger padding for better touch areas */
+  font-size: clamp(0.9rem, 3vw, 1rem);
+  min-height: 80px; /* Reduced height */
+  max-height: 100px; /* Limit maximum height */
+  padding: 0.5rem 0.75rem; /* Reduced padding */
 }
 
 .save-button {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   background-color: var(--button-primary);
   border-color: var(--button-primary);
   transition: background-color 0.3s ease, border-color 0.3s ease;
-  font-size: clamp(1rem, 4vw, 1.1rem);
-  padding: 1rem 2rem; /* Larger padding for better touch areas */
+  font-size: clamp(0.9rem, 3vw, 1rem);
+  padding: 0.5rem 1rem; /* Reduced padding */
   height: auto;
-  min-width: 200px; /* Larger minimum width for touch targets */
+  min-width: 150px; /* Reduced minimum width */
 }
 
 .save-button:hover,
@@ -130,14 +156,14 @@
 }
 
 .signout-button {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   background-color: var(--button-danger);
   border-color: var(--button-danger);
   transition: background-color 0.3s ease, border-color 0.3s ease;
-  font-size: clamp(1rem, 4vw, 1.1rem);
-  padding: 1rem 2rem; /* Larger padding for better touch areas */
+  font-size: clamp(0.9rem, 3vw, 1rem);
+  padding: 0.5rem 1rem; /* Reduced padding */
   height: auto;
-  min-width: 200px; /* Larger minimum width for touch targets */
+  min-width: 150px; /* Reduced minimum width */
 }
 
 .signout-button:hover,
@@ -147,21 +173,24 @@
 }
 
 .achievementsButton {
-  position: fixed;
-  bottom: clamp(15px, 4vw, 20px);
-  right: clamp(15px, 4vw, 20px);
-  border-radius: 50px;
-  padding: clamp(12px, 3vw, 14px) clamp(24px, 5vw, 28px); /* Larger button padding */
-  font-size: clamp(1rem, 3.5vw, 1.1rem);
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
   color: var(--link-text);
   background-color: var(--link-background);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   z-index: 1000;
-  min-width: 160px; /* Larger minimum width for touch targets */
-  min-height: 50px; /* Larger minimum touch target size */
+  min-width: 120px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .achievementsButton:hover {
@@ -172,90 +201,132 @@
 /* Responsive Media Queries */
 @media (max-width: 768px) {
   .profile-container {
-    padding: 0.5rem;
-    align-items: flex-start;
-    min-height: calc(100vh - 1rem);
+    padding: 0;
+    margin: 0;
+    align-items: center; /* Center vertically */
+    justify-content: flex-start; /* Align to top */
+    padding-top: 10vh; /* Push down from the top by 10% of viewport height */
+    height: 100vh;
+    overflow: hidden;
   }
 
   .profile-box {
-    max-width: 100%;
-    margin: 0.5rem;
-    padding: clamp(12px, 4vw, 16px);
+    width: 95%;
+    max-width: 95%;
+    margin: 0 auto;
+    padding: 10px;
+    padding-top: 8px; /* Less padding at top */
+    max-height: 90vh; /* Slightly reduced max height */
+    overflow: hidden;
   }
 
   .avatar-container {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Even larger avatars on mobile */
-    gap: 1rem; /* Increased gap for better spacing */
-    margin-bottom: clamp(12px, 3vw, 16px);
+    grid-template-columns: repeat(4, 1fr); /* 4 columns on medium screens */
+    gap: 0.8rem;
+    margin-bottom: 10px;
+    overflow: visible;
   }
 
   .avatar-item {
-    border-width: 5px; /* Thicker border for visibility on larger avatars */
+    border-width: 2px;
+    max-width: 90px; /* 1.5x bigger */
+    min-width: 50px;
   }
 
-  .dark-mode .profile-title {
-    font-size: clamp(1.8rem, 7vw, 2.2rem); /* Larger title on mobile */
+  .dark-mode .profile-title,
+  .profile-title {
+    font-size: 1.4rem;
+    margin-top: 0;
+    margin-bottom: 10px;
   }
 
   .input-field input {
-    padding: 1.25rem; /* Even larger padding for touch targets */
-    font-size: clamp(1.1rem, 4.5vw, 1.2rem);
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    height: 36px;
   }
 
   .textarea-field textarea {
-    padding: 1.25rem; /* Even larger padding for touch targets */
-    font-size: clamp(1.1rem, 4.5vw, 1.2rem);
-    min-height: 140px; /* Even larger textarea for mobile */
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    min-height: 60px;
+    max-height: 80px;
   }
 
   .save-button,
   .signout-button {
-    padding: 1.25rem 2.5rem; /* Larger buttons for touch targets */
-    font-size: clamp(1.1rem, 4.5vw, 1.2rem);
-    min-width: 220px; /* Larger minimum width */
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    min-width: 120px;
+    height: 36px;
   }
 
   .achievementsButton {
-    bottom: 20px;
-    right: 20px;
-    padding: 14px 28px; /* Larger button for touch targets */
-    font-size: 1.1rem;
-    min-width: 180px;
+    bottom: 8px;
+    right: 8px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    min-width: 100px;
+    min-height: 28px;
   }
 }
 
 @media (max-width: 480px) {
+  .profile-container {
+    padding-top: 8vh; /* Slightly less padding for smaller screens */
+  }
   .avatar-container {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Slightly smaller but still very large on very small screens */
-    gap: 0.75rem;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns on smallest screens */
+    gap: 0.6rem;
+    overflow: visible;
   }
 
-  .dark-mode .profile-title {
-    font-size: clamp(1.5rem, 6.5vw, 1.8rem); /* Slightly smaller but still large on very small screens */
+  .avatar-item {
+    max-width: 80px; /* 1.5x bigger */
+    min-width: 45px;
+    border-width: 2px;
   }
 
+  .dark-mode .profile-title,
   .profile-title {
-    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 8px;
+    padding-top: 0;
   }
 
   .input-field,
   .textarea-field {
-    margin-bottom: 0.75rem;
+    margin-bottom: 8px;
+  }
+
+  .input-field input {
+    height: 32px;
+    padding: 0.4rem;
+  }
+
+  .textarea-field textarea {
+    min-height: 50px;
+    max-height: 70px;
+    padding: 0.4rem;
   }
 
   .save-button,
   .signout-button {
-    margin-bottom: 0.75rem;
-    margin-top: 0.75rem;
-    padding: 1.1rem 2.25rem;
-    min-width: 200px;
+    margin-bottom: 8px;
+    margin-top: 8px;
+    padding: 0.4rem 0.8rem;
+    min-width: 100px;
+    height: 32px;
   }
 
   .achievementsButton {
-    bottom: 15px;
-    right: 15px;
-    padding: 12px 24px;
-    min-width: 160px;
+    bottom: 5px;
+    right: 5px;
+    padding: 5px 10px;
+    min-width: 90px;
+    min-height: 24px;
+    font-size: 0.75rem;
   }
 }
 
@@ -299,4 +370,12 @@
     min-height: 52px; /* Larger minimum touch target size */
     min-width: 52px;
   }
+}
+
+/* Prevent scrolling on root elements */
+#root, .ant-layout {
+  overflow: hidden;
+  overscroll-behavior: none;
+  width: 100%;
+  height: 100%;
 }
