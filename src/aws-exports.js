@@ -21,14 +21,12 @@ const awsmobile = {
     "oauth": {
         "domain": "carsnipe-auth-1-staging.auth.us-east-2.amazoncognito.com",
         "scope": [
-            "phone",
             "email",
             "openid",
-            "profile",
-            "aws.cognito.signin.user.admin"
+            "profile"
         ],
-        "redirectSignIn": "https://carsnipe-auth-1.auth.us-east-2.amazoncognito.com/oauth2/idpresponse/",
-        "redirectSignOut": "https://carsnipe-auth-1.auth.us-east-2.amazoncognito.com/oauth2/idpresponse/",
+        "redirectSignIn": "http://localhost:3000/",
+        "redirectSignOut": "http://localhost:3000/",
         "responseType": "code"
     },
     "federationTarget": "COGNITO_USER_POOLS",

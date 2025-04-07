@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/api";
-import { getCurrentUser, signOut } from "aws-amplify/auth";
+import { getCurrentUser, signOut, fetchAuthSession } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 import {
   Authenticator,
@@ -44,7 +44,6 @@ import GameSettings from "./pages/GameSettings/GameSettings";
 import UserPage from "./pages/UserPage/UserPage";
 import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
-import VideoBackground from "./assets/intro-background.mp4";
 
 const client = generateClient();
 Amplify.configure(awsExports);
@@ -74,7 +73,6 @@ function BackspaceHandler() {
   return null;
 }
 
-// Custom components for the Authenticator
 const customComponents = {
   Header() {
     const { tokens } = useTheme();
@@ -158,7 +156,6 @@ const customComponents = {
   }
 };
 
-// Custom form fields for the Authenticator
 const customFormFields = {
   signIn: {
     username: {
@@ -173,7 +170,6 @@ const customFormFields = {
   }
 };
 
-// Custom theme for the Authenticator
 const theme = {
   name: 'Auth0Theme',
   tokens: {
@@ -221,7 +217,7 @@ export default function App() {
     }
   }, [playerInfo?.id, money]);
 
-  const createNewPlayer = useCallback(async (username) => {
+  const createNewPlayer = useCallback(async (email, nickname) => {
     if (!email) return;
     try {
       setCreatingUser(true);
@@ -237,7 +233,7 @@ export default function App() {
         return;
       }
       const newUserData = {
-        nickname: extractNameFromEmail(username) || username,
+        nickname: extractNameFromEmail(nickname) || nickname || email.split('@')[0],
         email,
         money: 100000,
         bidded: [],
@@ -261,40 +257,65 @@ export default function App() {
       setCreatingUser(false);
       setLoading(false);
     }
-  }, [email]);
+  }, []);
 
   const currentAuthenticatedUser = useCallback(async () => {
     try {
-      const { signInDetails } = await getCurrentUser();
-      setEmail(signInDetails?.loginId);
+      const user = await getCurrentUser();
+      const session = await fetchAuthSession();
+      
+      let userEmail = '';
+      let userNickname = '';
+      let provider = '';
+
+      if (session?.tokens?.idToken?.payload) {
+        const idToken = session.tokens.idToken.payload;
+        userEmail = idToken.email || '';
+        userNickname = idToken.name || idToken.given_name || userEmail.split('@')[0];
+        provider = idToken.iss.includes('google') ? 'Google' : 'Cognito';
+      } else if (user.signInDetails) {
+        userEmail = user.signInDetails.loginId;
+        userNickname = userEmail;
+        provider = 'Cognito';
+      }
+
+      if (!userEmail) {
+        throw new Error("Could not retrieve user email");
+      }
+
+      setEmail(userEmail);
+
       const playersData = await client.graphql({ query: listUsers });
       const playersList = playersData?.data?.listUsers.items;
-      const user = playersList.find((u) => u?.email === signInDetails?.loginId);
-      const isNewUser = !playersList.some((pl) => pl?.email === email);
+      const existingUser = playersList.find((u) => u?.email === userEmail);
+
+      const isNewUser = !existingUser;
       setIsNewUser(isNewUser);
-      if (!user) {
-        await createNewPlayer(signInDetails?.loginId);
+
+      if (!existingUser) {
+        await createNewPlayer(userEmail, userNickname);
       } else {
-        setPlayerInfo(user);
-        setMoney(user?.money);
-        localStorage.setItem("userInfo", JSON.stringify(user));
+        setPlayerInfo(existingUser);
+        setMoney(existingUser?.money);
+        localStorage.setItem("userInfo", JSON.stringify(existingUser));
         setLoading(false);
       }
     } catch (err) {
       console.error("Error fetching current authenticated user:", err);
       setLoading(false);
     }
-  }, [createNewPlayer, email]);
+  }, [createNewPlayer]);
 
-  const listener = async (data) => {
-    await createNewPlayer(data?.payload?.data?.nickname);
-    if (!playerInfo && !loading) {
-      window.location.reload();
+  const listener = useCallback(async (data) => {
+    const { payload } = data;
+    if (payload.event === 'signIn') {
+      await currentAuthenticatedUser();
     }
-  };
+  }, [currentAuthenticatedUser]);
 
   useEffect(() => {
-    Hub.listen("auth", listener);
+    const unsubscribe = Hub.listen("auth", listener);
+    return () => unsubscribe();
   }, [listener]);
 
   useEffect(() => {
@@ -323,7 +344,6 @@ export default function App() {
       <BackspaceHandler />
       <div className="app-container">
         {!playerInfo ? (
-          // Auth UI with black background
           <div className="auth-wrapper" style={{ backgroundColor: "#000000", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <ThemeProvider theme={theme}>
               <Authenticator 
@@ -334,7 +354,6 @@ export default function App() {
             </ThemeProvider>
           </div>
         ) : (
-          // Main app with normal background
           <Provider store={store}>
             <main>
               <CustomHeader 
