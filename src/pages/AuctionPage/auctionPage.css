@@ -284,7 +284,7 @@ html, body {
 }
 
 .zoom-transition {
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.5s ease-in-out;
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
@@ -415,6 +415,12 @@ html, body {
 .activeCard {
   width: 100%;
   height: 100%;
+  overflow: hidden;
+}
+
+/* Add hover effect for search card */
+.search-card-container:hover img.zoom-transition {
+  transform: scale(1.1) !important;
 }
 
 /* Mobile-specific layout fixes */
@@ -422,17 +428,26 @@ html, body {
   .auctionsHub {
     overflow-y: hidden !important;
   }
-  
+
   .hub-container {
     width: 100vw !important;
   }
-  
+
   .hub-item {
     width: 100vw !important;
   }
-  
+
   .auctionHub__cardText {
     font-size: 4vh; /* Smaller text on mobile */
+  }
+
+  /* Ensure the scale effect works on mobile too */
+  .search-card-container img.zoom-transition {
+    transition: transform 0.5s ease-in-out;
+  }
+
+  .search-card-container:active img.zoom-transition {
+    transform: scale(1.2) !important;
   }
   
   /* Ensure all cards have full page width */

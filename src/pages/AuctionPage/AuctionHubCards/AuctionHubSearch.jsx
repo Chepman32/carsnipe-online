@@ -61,7 +61,7 @@ export default function AuctionHubSearch({ focused }) {
                 height: '100%',
                 objectFit: 'cover',
                 objectPosition: 'center',
-                transform: (!isMobile && (initialScale || hovered || focused)) ? 'scale(1.05)' : 'scale(1)',
+                transform: (!isMobile && (initialScale || hovered || focused)) ? 'scale(1.2)' : 'scale(1)',
               }}
             />
           </div>
