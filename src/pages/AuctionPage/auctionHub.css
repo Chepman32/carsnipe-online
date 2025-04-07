@@ -14,6 +14,28 @@ body.hub-page-active {
   bottom: 0 !important;
 }
 
+/* Remove underline from links in auction hub */
+.auctionsHub a,
+.hub-item a,
+.search-card-container a,
+.hubCard a,
+.activeCard a {
+  text-decoration: none !important;
+  border-bottom: none !important;
+  outline: none !important;
+}
+
+/* Remove any underline or border from Typography components inside links */
+.auctionsHub a .ant-typography,
+.hub-item a .ant-typography,
+.search-card-container a .ant-typography,
+.hubCard a .ant-typography,
+.activeCard a .ant-typography {
+  text-decoration: none !important;
+  border-bottom: none !important;
+  outline: none !important;
+}
+
 body.hub-page-active #root,
 body.hub-page-active #scroller {
   overflow: hidden !important;
@@ -41,14 +63,37 @@ body.hub-page-active #scroller {
   box-sizing: border-box !important;
 }
 
-.auctionsHub .ant-row,
-.auctionsHub .ant-col {
+.hub-container {
+  width: 100% !important;
   height: 100% !important;
-  max-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
   overflow: hidden !important;
+}
+
+.hub-item {
+  width: 100% !important;
+  box-sizing: border-box !important;
   margin: 0 !important;
   padding: 0 !important;
-  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Mobile layout - all cards stacked vertically with full width */
+.search-item {
+  height: 25% !important;
+}
+
+.start-item {
+  height: 25% !important;
+}
+
+.bids-item {
+  height: 25% !important;
+}
+
+.auctions-item {
+  height: 25% !important;
 }
 
 .auctionsHub .ant-card {
@@ -65,4 +110,38 @@ body.hub-page-active #scroller {
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden !important;
+}
+
+/* Media query for tablets and desktop */
+@media (min-width: 768px) {
+  .hub-container {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: 1fr 1fr 1fr !important;
+    grid-template-areas: 
+      "search start" 
+      "search bids" 
+      "search auctions" !important;
+    height: 100% !important;
+  }
+  
+  .search-item {
+    grid-area: search !important;
+    height: 100% !important;
+  }
+  
+  .start-item {
+    grid-area: start !important;
+    height: 100% !important;
+  }
+  
+  .bids-item {
+    grid-area: bids !important;
+    height: 100% !important;
+  }
+  
+  .auctions-item {
+    grid-area: auctions !important;
+    height: 100% !important;
+  }
 }

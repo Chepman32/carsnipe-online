@@ -1,4 +1,4 @@
-import { Card, Col, Typography } from 'antd';
+import { Card, Typography } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import BackImage from '../../../assets/images/Forza-Horizon-5-Playlist-Cars.png';
@@ -18,7 +18,7 @@ export default function AuctionHubSearch({ focused }) {
   }, []);
 
   return (
-    <Col xs={24} md={24} style={{ height: '100%', padding: 0, margin: 0 }} className={!isMobile && focused ? "activeCard" : "hubCard"}>
+    <div className={`search-card-container ${!isMobile && focused ? "activeCard" : "hubCard"}`}>
       <Link to="/auctions" style={{ display: 'block', width: '100%', height: '100%' }}>
         <Card
           style={{
@@ -82,6 +82,6 @@ export default function AuctionHubSearch({ focused }) {
           </div>
         </Card>
       </Link>
-    </Col>
+    </div>
   );
 }

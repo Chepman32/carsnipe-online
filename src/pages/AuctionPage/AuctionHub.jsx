@@ -84,29 +84,20 @@ export default function AuctionsHub() {
 
   return (
     <div className="auctionsHub" onKeyDown={handleKeyDown} tabIndex={0}>
-      <Row style={{
-        height: "100%",
-        margin: "0",
-        padding: "0",
-        boxSizing: "border-box",
-        overflow: "hidden",
-        maxHeight: "100vh"
-      }}>
-        <Col xs={24} md={12} style={{ height: "100%", padding: "0", margin: "0" }}>
+      <div className="hub-container">
+        <div className="hub-item search-item">
           <AuctionHubSearch focused={focusedTile === "search"} />
-        </Col>
-        <Col xs={24} md={12} style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-          <div style={{ flex: 2 }}>
-            <AuctionHubStart focused={focusedTile === "start"} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <AuctionHubMyBids focused={focusedTile === "mybids"} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <AuctionHubMyAuctions focused={focusedTile === "myauctions"} />
-          </div>
-        </Col>
-      </Row>
+        </div>
+        <div className="hub-item start-item">
+          <AuctionHubStart focused={focusedTile === "start"} />
+        </div>
+        <div className="hub-item bids-item">
+          <AuctionHubMyBids focused={focusedTile === "mybids"} />
+        </div>
+        <div className="hub-item auctions-item">
+          <AuctionHubMyAuctions focused={focusedTile === "myauctions"} />
+        </div>
+      </div>
     </div>
   );
 }

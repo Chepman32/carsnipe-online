@@ -1,31 +1,26 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Hub } from 'aws-amplify/utils';
 import "@aws-amplify/ui-react/styles.css";
-import { Form, Select, Typography, message } from "antd";
+import { Typography, message } from "antd";
 import { generateClient } from 'aws-amplify/api';
 import * as mutations from '../../graphql/mutations';
 import { getAuction as getAuctionQuery, getUser } from '../../graphql/queries';
-import { fetchUserBiddedList, fetchAuctionUser, createNewUserCar, fetchUserAchievementsList, calculateTimeDifference } from "../../functions";
+import { fetchUserBiddedList, fetchAuctionUser, fetchUserAchievementsList, calculateTimeDifference } from "../../functions";
 import AuctionPageItem from "./AuctionPageItem";
 import { SelectedAuctionDetails } from "./SelectedAuctionDetails";
 import AuctionActionsModal from "./AuctionActionsModal";
 import { CreditWarningModal } from "../../components/CreditWarningModal/CreditWarningModal";
 import { fetchUserCarsRequest, checkAndUpdateAchievements } from "../../functions";
 
-const { Option } = Select;
 const client = generateClient();
 
 export default function MyBids({ playerInfo, setMoney, money }) {
   const [auctions, setAuctions] = useState([]);
-  const [userCars, setUserCars] = useState([]);
   const [visible, setVisible] = useState(false);
-  const [selectedCar, setSelectedCar] = useState(null);
-  const [auctionDuration, setAuctionDuration] = useState(1);
   const [creditWarningModalvisible, setCreditWarningModalvisible] = useState(false);
   const [player, setPlayer] = useState("");
   const [loadingBid, setLoadingBid] = useState(false);
   const [loadingBuy, setLoadingBuy] = useState(false);
-  const [form] = Form.useForm();
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [auctionActionsVisible, setAuctionActionsVisible] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);

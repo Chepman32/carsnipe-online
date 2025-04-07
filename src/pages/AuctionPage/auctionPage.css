@@ -179,6 +179,8 @@ html, body {
   text-align: center;
   margin: 0;
   padding: 0;
+  text-decoration: none !important;
+  border-bottom: none !important;
 }
 
 .auctionHub__cardText_black {
@@ -187,6 +189,8 @@ html, body {
   text-align: center;
   margin: 0;
   padding: 0;
+  text-decoration: none !important;
+  border-bottom: none !important;
 }
 
 .auctionsHub {
@@ -402,5 +406,55 @@ html, body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+  }
+}
+
+/* Additional mobile-specific styles */
+.search-card-container,
+.hubCard,
+.activeCard {
+  width: 100%;
+  height: 100%;
+}
+
+/* Mobile-specific layout fixes */
+@media (max-width: 767px) {
+  .auctionsHub {
+    overflow-y: hidden !important;
+  }
+  
+  .hub-container {
+    width: 100vw !important;
+  }
+  
+  .hub-item {
+    width: 100vw !important;
+  }
+  
+  .auctionHub__cardText {
+    font-size: 4vh; /* Smaller text on mobile */
+  }
+  
+  /* Ensure all cards have full page width */
+  .search-item,
+  .start-item,
+  .bids-item,
+  .auctions-item {
+    width: 100vw !important;
+    height: 25vh !important;
+  }
+  
+  /* Fix for visibility issues */
+  .hubCard, .activeCard {
+    visibility: visible !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* Fix any nested ant-col elements that may affect layout */
+  .ant-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
   }
 }
