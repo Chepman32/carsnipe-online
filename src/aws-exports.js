@@ -25,8 +25,8 @@ const awsmobile = {
             "openid",
             "profile"
         ],
-        "redirectSignIn": "http://localhost:3000/",
-        "redirectSignOut": "http://localhost:3000/",
+        "redirectSignIn": "http://localhost:3000/,https://carsnipe.online/",
+        "redirectSignOut": "http://localhost:3000/,https://carsnipe.online/",
         "responseType": "code"
     },
     "federationTarget": "COGNITO_USER_POOLS",

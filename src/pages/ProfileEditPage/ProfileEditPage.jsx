@@ -112,6 +112,8 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
             }
           } else if (focusedElement === 'signout') {
             setFocusedElement('achievements');
+          } else if (focusedElement === 'achievements') {
+            setFocusedElement('signout');
           }
           break;
         case "ArrowLeft":
@@ -128,6 +130,8 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
             }
           } else if (focusedElement === 'achievements') {
             setFocusedElement('signout');
+          } else if (focusedElement === 'signout') {
+            setFocusedElement('achievements');
           }
           break;
         case "ArrowDown":
@@ -147,6 +151,12 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
             return;
           } else if (focusedElement === 'save') {
             setFocusedElement('signout');
+            return;
+          } else if (focusedElement === 'achievements') {
+            setFocusedElement('save');
+            return;
+          } else if (focusedElement === 'signout') {
+            setFocusedElement('achievements');
             return;
           }
           break;
@@ -170,7 +180,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
             setFocusedElement('save');
             return;
           } else if (focusedElement === 'achievements') {
-            setFocusedElement('bio');
+            setFocusedElement('signout');
             return;
           }
           if (focusedElement === 'avatars') {
@@ -260,6 +270,12 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   return (
     <>
       <div className={`profile-container ${darkMode ? 'dark-mode' : 'light-mode'}`}>
+        <Link 
+          to="/achievements#/achievements"
+          className={`achievements-button ${focusedElement === 'achievements' ? 'focused' : ''}`}
+        >
+          My Achievements
+        </Link>
         <div className="profile-box">
           <Title level={3} className="profile-title">
             Edit Profile: {playerInfo.nickname}
@@ -318,15 +334,9 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
           >
             Sign Out
           </Button>
+
         </div>
       </div>
-      <Link 
-        to="/achievements#/achievements"
-        type="primary" 
-        className={`achievementsButton ${focusedElement === 'achievements' ? 'focused' : ''}`}
-      >
-        My achievements
-      </Link>
     </>
   );
 };
