@@ -4,22 +4,7 @@ import * as mutations from "./graphql/mutations";
 import SwitchSound from "./assets/audio/light-switch.mp3";
 import OpeningSound from "./assets/audio/opening.MP3";
 import ClosingSound from "./assets/audio/closing.MP3";
-import avatar1 from "./assets/images/avatars/avatar1.jpg";
-import avatar2 from "./assets/images/avatars/avatar2.jpg";
-import avatar3 from "./assets/images/avatars/avatar3.jpeg";
-import avatar4 from "./assets/images/avatars/avatar4.jpeg";
-import avatar5 from "./assets/images/avatars/avatar5.jpeg";
-import avatar6 from "./assets/images/avatars/avatar6.jpeg";
-import avatar7 from "./assets/images/avatars/avatar7.png";
-import avatar8 from "./assets/images/avatars/avatar8.jpeg";
-import avatar9 from "./assets/images/avatars/avatar9.png";
-import avatar10 from "./assets/images/avatars/avatar10.png";
-import avatar11 from "./assets/images/avatars/avatar11.jpeg";
-import avatar12 from "./assets/images/avatars/avatar12.jpeg";
-import avatar13 from "./assets/images/avatars/avatar13.png";
-import avatar14 from "./assets/images/avatars/avatar14.png";
-import avatar15 from "./assets/images/avatars/avatar15.png";
-import avatar16 from "./assets/images/avatars/avatar16.png";
+import avatar1 from "./assets/images/avatars/avatar1.png";
 
 import { message } from "antd";
 
@@ -467,42 +452,21 @@ export const getCarsPerRow = () => {
 };
 
 export const selectAvatar = (avatar) => {
-  switch (avatar) {
-    case "avatar1":
-      return avatar1;
-    case "avatar2":
-      return avatar2;
-    case "avatar3":
-      return avatar3;
-    case "avatar4":
-      return avatar4;
-    case "avatar5":
-      return avatar5;
-    case "avatar6":
-      return avatar6;
-    case "avatar7":
-      return avatar7;
-    case "avatar8":
-      return avatar8;
-    case "avatar9":
-      return avatar9;
-    case "avatar10":
-      return avatar10;
-    case "avatar11":
-      return avatar11;
-    case "avatar12":
-      return avatar12;
-    case "avatar13":
-      return avatar13;
-    case "avatar14":
-      return avatar14;
-    case "avatar15":
-      return avatar15;
-    case "avatar16":
-      return avatar16;
-    default:
-      return avatar1;
+  try {
+    // Extract the number from the avatar string (e.g. "avatar22" -> 22)
+    const avatarNumber = parseInt(avatar.replace('avatar', ''));
+    
+    if (!isNaN(avatarNumber)) {
+      // Try to dynamically import the avatar
+      const avatarPath = `./assets/images/avatars/avatar${avatarNumber}.png`;
+      return require(avatarPath);
+    }
+  } catch (error) {
+    console.warn(`Avatar ${avatar} not found, falling back to avatar1`);
   }
+  
+  // Default case if the input is invalid or avatar not found
+  return avatar1;
 };
 
 export function extractNameFromEmail(email) {

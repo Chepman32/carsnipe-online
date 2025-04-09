@@ -44,6 +44,7 @@ import GameSettings from "./pages/GameSettings/GameSettings";
 import UserPage from "./pages/UserPage/UserPage";
 import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
+import { avatars } from "./avatars";
 
 const client = generateClient();
 Amplify.configure(awsExports);
@@ -359,7 +360,7 @@ export default function App() {
               <CustomHeader 
                 money={money} 
                 nickname={playerInfo.nickname} 
-                avatar={selectAvatar(playerInfo.avatar)} 
+                avatar={avatars[playerInfo.avatar]}
               />
               <DarkModeWrapper>
                 <Routes>

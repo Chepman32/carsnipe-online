@@ -3,52 +3,18 @@ import { Form, Input, Button, notification, Typography } from 'antd';
 import { LogoutOutlined } from '@ant-design/icons';
 import { generateClient } from 'aws-amplify/api';
 import * as mutations from '../../graphql/mutations';
-import avatar1 from "../../assets/images/avatars/avatar1.jpg";
-import avatar2 from "../../assets/images/avatars/avatar2.jpg";
-import avatar3 from "../../assets/images/avatars/avatar3.jpeg";
-import avatar4 from "../../assets/images/avatars/avatar4.jpeg";
-import avatar5 from "../../assets/images/avatars/avatar5.jpeg";
-import avatar6 from "../../assets/images/avatars/avatar6.jpeg";
-import avatar7 from "../../assets/images/avatars/avatar7.png";
-import avatar8 from "../../assets/images/avatars/avatar8.jpeg";
-import avatar9 from "../../assets/images/avatars/avatar9.png";
-import avatar10 from "../../assets/images/avatars/avatar10.png";
-import avatar11 from "../../assets/images/avatars/avatar11.jpeg";
-import avatar12 from "../../assets/images/avatars/avatar12.jpeg";
-import avatar13 from "../../assets/images/avatars/avatar13.png";
-import avatar14 from "../../assets/images/avatars/avatar14.png";
-import avatar15 from "../../assets/images/avatars/avatar15.png";
-import avatar16 from "../../assets/images/avatars/avatar16.png";
 import "./styles.css";
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FOCUS_ZONES, HEADER_MAIN_MENU, setCurrentFocusedElement, setFocusedZone } from '../../redux/slices/focusSlice';
+import { avatars } from '../../avatars';
 
 const client = generateClient();
 
 const { Title } = Typography;
 const { TextArea } = Input;
 
-const avatarMap = {
-  avatar1,
-  avatar2,
-  avatar3,
-  avatar4,
-  avatar5,
-  avatar6,
-  avatar7,
-  avatar8,
-  avatar9,
-  avatar10,
-  avatar11,
-  avatar12,
-  avatar13,
-  avatar14,
-  avatar15,
-  avatar16
-};
-
-const avatars = Object.keys(avatarMap);
+const avatarsList = Object.keys(avatars);
 const avatarsPerRow = 4; // Number of avatars in one row
 
 const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
@@ -65,6 +31,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   const { focusedZone } = useSelector((state) => state.focus);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (focusedZone === FOCUS_ZONES.PAGE) {
@@ -82,7 +49,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (isEditing && document.activeElement.tagName === "TEXTAREA" || document.activeElement.tagName === "INPUT") {
+      if (isEditing && (document.activeElement.tagName === "TEXTAREA" || document.activeElement.tagName === "INPUT")) {
         if (event.key === "Escape") {
           document.activeElement.blur();
           setIsEditing(false);
@@ -136,7 +103,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
           break;
         case "ArrowDown":
           if (focusedElement === 'avatars') {
-            if (focusedAvatarIndex + avatarsPerRow < avatars.length) {
+            if (focusedAvatarIndex + avatarsPerRow < avatarsList.length) {
               newIndex = focusedAvatarIndex + avatarsPerRow;
             } else {
               setFocusedElement('nickname');
@@ -168,7 +135,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
             return;
           } else if (focusedElement === 'nickname') {
             setFocusedElement('avatars');
-            setFocusedAvatarIndex(avatars.length - 1);
+            setFocusedAvatarIndex(avatarsList.length - 1);
             return;
           } else if (focusedElement === 'bio') {
             setFocusedElement('nickname');
@@ -190,7 +157,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
         case "Enter":
         case " ":
           if (focusedElement === 'avatars') {
-            setSelectedAvatar(avatars[focusedAvatarIndex]);
+            setSelectedAvatar(avatarsList[focusedAvatarIndex]);
           } else if (focusedElement === 'achievements') {
             window.location.href = '/achievements#/achievements';
           } else if (focusedElement === 'nickname' || focusedElement === 'bio') {
@@ -201,8 +168,11 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
             if (element) {
               element.focus();
             }
+          } else if (focusedElement === 'save') {
+            // This is the key part - manually trigger form submission
+            handleSubmit();
           } else if (focusedElement === 'signout') {
-            signOut();
+            handleSignOut();
           }
           break;
         default:
@@ -254,8 +224,6 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
     }
   };
 
-  const navigate = useNavigate();
-
   const handleSignOut = () => {
     setPlayerInfo(null);
     signOut();
@@ -280,61 +248,60 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
           <Title level={3} className="profile-title">
             Edit Profile: {playerInfo.nickname}
           </Title>
-          <Form form={form} layout="vertical" onFinish={handleSubmit}>
-            <div className="avatar-container">
-              {avatars.map((avatarName, index) => (
-                <img
-                  key={index}
-                  src={avatarMap[avatarName]}
-                  className={`avatar-item ${selectedAvatar === avatarName ? 'selected' : ''} ${
-                    index === focusedAvatarIndex ? 'focused' : ''
-                  }`}
-                  alt={avatarName}
-                  onClick={() => handleAvatarSelect(avatarName)}
+          <div className="avatar-container">
+            {avatarsList.map((avatarName, index) => (
+              <img
+                key={index}
+                src={avatars[avatarName]}
+                className={`avatar-item ${selectedAvatar === avatarName ? 'selected' : ''} ${
+                  index === focusedAvatarIndex ? 'focused' : ''
+                }`}
+                alt={avatarName}
+                onClick={() => handleAvatarSelect(avatarName)}
+              />
+            ))}
+          </div>
+          <div className="profile-form">
+            <Form form={form} layout="vertical" onFinish={handleSubmit}>
+              <Form.Item>
+                <Input 
+                  placeholder="Enter your nickname" 
+                  value={nickname} 
+                  onChange={(event) => setNickname(event.target.value)}
+                  className={`input-field ${focusedElement === 'nickname' && !isEditing ? 'focused' : ''}`}
+                  onClick={() => setIsEditing(true)}
                 />
-              ))}
-            </div>
-            <Form.Item>
-              <Input 
-                placeholder="Enter your nickname" 
-                value={nickname} 
-                onChange={(event) => setNickname(event.target.value)}
-                className={`input-field ${focusedElement === 'nickname' && !isEditing ? 'focused' : ''}`}
-                readOnly={!isEditing}
-              />
-            </Form.Item>
-            <Form.Item>
-              <TextArea 
-                placeholder="Tell us a couple of words about yourself" 
-                rows={4}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className={`textarea-field ${focusedElement === 'bio' && !isEditing ? 'focused' : ''}`}
-                readOnly={!isEditing}
-              />
-            </Form.Item>
-            <Form.Item>
-              <Button 
-                type="primary" 
-                htmlType="submit"
-                block
-                className={`save-button ${focusedElement === 'save' ? 'focused' : ''}`}
-                loading={loading}
-              >
-                Save Changes
-              </Button>
-            </Form.Item>
-          </Form>
-          <Button 
-            danger
-            icon={<LogoutOutlined />}
-            onClick={handleSignOut}
-            block
-            className={`signout-button ${focusedElement === 'signout' ? 'focused' : ''}`}
-          >
-            Sign Out
-          </Button>
-
+              </Form.Item>
+              <Form.Item>
+                <TextArea 
+                  placeholder="Tell us a couple of words about yourself" 
+                  rows={3}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className={`textarea-field ${focusedElement === 'bio' && !isEditing ? 'focused' : ''}`}
+                  onClick={() => setIsEditing(true)}
+                />
+              </Form.Item>
+            </Form>
+            <Button 
+              type="primary" 
+              onClick={handleSubmit}
+              block
+              className={`save-button ${focusedElement === 'save' ? 'focused' : ''}`}
+              loading={loading}
+            >
+              Save Changes
+            </Button>
+            <Button 
+              danger
+              icon={<LogoutOutlined />}
+              onClick={handleSignOut}
+              block
+              className={`signout-button ${focusedElement === 'signout' ? 'focused' : ''}`}
+            >
+              Sign Out
+            </Button>
+          </div>
         </div>
       </div>
     </>
