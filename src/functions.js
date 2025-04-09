@@ -457,9 +457,14 @@ export const selectAvatar = (avatar) => {
     const avatarNumber = parseInt(avatar.replace('avatar', ''));
     
     if (!isNaN(avatarNumber)) {
-      // Try to dynamically import the avatar
-      const avatarPath = `./assets/images/avatars/avatar${avatarNumber}.png`;
-      return require(avatarPath);
+      // Use import() instead of require for dynamic imports
+      // This returns a Promise, so we need to handle it differently
+      return import(`./assets/images/avatars/avatar${avatarNumber}.png`)
+        .then(module => module.default)
+        .catch(error => {
+          console.warn(`Avatar ${avatar} not found, falling back to avatar1`);
+          return avatar1;
+        });
     }
   } catch (error) {
     console.warn(`Avatar ${avatar} not found, falling back to avatar1`);
@@ -475,12 +480,26 @@ export function extractNameFromEmail(email) {
 
 export const getImageSource = (make, model) => {
   const imageName = `${make} ${model}.png`;
-  return require(`./assets/images/cars/${imageName}`);
+  // Use dynamic import instead of require
+  return import(`./assets/images/cars/${imageName}`)
+    .then(module => module.default)
+    .catch(error => {
+      console.warn(`Car image for ${make} ${model} not found`);
+      // You might want to return a default image here
+      return null;
+    });
 };
 
 export const getAchievementImageSource = (title) => {
   const imageName = `${title}.png`;
-  return require(`./assets/images/achievements/${imageName}`);
+  // Use dynamic import instead of require
+  return import(`./assets/images/achievements/${imageName}`)
+    .then(module => module.default)
+    .catch(error => {
+      console.warn(`Achievement image for ${title} not found`);
+      // You might want to return a default image here
+      return null;
+    });
 };
 
 export async function createConversation(userId1, userId2) {
