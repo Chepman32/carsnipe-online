@@ -220,40 +220,85 @@ export default function App() {
 
   const createNewPlayer = useCallback(async (email, nickname) => {
     if (!email) return;
+    
     try {
       setCreatingUser(true);
-      const existingUsers = await client.graphql({
+      
+      const existingUsersResponse = await client.graphql({
         query: listUsers,
         variables: { filter: { email: { eq: email } } }
       });
-      if (existingUsers?.data?.listUsers?.items?.length > 0) {
-        const existingUser = existingUsers.data.listUsers.items[0];
+      
+      const existingUsers = existingUsersResponse?.data?.listUsers?.items || [];
+      
+      if (existingUsers.length > 0) {
+        const existingUser = existingUsers[0];
         setPlayerInfo(existingUser);
         setMoney(existingUser.money);
         localStorage.setItem("userInfo", JSON.stringify(existingUser));
+        setLoading(false);
         return;
       }
+
+      const randomAvatarNumber = Math.floor(Math.random() * 72) + 1;
+      const randomAvatar = `avatar${randomAvatarNumber}`;
+      
       const newUserData = {
         nickname: extractNameFromEmail(nickname) || nickname || email.split('@')[0],
         email,
         money: 100000,
         bidded: [],
-        avatar: "avatar1",
+        avatar: randomAvatar,
         bio: "",
         achievements: [],
         sold: []
       };
-      const createdPlayer = await client.graphql({
-        query: createUser,
-        variables: { input: newUserData }
-      });
-      if (createdPlayer?.data?.createUser) {
-        setPlayerInfo(createdPlayer.data.createUser);
-        setMoney(createdPlayer.data.createUser.money);
-        localStorage.setItem("userInfo", JSON.stringify(createdPlayer.data.createUser));
+
+      try {
+        const createdPlayer = await client.graphql({
+          query: createUser,
+          variables: { input: newUserData }
+        });
+
+        if (createdPlayer?.data?.createUser) {
+          const newUser = createdPlayer.data.createUser;
+          setPlayerInfo(newUser);
+          setMoney(newUser.money);
+          localStorage.setItem("userInfo", JSON.stringify(newUser));
+        }
+      } catch (creationError) {
+        if (creationError.errors?.some(e => e.message.includes('duplicate') || e.message.includes('unique'))) {
+          const retryFetch = await client.graphql({
+            query: listUsers,
+            variables: { filter: { email: { eq: email } } }
+          });
+          
+          const retryUser = retryFetch?.data?.listUsers?.items[0];
+          if (retryUser) {
+            setPlayerInfo(retryUser);
+            setMoney(retryUser.money);
+            localStorage.setItem("userInfo", JSON.stringify(retryUser));
+            return;
+          }
+        }
+        throw creationError;
       }
+      
     } catch (error) {
-      console.error("Error creating new player:", error);
+      console.error("Error in createNewPlayer:", error);
+      const finalCheck = await client.graphql({
+        query: listUsers,
+        variables: { filter: { email: { eq: email } } }
+      });
+      
+      const finalUser = finalCheck?.data?.listUsers?.items[0];
+      if (finalUser) {
+        setPlayerInfo(finalUser);
+        setMoney(finalUser.money);
+        localStorage.setItem("userInfo", JSON.stringify(finalUser));
+      } else {
+        console.error("Failed to create or find user:", error);
+      }
     } finally {
       setCreatingUser(false);
       setLoading(false);
