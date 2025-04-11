@@ -79,7 +79,7 @@ const customComponents = {
     const { tokens } = useTheme();
     return (
       <View textAlign="center" padding={tokens.space.medium}>
-        <Image alt="Carsnipe Logo" src="/your-logo.svg" width="60px" />
+        <Image alt="Carsnipe Logo" src={require("./assets/images/Logo.png")} width="160px" />
       </View>
     );
   },
