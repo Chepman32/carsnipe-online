@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Button, Modal, Form, Input, message, Select, Spin } from "antd";
+import { Button, Modal, Form, Input, message, Select, Spin, Row, Col, Typography, notification } from "antd";
 import { generateClient } from "aws-amplify/api";
 import { listCars as listCarsQuery } from "../../graphql/queries";
 import * as mutations from "../../graphql/mutations";
@@ -25,8 +25,12 @@ import {
   resetShouldFocusFirstCar
 } from "../../redux/slices/focusSlice";
 import useSoundEffects from "../../hooks/useSoundEffects";
+import { useDemoMode } from '../../contexts/DemoModeContext';
+import { getMockCars, updateMockCars } from '../../mockData';
+import CarItem from './CarItem';
 
 const { Option } = Select;
+const { Title } = Typography;
 const client = generateClient();
 
 const CarsStore = ({ playerInfo, setMoney, money }) => {
@@ -44,6 +48,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   const [carsLoading, setCarsLoading] = useState(true);
   const [allTopRowCars, setAllTopRowCars] = useState([]);
   const [allBottomRowCars, setAllBottomRowCars] = useState([]);
+  const { isDemoMode, demoUser } = useDemoMode();
 
   const { playSwitchSound } = useSoundEffects();
 
@@ -250,17 +255,13 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     try {
       console.log("Fetching cars...");
       setCarsLoading(true); // Start loading indicator
-      const carData = await client.graphql({ query: listCarsQuery });
-      console.log("Car data received:", carData);
-
-      // Ensure sorting happens *before* setting state
-      const sortedCars = [...carData.data.listCars.items].sort((a, b) => {
-          const makeCompare = (a.make || "").localeCompare(b.make || "");
-          if (makeCompare !== 0) return makeCompare;
-          return (a.model || "").localeCompare(b.model || ""); // Sort by model within make
-      });
-
-      setCars(sortedCars);
+      if (isDemoMode) {
+        const mockCars = getMockCars();
+        setCars(mockCars);
+      } else {
+        const result = await client.graphql({ query: listCarsQuery });
+        setCars(result.data.listCars.items);
+      }
 
       // Important: Reset focus state *after* fetch completes but *before* initial focus useEffect runs
       setFocusedCar(null);
@@ -274,7 +275,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     } finally {
       setCarsLoading(false); // Stop loading indicator
     }
-  }, []); // No dependencies needed if client is stable
+  }, [isDemoMode]);
 
   useEffect(() => { fetchCars() }, [fetchCars]);
 
@@ -596,31 +597,68 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  const buyCar = async (car) => {
-    if (money >= car.price) {
-      setLoadingBuy(true);
-      try {
-        const newMoney = money - car.price;
-        setMoney(newMoney); // Optimistic UI update for money
-        await client.graphql({
-          query: mutations.updateUser,
-          variables: { input: { id: playerInfo.id, money: newMoney } }
+  const handlePurchase = async (car) => {
+    try {
+      if (isDemoMode) {
+        if (demoUser.money < car.price) {
+          notification.error({
+            message: 'Insufficient Funds',
+            description: 'You do not have enough money to purchase this car',
+          });
+          return;
+        }
+
+        // Update demo user's money
+        const newMoney = demoUser.money - car.price;
+        const updatedDemoUser = {
+          ...demoUser,
+          money: newMoney
+        };
+        localStorage.setItem('demoUser', JSON.stringify(updatedDemoUser));
+
+        // Update mock cars
+        const mockCars = getMockCars();
+        const updatedCars = mockCars.filter(c => c.id !== car.id);
+        updateMockCars(updatedCars);
+        setCars(updatedCars);
+
+        notification.success({
+          message: 'Purchase Successful',
+          description: `You have successfully purchased the ${car.year} ${car.make} ${car.model}`,
         });
-        await createNewUserCar(playerInfo.id, car.id); // Ensure this awaits if necessary
-        message.success("Car successfully bought!");
-        await checkAndUpdateAchievements(playerInfo); // Check achievements after successful purchase
-      } catch (err) {
-        console.error("Error buying car:", err);
-        message.error("Error buying car. Please try again.");
-        setMoney(money); // Revert optimistic update on error
-      } finally {
-        setLoadingBuy(false);
-        setCarDetailsVisible(false); // Close modal regardless of success/error
-        // Refocus might be needed here depending on desired behavior after purchase
+      } else {
+        if (money < car.price) {
+          notification.error({
+            message: 'Insufficient Funds',
+            description: 'You do not have enough money to purchase this car',
+          });
+          return;
+        }
+
+        const newMoney = money - car.price;
+        setMoney(newMoney);
+
+        await client.graphql({
+          query: mutations.createUserCar,
+          variables: {
+            input: {
+              userId: playerInfo.id,
+              carId: car.id
+            }
+          }
+        });
+
+        notification.success({
+          message: 'Purchase Successful',
+          description: `You have successfully purchased the ${car.year} ${car.make} ${car.model}`,
+        });
       }
-    } else {
-      setCarDetailsVisible(false); // Close details modal first
-      setCreditWarningModalvisible(true); // Then show warning
+    } catch (error) {
+      console.error('Error purchasing car:', error);
+      notification.error({
+        message: 'Error',
+        description: 'Failed to purchase car',
+      });
     }
   };
 
@@ -679,160 +717,27 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       }
   };
 
+  if (carsLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     // Add focus outline management if needed, e.g., remove outline when mouse-navigating
     <div className="cars" tabIndex="-1"> {/* Make div focusable but not via sequential keyboard nav */}
-      {carsLoading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-            <Spin size="large" />
-        </div>
-      ) : (
-        <div className={`cars__container ${isMobile ? 'mobile-vertical' : ''}`}>
-          {isMobile ? (
-            // --- Mobile Layout ---
-            Object.entries(groupCarsByMake(cars)).map(([make, makeCars]) => (
-              <div key={make} className="mobile-maker-section">
-                <h2 className="mobile-make-title">{make}</h2>
-                <div className="mobile-car-grid">
-                  {/* 2-column grid for mobile */}
-                  {chunkCars(makeCars, 2).map((row, rowIndex) => (
-                    <div key={rowIndex} className="mobile-car-row">
-                      {row.map((car) => {
-                        const globalIndex = cars.findIndex(c => c.id === car.id); // Find index in original sorted list
-                        return (
-                          <div key={car.id} className="mobile-car-wrapper">
-                            <CarCard
-                              car={car}
-                              isMobile={isMobile}
-                              focusedCar={focusedCar}
-                              // selectedCar prop might not be needed if details modal handles selection
-                              setSelectedCar={(selectedCar) => {
-                                setSelectedCar(selectedCar);
-                                setSelectedCarIndex(globalIndex); // Use global index
-                                setFocusedCar(selectedCar); // Ensure focus follows selection
-                                showCarDetailsModal();
-                              }}
-                              showCarDetailsModal={showCarDetailsModal} // Pass function directly
-                              getImageSource={getImageSource}
-                              showPrice={true}
-                              // For mobile, setFocusedCar is enough, no complex row/col needed
-                              setFocusedCar={setFocusedCar}
-                              // No setFocusPosition needed for simplified mobile layout
-                              // Pass index for potential use within CarCard if needed
-                              index={globalIndex}
-                              // Make card focusable for accessibility/interaction
-                              isFocused={focusedCar?.id === car.id}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))
-          ) : (
-            // --- Desktop Layout ---
-            Object.entries(groupCarsByMake(cars)).map(([make, makeCars], makeIndex) => {
-              // Ensure makeCars are sorted by model for consistent row assignment
-              const sortedMakeCars = [...makeCars].sort((a,b)=>(a.model||"").localeCompare(b.model||""));
-              const topRowCars = sortedMakeCars.filter((_, index) => index % 2 === 0);
-              const bottomRowCars = sortedMakeCars.filter((_, index) => index % 2 === 1);
-
-              return (
-                <div
-                    key={make}
-                    className={`make-section ${focusedMake === make ? 'make-focused' : ''}`}
-                    data-make-index={makeIndex} // Keep for potential future use
-                    aria-label={`Manufacturer: ${make}`} // Accessibility
-                >
-                  {/* Make Title - Acts as a focus target */}
-                  <h2
-                    className={`make-name ${focusedMake === make ? 'focused' : ''}`}
-                    data-make={make} // For querying in useEffect/handleKeyDown
-                    tabIndex={-1} // Not sequentially focusable, only via script/Arrow Keys
-                    aria-selected={focusedMake === make} // Accessibility state
-                    // Click focuses the maker
-                    onClick={() => {
-                      if (focusedMake !== make) { // Prevent unnecessary state updates
-                         setFocusedMake(make);
-                         setFocusedCar(null);
-                         dispatch(setCurrentFocusedElement(MAKER_ROW));
-                         if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound(); // Sound on click focus
-                      }
-                    }}
-                  >
-                    {make}
-                  </h2>
-
-                  {/* Grid for Cars */}
-                  <div className="make-grid">
-                    {/* Top Row */}
-                    <div className="make-row top-row">
-                      {topRowCars.map((car) => {
-                          const globalIndex = cars.findIndex(c => c.id === car.id);
-                          const isFocused = focusedCar?.id === car.id;
-                          return (
-                              <CarCard
-                                  key={car.id}
-                                  car={car}
-                                  isMobile={isMobile}
-                                  focusedCar={focusedCar} // Pass the currently globally focused car
-                                  isFocused={isFocused} // Explicitly pass if this card is the focused one
-                                  setSelectedCar={(selectedCar) => {
-                                      setSelectedCar(selectedCar);
-                                      setSelectedCarIndex(globalIndex);
-                                      setFocusedCar(selectedCar); // Focus on click/select
-                                      showCarDetailsModal();
-                                  }}
-                                  showCarDetailsModal={showCarDetailsModal}
-                                  getImageSource={getImageSource}
-                                  showPrice={true}
-                                  setFocusedCar={setFocusedCar} // Allow card to set global focus state
-                                  // No need for setFocusPosition, handled by Redux/useEffect
-                                  // row={2} // Conceptual row number, maybe useful for styling/debugging
-                                  // column={allTopRowCars.findIndex(c => c.id === car.id)} // Global column index
-                                  index={globalIndex} // Pass global index
-                              />
-                         );
-                       })}
-                    </div>
-                    {/* Bottom Row */}
-                    <div className="make-row bottom-row">
-                      {bottomRowCars.map((car) => {
-                        const globalIndex = cars.findIndex(c => c.id === car.id);
-                        const isFocused = focusedCar?.id === car.id;
-                        return (
-                          <CarCard
-                            key={car.id}
-                            car={car}
-                            isMobile={isMobile}
-                            focusedCar={focusedCar}
-                            isFocused={isFocused}
-                            setSelectedCar={(selectedCar) => {
-                                setSelectedCar(selectedCar);
-                                setSelectedCarIndex(globalIndex);
-                                setFocusedCar(selectedCar);
-                                showCarDetailsModal();
-                            }}
-                            showCarDetailsModal={showCarDetailsModal}
-                            getImageSource={getImageSource}
-                            showPrice={true}
-                            setFocusedCar={setFocusedCar}
-                            // row={3} // Conceptual row number
-                            // column={allBottomRowCars.findIndex(c => c.id === car.id)}
-                            index={globalIndex}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
+      <div style={{ padding: '20px' }}>
+        <Title level={2}>Available Cars</Title>
+        <Row gutter={[16, 16]}>
+          {cars.map((car) => (
+            <Col key={car.id} xs={24} sm={12} md={8} lg={6}>
+              <CarItem
+                car={car}
+                onPurchase={handlePurchase}
+                currentMoney={isDemoMode ? demoUser.money : money}
+              />
+            </Col>
+          ))}
+        </Row>
+      </div>
 
         {/* --- Modals --- */}
       {/* Create Car Modal (Admin/Debug tool?) */}
@@ -911,7 +816,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           visible={carDetailsVisible}
           handleCancel={handleCarDetailsCancel}
           selectedCar={selectedCar}
-          buyCar={buyCar} // Pass buyCar function
+          buyCar={handlePurchase} // Pass buyCar function
           loadingBuy={loadingBuy}
           getImageSource={getImageSource} // Pass image source function
         />

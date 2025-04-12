@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import "@aws-amplify/ui-react/styles.css";
-import { Form, Select, message } from "antd";
+import { Form, Select, message, notification } from "antd";
 import { generateClient } from 'aws-amplify/api';
 import * as mutations from '../../graphql/mutations';
 import { listAuctions as listAuctionsQuery } from '../../graphql/queries';
@@ -22,7 +22,13 @@ import AuctionActionsModal from "./AuctionActionsModal";
 import AuctionMobilePageItem from "./MobileAuctionPageItem";
 import { CreditWarningModal } from "../../components/CreditWarningModal/CreditWarningModal";
 import { SelectedAuctionDetailsModal } from "./SelectedAuctionDetailsModal";
+import { useDemoMode } from '../../contexts/DemoModeContext';
+import { getMockAuctions, updateMockAuctions } from '../../mockData';
+import { Row, Col, Typography } from 'antd';
+import { useMediaQuery } from 'react-responsive';
+import { createBid } from '../../graphql/mutations';
 
+const { Title } = Typography;
 const client = generateClient();
 
 export default function AuctionPage({ playerInfo, setMoney, money }) {
@@ -36,54 +42,65 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   const auctionContainerRef = useRef(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const itemRefs = useRef({});
+  const { isDemoMode, demoUser } = useDemoMode();
+  const isMobile = useMediaQuery({ maxWidth: 768 });
 
   const listAuctions = useCallback(async (previousIndex = null) => {
     try {
       console.log("Fetching auctions...");
-      const auctionData = await client.graphql({ query: listAuctionsQuery });
-      console.log("Raw auction data:", auctionData);
+      if (isDemoMode) {
+        const mockAuctions = getMockAuctions();
+        setAuctions(mockAuctions);
+      } else {
+        const auctionData = await client.graphql({ query: listAuctionsQuery });
+        console.log("Raw auction data:", auctionData);
 
-      let auctions = auctionData.data.listAuctions.items.map((auction) => {
-        const endTime = new Date(parseInt(auction.endTime) * 1000);
-        const timeLeft = calculateTimeDifference(endTime);
-        return { ...auction, endTime, timeLeft };
-      }).filter(a => a.id);
+        let auctions = auctionData.data.listAuctions.items.map((auction) => {
+          const endTime = new Date(parseInt(auction.endTime) * 1000);
+          const timeLeft = calculateTimeDifference(endTime);
+          return { ...auction, endTime, timeLeft };
+        }).filter(a => a.id);
 
-      // Filter out finished auctions that ended more than 5 minutes ago
-      const currentTime = new Date();
-      const fiveMinutesInMs = 5 * 60 * 1000; // 5 minutes in milliseconds
-      auctions = auctions.filter(auction => {
-        // Keep all active auctions
-        if (auction.status !== 'Finished') return true;
+        // Filter out finished auctions that ended more than 5 minutes ago
+        const currentTime = new Date();
+        const fiveMinutesInMs = 5 * 60 * 1000; // 5 minutes in milliseconds
+        auctions = auctions.filter(auction => {
+          // Keep all active auctions
+          if (auction.status !== 'Finished') return true;
 
-        // For finished auctions, check if they ended less than 5 minutes ago
-        const timeSinceEnd = currentTime - auction.endTime;
-        return timeSinceEnd < fiveMinutesInMs;
-      });
+          // For finished auctions, check if they ended less than 5 minutes ago
+          const timeSinceEnd = currentTime - auction.endTime;
+          return timeSinceEnd < fiveMinutesInMs;
+        });
 
-      // Sort auctions: active auctions by end date (ascending), finished auctions at the end
-      auctions.sort((a, b) => {
-        // If both have the same status, sort by end date
-        if ((a.status === 'Finished') === (b.status === 'Finished')) {
-          return a.endTime - b.endTime;
+        // Sort auctions: active auctions by end date (ascending), finished auctions at the end
+        auctions.sort((a, b) => {
+          // If both have the same status, sort by end date
+          if ((a.status === 'Finished') === (b.status === 'Finished')) {
+            return a.endTime - b.endTime;
+          }
+          // Otherwise, put finished auctions at the end
+          return a.status === 'Finished' ? 1 : -1;
+        });
+
+        console.log("Processed auctions:", auctions);
+
+        setAuctions(auctions);
+        console.log("Auctions state set:", auctions);
+
+        if (auctions.length > 0 && !selectedAuction) {
+          setSelectedAuction(auctions[0]);
+          setFocusedIndex(0);
         }
-        // Otherwise, put finished auctions at the end
-        return a.status === 'Finished' ? 1 : -1;
-      });
-
-      console.log("Processed auctions:", auctions);
-
-      setAuctions(auctions);
-      console.log("Auctions state set:", auctions);
-
-      if (auctions.length > 0 && !selectedAuction) {
-        setSelectedAuction(auctions[0]);
-        setFocusedIndex(0);
       }
     } catch (error) {
       console.error("Error fetching auctions:", error);
+      notification.error({
+        message: 'Error',
+        description: 'Failed to fetch auctions',
+      });
     }
-  }, [playerInfo, selectedAuction]);
+  }, [playerInfo, selectedAuction, isDemoMode]);
 
   const increaseBid = async (auction) => {
     try {
@@ -93,94 +110,146 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         return;
       }
 
-      if (money < auction.buy) {
-        setCreditWarningModalvisible(true);
-        return;
-      }
-  
-      setLoadingBid(true);
-  
-      const userBidded = await fetchUserBiddedList(playerInfo.id);
-      if (userBidded.length === 0) {
-        await checkAndUpdateAchievements(playerInfo);
-      }
-  
-      let increasedBidValue;
-      if (!auction.currentBid || auction.currentBid === auction.minBid) {
-        increasedBidValue = auction.minBid;
+      if (isDemoMode) {
+        if (demoUser.money < auction.buy) {
+          setCreditWarningModalvisible(true);
+          return;
+        }
+
+        setLoadingBid(true);
+
+        let increasedBidValue;
+        if (!auction.currentBid || auction.currentBid === auction.minBid) {
+          increasedBidValue = auction.minBid;
+        } else {
+          increasedBidValue = Math.floor(auction.currentBid * 1.1);
+        }
+
+        if (increasedBidValue >= auction.buy) {
+          await buyItem(auction);
+          return;
+        }
+
+        const newMoney = auction.lastBidPlayer === demoUser.nickname
+          ? demoUser.money - (increasedBidValue - auction.currentBid)
+          : demoUser.money - increasedBidValue;
+
+        // Update demo user's money
+        const updatedDemoUser = {
+          ...demoUser,
+          money: newMoney
+        };
+        localStorage.setItem('demoUser', JSON.stringify(updatedDemoUser));
+
+        // Update mock auctions
+        const mockAuctions = getMockAuctions();
+        const updatedAuctions = mockAuctions.map(a => {
+          if (a.id === auction.id) {
+            return {
+              ...a,
+              currentBid: increasedBidValue,
+              lastBidPlayer: demoUser.nickname,
+              bidsCount: (a.bidsCount || 0) + 1,
+              status: increasedBidValue < a.buy ? "Active" : "Finished",
+              ...(increasedBidValue >= a.buy && { finishedAt: new Date().toISOString() })
+            };
+          }
+          return a;
+        });
+        updateMockAuctions(updatedAuctions);
+        setAuctions(updatedAuctions);
+
+        message.success('Bid successfully increased!');
       } else {
-        increasedBidValue = Math.floor(auction.currentBid * 1.1);
-      }
-  
-      console.log("Increasing bid from", auction.currentBid, "to", increasedBidValue);
-  
-      if (increasedBidValue >= auction.buy) {
-        await buyItem(auction);
-        return;
-      }
-  
-      const newMoney = auction.lastBidPlayer === playerInfo?.nickname
-        ? money - (increasedBidValue - auction.currentBid)
-        : money - increasedBidValue;
-  
-      setMoney(newMoney);
-  
-      const bidObject = {
-        auctionId: auction.id,
-        bidValue: increasedBidValue,
-        timestamp: new Date().toISOString(),
-      };
-  
-      const updatedBiddedList = [...userBidded, bidObject];
-      const bidInputs = updatedBiddedList.map(({ auctionId, bidValue, timestamp }) => ({ auctionId, bidValue, timestamp }));
-  
-      const updatedUser = {
-        id: playerInfo.id,
-        money: newMoney,
-        bidded: bidInputs,
-      };
-  
-      await client.graphql({
-        query: mutations.updateUser,
-        variables: { input: updatedUser },
-      });
-  
-      const updatedAuction = {
-        id: auction.id,
-        currentBid: increasedBidValue,
-        lastBidPlayer: playerInfo?.nickname,
-        bidsCount: auction.bidsCount + 1,
-        status: increasedBidValue < auction.buy ? "Active" : "Finished",
-        ...(increasedBidValue >= auction.buy && { finishedAt: new Date().toISOString() }) // Add finishedAt when auction is finished
-      };
-  
-      setAuctions(prevAuctions =>
-        prevAuctions.map(a =>
-          a.id === auction.id ? { ...a, currentBid: increasedBidValue } : a
-        )
-      );
-  
-      const response = await client.graphql({
-        query: mutations.updateAuction,
-        variables: { input: updatedAuction },
-      });
-      console.log("Update Auction Response:", response);
-  
-      message.success('Bid successfully increased!');
-  
-      const currentIndex = auctions.findIndex(a => a.id === auction.id);
-      await listAuctions(currentIndex);
-  
-      if (playerInfo && auction.player !== playerInfo.nickname) {
+        if (money < auction.buy) {
+          setCreditWarningModalvisible(true);
+          return;
+        }
+    
+        setLoadingBid(true);
+    
+        const userBidded = await fetchUserBiddedList(playerInfo.id);
+        if (userBidded.length === 0) {
+          await checkAndUpdateAchievements(playerInfo);
+        }
+    
+        let increasedBidValue;
+        if (!auction.currentBid || auction.currentBid === auction.minBid) {
+          increasedBidValue = auction.minBid;
+        } else {
+          increasedBidValue = Math.floor(auction.currentBid * 1.1);
+        }
+    
+        console.log("Increasing bid from", auction.currentBid, "to", increasedBidValue);
+    
+        if (increasedBidValue >= auction.buy) {
+          await buyItem(auction);
+          return;
+        }
+    
+        const newMoney = auction.lastBidPlayer === playerInfo?.nickname
+          ? money - (increasedBidValue - auction.currentBid)
+          : money - increasedBidValue;
+    
+        setMoney(newMoney);
+    
+        const bidObject = {
+          auctionId: auction.id,
+          bidValue: increasedBidValue,
+          timestamp: new Date().toISOString(),
+        };
+    
+        const updatedBiddedList = [...userBidded, bidObject];
+        const bidInputs = updatedBiddedList.map(({ auctionId, bidValue, timestamp }) => ({ auctionId, bidValue, timestamp }));
+    
+        const updatedUser = {
+          id: playerInfo.id,
+          money: newMoney,
+          bidded: bidInputs,
+        };
+    
         await client.graphql({
           query: mutations.updateUser,
-          variables: {
-            input: {
-              id: playerInfo.id,
-              totalAuctionsParticipated: (playerInfo.totalAuctionsParticipated || 0) + 1,
-            }
-          }
+          variables: { input: updatedUser },
         });
+    
+        const updatedAuction = {
+          id: auction.id,
+          currentBid: increasedBidValue,
+          lastBidPlayer: playerInfo?.nickname,
+          bidsCount: auction.bidsCount + 1,
+          status: increasedBidValue < auction.buy ? "Active" : "Finished",
+          ...(increasedBidValue >= auction.buy && { finishedAt: new Date().toISOString() }) // Add finishedAt when auction is finished
+        };
+    
+        setAuctions(prevAuctions =>
+          prevAuctions.map(a =>
+            a.id === auction.id ? { ...a, currentBid: increasedBidValue } : a
+          )
+        );
+    
+        const response = await client.graphql({
+          query: mutations.updateAuction,
+          variables: { input: updatedAuction },
+        });
+        console.log("Update Auction Response:", response);
+    
+        message.success('Bid successfully increased!');
+    
+        const currentIndex = auctions.findIndex(a => a.id === auction.id);
+        await listAuctions(currentIndex);
+    
+        if (playerInfo && auction.player !== playerInfo.nickname) {
+          await client.graphql({
+            query: mutations.updateUser,
+            variables: {
+              input: {
+                id: playerInfo.id,
+                totalAuctionsParticipated: (playerInfo.totalAuctionsParticipated || 0) + 1,
+              }
+            }
+          });
+        }
       }
     } catch (error) {
       console.error("Error in increaseBid:", error);
@@ -200,144 +269,180 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         return;
       }
 
-      if (money < auction.buy) {
-        setCreditWarningModalvisible(true);
-        return;
-      } else if (money >= auction.buy) {
+      if (isDemoMode) {
+        if (demoUser.money < auction.buy) {
+          setCreditWarningModalvisible(true);
+          return;
+        }
+
         setLoadingBuy(true);
 
-        const userBiddedList = await fetchUserBiddedList(playerInfo.id);
-        const userBidOnThisAuction = userBiddedList.find(bid => bid.auctionId === auction.id);
+        const newMoney = demoUser.money - auction.buy;
+        
+        // Update demo user's money
+        const updatedDemoUser = {
+          ...demoUser,
+          money: newMoney
+        };
+        localStorage.setItem('demoUser', JSON.stringify(updatedDemoUser));
 
-        const bidValue = userBidOnThisAuction ? userBidOnThisAuction.bidValue : 0;
-        const moneyToSubtract = auction.buy - bidValue;
+        // Update mock auctions
+        const mockAuctions = getMockAuctions();
+        const updatedAuctions = mockAuctions.map(a => {
+          if (a.id === auction.id) {
+            return {
+              ...a,
+              currentBid: a.buy,
+              status: "Finished",
+              finishedAt: new Date().toISOString()
+            };
+          }
+          return a;
+        });
+        updateMockAuctions(updatedAuctions);
+        setAuctions(updatedAuctions);
 
-        const newMoney = money - moneyToSubtract;
-        setMoney(newMoney);
+        message.success('Item purchased successfully!');
+      } else {
+        if (money < auction.buy) {
+          setCreditWarningModalvisible(true);
+          return;
+        } else if (money >= auction.buy) {
+          setLoadingBuy(true);
 
-        const auctionUser = await fetchAuctionUser(auction.id);
+          const userBiddedList = await fetchUserBiddedList(playerInfo.id);
+          const userBidOnThisAuction = userBiddedList.find(bid => bid.auctionId === auction.id);
 
-        // Check if auctionUser exists before accessing its properties
-        if (auctionUser) {
-          const updatedSeller = {
-            id: auctionUser.id,
-            money: auctionUser.money + auction.buy,
-            sold: [...(auctionUser.sold || []), auction.id],
-          };
+          const bidValue = userBidOnThisAuction ? userBidOnThisAuction.bidValue : 0;
+          const moneyToSubtract = auction.buy - bidValue;
+
+          const newMoney = money - moneyToSubtract;
+          setMoney(newMoney);
+
+          const auctionUser = await fetchAuctionUser(auction.id);
+
+          // Check if auctionUser exists before accessing its properties
+          if (auctionUser) {
+            const updatedSeller = {
+              id: auctionUser.id,
+              money: auctionUser.money + auction.buy,
+              sold: [...(auctionUser.sold || []), auction.id],
+            };
+
+            await client.graphql({
+              query: mutations.updateUser,
+              variables: { input: updatedSeller },
+            });
+
+            // Only try to delete the user car if we have a valid auctionUser
+            try {
+              await client.graphql({
+                query: mutations.deleteUserCar,
+                variables: {
+                  input: {
+                    userId: auctionUser.id,
+                    carId: auction.carId,
+                  },
+                },
+              });
+            } catch (error) {
+              console.error("Error deleting user car:", error);
+              // Continue with the purchase even if this fails
+            }
+          } else {
+            console.log("No auction user found for auction ID:", auction.id);
+          }
+
+          // Create user car regardless of whether we found the seller
+          await client.graphql({
+            query: mutations.createUserCar,
+            variables: {
+              input: {
+                userId: playerInfo.id,
+                carId: auction.carId,
+              },
+            },
+          });
 
           await client.graphql({
             query: mutations.updateUser,
-            variables: { input: updatedSeller },
+            variables: {
+              input: {
+                id: playerInfo.id,
+                money: newMoney,
+              },
+            },
           });
 
-          // Only try to delete the user car if we have a valid auctionUser
+          const updatedAuctionInput = {
+            id: auction.id,
+            currentBid: auction.buy,
+            lastBidPlayer: playerInfo?.nickname,
+            status: "Finished",
+            finishedAt: new Date().toISOString() // Ensure correct format for Lambda detection
+          };
+          await client.graphql({
+            query: mutations.updateAuction,
+            variables: { input: updatedAuctionInput },
+          });
+
+          message.success('Car successfully bought!');
+
           try {
+            await checkAndUpdateAchievements(playerInfo);
+          } catch (error) {
+            console.error("Error checking achievements:", error);
+            // Continue even if achievement check fails
+          }
+
+          const userCars = await fetchUserCarsRequest(playerInfo.id);
+          const userAchievements = await fetchUserAchievementsList(playerInfo.id);
+
+          if (userCars.length >= 3 && !userAchievements.some(achievement => achievement.name === "Starter Pack")) {
+            const newAchievement = { name: "Starter Pack", date: new Date().toISOString() };
+            const updatedAchievements = [...userAchievements, newAchievement];
+
             await client.graphql({
-              query: mutations.deleteUserCar,
+              query: mutations.updateUser,
               variables: {
                 input: {
-                  userId: auctionUser.id,
-                  carId: auction.carId,
+                  id: playerInfo.id,
+                  achievements: updatedAchievements.map(achievement => ({
+                    name: achievement.name,
+                    date: achievement.date
+                  })),
                 },
               },
             });
-          } catch (error) {
-            console.error("Error deleting user car:", error);
-            // Continue with the purchase even if this fails
+
+            message.success("Achievement unlocked: Starter Pack");
           }
-        } else {
-          console.log("No auction user found for auction ID:", auction.id);
-        }
 
-        // Create user car regardless of whether we found the seller
-        await client.graphql({
-          query: mutations.createUserCar,
-          variables: {
-            input: {
-              userId: playerInfo.id,
-              carId: auction.carId,
-            },
-          },
-        });
+          if (!userAchievements.some(achievement => achievement.name === "First Win")) {
+            const newAchievement = { name: "First Win", date: new Date().toISOString() };
+            const updatedAchievements = [...userAchievements, newAchievement];
 
-        await client.graphql({
-          query: mutations.updateUser,
-          variables: {
-            input: {
-              id: playerInfo.id,
-              money: newMoney,
-            },
-          },
-        });
-
-        const updatedAuctionInput = {
-          id: auction.id,
-          currentBid: auction.buy,
-          lastBidPlayer: playerInfo?.nickname,
-          status: "Finished",
-          finishedAt: new Date().toISOString() // Ensure correct format for Lambda detection
-        };
-        await client.graphql({
-          query: mutations.updateAuction,
-          variables: { input: updatedAuctionInput },
-        });
-
-        message.success('Car successfully bought!');
-
-        try {
-          await checkAndUpdateAchievements(playerInfo);
-        } catch (error) {
-          console.error("Error checking achievements:", error);
-          // Continue even if achievement check fails
-        }
-
-        const userCars = await fetchUserCarsRequest(playerInfo.id);
-        const userAchievements = await fetchUserAchievementsList(playerInfo.id);
-
-        if (userCars.length >= 3 && !userAchievements.some(achievement => achievement.name === "Starter Pack")) {
-          const newAchievement = { name: "Starter Pack", date: new Date().toISOString() };
-          const updatedAchievements = [...userAchievements, newAchievement];
-
-          await client.graphql({
-            query: mutations.updateUser,
-            variables: {
-              input: {
-                id: playerInfo.id,
-                achievements: updatedAchievements.map(achievement => ({
-                  name: achievement.name,
-                  date: achievement.date
-                })),
+            await client.graphql({
+              query: mutations.updateUser,
+              variables: {
+                input: {
+                  id: playerInfo.id,
+                  achievements: updatedAchievements.map(achievement => ({
+                    name: achievement.name,
+                    date: achievement.date
+                  })),
+                },
               },
-            },
-          });
+            });
 
-          message.success("Achievement unlocked: Starter Pack");
+            message.success("Achievement unlocked: First Win");
+          }
+
+          await listAuctions();
         }
-
-        if (!userAchievements.some(achievement => achievement.name === "First Win")) {
-          const newAchievement = { name: "First Win", date: new Date().toISOString() };
-          const updatedAchievements = [...userAchievements, newAchievement];
-
-          await client.graphql({
-            query: mutations.updateUser,
-            variables: {
-              input: {
-                id: playerInfo.id,
-                achievements: updatedAchievements.map(achievement => ({
-                  name: achievement.name,
-                  date: achievement.date
-                })),
-              },
-            },
-          });
-
-          message.success("Achievement unlocked: First Win");
-        }
-
-        await listAuctions();
       }
     } catch (error) {
-      console.error("Buy item error:", error);
+      console.error("Error in buyItem:", error);
       message.error('Failed to buy item');
     } finally {
       setLoadingBuy(false);
@@ -579,6 +684,36 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       }
     }, 10);
   };
+
+  if (isDemoMode) {
+    return (
+      <div style={{ padding: '20px' }}>
+        <Title level={2}>Active Auctions</Title>
+        <Row gutter={[16, 16]}>
+          {auctions.map((auction) => (
+            <Col key={auction.id} xs={24} sm={12} md={8} lg={6}>
+              {isMobile ? (
+                <AuctionMobilePageItem
+                  auction={auction}
+                  isSelected={selectedAuction?.id === auction.id}
+                  handleItemClick={handleItemClick}
+                />
+              ) : (
+                <AuctionPageItem
+                  auction={auction}
+                  isSelected={selectedAuction?.id === auction.id}
+                  handleItemClick={handleItemClick}
+                  onBid={increaseBid}
+                  currentUser={demoUser}
+                  currentMoney={demoUser.money}
+                />
+              )}
+            </Col>
+          ))}
+        </Row>
+      </div>
+    );
+  }
 
   return (
     <div

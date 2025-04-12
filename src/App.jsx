@@ -45,6 +45,7 @@ import UserPage from "./pages/UserPage/UserPage";
 import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 import { avatars } from "./avatars";
+import { DemoModeProvider, useDemoMode } from "./contexts/DemoModeContext";
 
 const client = generateClient();
 Amplify.configure(awsExports);
@@ -73,6 +74,35 @@ function BackspaceHandler() {
   }, [navigate]);
   return null;
 }
+
+const DemoModeButton = () => {
+  const { isDemoMode, toggleDemoMode } = useDemoMode();
+
+  const handleDemoMode = () => {
+    try {
+      console.log('Demo mode button clicked, current state:', isDemoMode);
+      toggleDemoMode();
+      console.log('Demo mode toggled, new state:', !isDemoMode);
+      
+      // Use a small timeout to ensure state is updated before redirecting
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
+    } catch (error) {
+      console.error('Error in demo mode toggle:', error);
+    }
+  };
+
+  return (
+    <Button
+      variation="primary"
+      onClick={handleDemoMode}
+      style={{ marginTop: '1rem', width: '100%' }}
+    >
+      {isDemoMode ? 'Exit Demo Mode' : 'Try Demo Mode'}
+    </Button>
+  );
+};
 
 const customComponents = {
   Header() {
@@ -123,6 +153,7 @@ const customComponents = {
               Sign up
             </Button>
           </Text>
+          <DemoModeButton />
         </View>
       );
     }
@@ -202,6 +233,86 @@ const theme = {
       },
     },
   },
+};
+
+const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
+  const { isDemoMode, demoUser } = useDemoMode();
+
+  return (
+    <Provider store={store}>
+      <main>
+        <CustomHeader 
+          money={isDemoMode ? demoUser?.money : money} 
+          nickname={isDemoMode ? demoUser?.nickname : playerInfo?.nickname} 
+          avatar={isDemoMode ? avatars[demoUser?.avatar] : avatars[playerInfo?.avatar]}
+        />
+        <DarkModeWrapper>
+          <Routes>
+            <Route path="/" element={<MainPage />} />
+            <Route path="/profileEditPage" element={<ProfileEditPage playerInfo={isDemoMode ? demoUser : playerInfo} currentAuthenticatedUser={currentAuthenticatedUser} signOut={signOut} setPlayerInfo={setPlayerInfo} />} />
+            <Route path="/carsStore" element={<CarsStore playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/auctions" element={<AuctionPage playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/myCars" element={<MyCars playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/auctionsHub" element={<AuctionsHub />} />
+            <Route path="/myBids" element={<MyBids playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/myAuctions" element={<MyAuctions playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/achievements" element={<AchievementList userId={isDemoMode ? demoUser?.id : playerInfo?.id} />} />
+            <Route path="/paymentError" element={<PaymentError />} />
+            <Route path="/store" element={<Store email={isDemoMode ? demoUser?.email : playerInfo?.email} />} />
+            <Route path="/settings" element={<GameSettings playerInfo={isDemoMode ? demoUser : playerInfo} />} />
+            <Route path="/musicUpload" element={<MusicUploadPage />} />
+            <Route path="/musicLibraryPage" element={<MusicLibraryPage />} />
+            <Route path="/user/:id" element={<UserPage />} />
+            <Route path="/messenger" element={<MessengerPage />} />
+            <Route path="/messenger/:conversationId" element={<MessengerPage />} />
+          </Routes>
+        </DarkModeWrapper>
+      </main>
+      <MusicPlayer />
+    </Provider>
+  );
+};
+
+const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
+  const { isDemoMode } = useDemoMode();
+
+  if (isDemoMode) {
+    return (
+      <AppContent 
+        playerInfo={null}
+        money={null}
+        setMoney={() => {}}
+        currentAuthenticatedUser={() => {}}
+        signOut={() => {}}
+        setPlayerInfo={() => {}}
+      />
+    );
+  }
+
+  if (!playerInfo) {
+    return (
+      <div className="auth-wrapper" style={{ backgroundColor: "#000000", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <ThemeProvider theme={theme}>
+          <Authenticator 
+            components={customComponents} 
+            formFields={customFormFields} 
+            socialProviders={["google"]}
+          />
+        </ThemeProvider>
+      </div>
+    );
+  }
+
+  return (
+    <AppContent 
+      playerInfo={playerInfo}
+      money={money}
+      setMoney={setMoney}
+      currentAuthenticatedUser={currentAuthenticatedUser}
+      signOut={signOut}
+      setPlayerInfo={setPlayerInfo}
+    />
+  );
 };
 
 export default function App() {
@@ -388,51 +499,18 @@ export default function App() {
   return (
     <BrowserRouter>
       <BackspaceHandler />
-      <div className="app-container">
-        {!playerInfo ? (
-          <div className="auth-wrapper" style={{ backgroundColor: "#000000", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <ThemeProvider theme={theme}>
-              <Authenticator 
-                components={customComponents} 
-                formFields={customFormFields} 
-                socialProviders={["google"]}
-              />
-            </ThemeProvider>
-          </div>
-        ) : (
-          <Provider store={store}>
-            <main>
-              <CustomHeader 
-                money={money} 
-                nickname={playerInfo.nickname} 
-                avatar={avatars[playerInfo.avatar]}
-              />
-              <DarkModeWrapper>
-                <Routes>
-                  <Route path="/" element={<MainPage />} />
-                  <Route path="/profileEditPage" element={<ProfileEditPage playerInfo={playerInfo} currentAuthenticatedUser={currentAuthenticatedUser} signOut={signOut} setPlayerInfo={setPlayerInfo} />} />
-                  <Route path="/carsStore" element={<CarsStore playerInfo={playerInfo} money={money} setMoney={setMoney} />} />
-                  <Route path="/auctions" element={<AuctionPage playerInfo={playerInfo} money={money} setMoney={setMoney} />} />
-                  <Route path="/myCars" element={<MyCars playerInfo={playerInfo} money={money} setMoney={setMoney} />} />
-                  <Route path="/auctionsHub" element={<AuctionsHub />} />
-                  <Route path="/myBids" element={<MyBids playerInfo={playerInfo} money={money} setMoney={setMoney} />} />
-                  <Route path="/myAuctions" element={<MyAuctions playerInfo={playerInfo} money={money} setMoney={setMoney} />} />
-                  <Route path="/achievements" element={<AchievementList userId={playerInfo.id} />} />
-                  <Route path="/paymentError" element={<PaymentError />} />
-                  <Route path="/store" element={<Store email={playerInfo.email} />} />
-                  <Route path="/settings" element={<GameSettings playerInfo={playerInfo} />} />
-                  <Route path="/musicUpload" element={<MusicUploadPage />} />
-                  <Route path="/musicLibraryPage" element={<MusicLibraryPage />} />
-                  <Route path="/user/:id" element={<UserPage />} />
-                  <Route path="/messenger" element={<MessengerPage />} />
-                  <Route path="/messenger/:conversationId" element={<MessengerPage />} />
-                </Routes>
-              </DarkModeWrapper>
-            </main>
-            <MusicPlayer />
-          </Provider>
-        )}
-      </div>
+      <DemoModeProvider>
+        <div className="app-container">
+          <AppContentWrapper 
+            playerInfo={playerInfo}
+            money={money}
+            setMoney={setMoney}
+            currentAuthenticatedUser={currentAuthenticatedUser}
+            signOut={signOut}
+            setPlayerInfo={setPlayerInfo}
+          />
+        </div>
+      </DemoModeProvider>
     </BrowserRouter>
   );
 }
