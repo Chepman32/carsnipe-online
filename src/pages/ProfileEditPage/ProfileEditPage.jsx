@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FOCUS_ZONES, HEADER_MAIN_MENU, setCurrentFocusedElement, setFocusedZone } from '../../redux/slices/focusSlice';
 import { avatars } from '../../avatars';
+import { useDemoMode } from '../../contexts/DemoModeContext';
 
 const client = generateClient();
 
@@ -27,6 +28,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   const [focusedElement, setFocusedElement] = useState('avatars'); // avatars, nickname, bio, achievements, signout
   const [isEditing, setIsEditing] = useState(false);
 
+  const { isDemoMode, toggleDemoMode } = useDemoMode();
   const darkMode = useSelector((state) => state.quickSettings.darkMode);
   const { focusedZone } = useSelector((state) => state.focus);
 
@@ -227,7 +229,16 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   const handleSignOut = () => {
     setPlayerInfo(null);
     signOut();
-    navigate('/');
+    
+    if (isDemoMode) {
+      // If in demo mode, redirect to signin page
+      toggleDemoMode(); // Exit demo mode
+      navigate('/'); // This will show the signin page since we're exiting demo mode
+    } else {
+      // Normal sign out behavior
+      navigate('/');
+    }
+    
     notification.info({
       message: 'Signed Out',
       description: 'You have been signed out successfully',
