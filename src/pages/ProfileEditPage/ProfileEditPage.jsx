@@ -28,7 +28,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   const [focusedElement, setFocusedElement] = useState('avatars'); // avatars, nickname, bio, achievements, signout
   const [isEditing, setIsEditing] = useState(false);
 
-  const { isDemoMode, toggleDemoMode } = useDemoMode();
+  const { isDemoMode, toggleDemoMode, updateDemoUser } = useDemoMode();
   const darkMode = useSelector((state) => state.quickSettings.darkMode);
   const { focusedZone } = useSelector((state) => state.focus);
 
@@ -205,17 +205,44 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
         bio,
         avatar: selectedAvatar,
       };
-      await client.graphql({
-        query: mutations.updateUser,
-        variables: { input: updatedUser },
-      });
-      currentAuthenticatedUser();
-      setLoading(false);
-      notification.success({
-        message: 'Profile Updated',
-        description: `Nickname: ${nickname}`,
-        placement: 'topRight',
-      });
+
+      if (isDemoMode) {
+        // In demo mode, use the updateDemoUser function from context
+        // This will update the demoUser state and localStorage
+        const updatedDemoUser = {
+          nickname,
+          bio,
+          avatar: selectedAvatar,
+        };
+        
+        // Update demo user using the context function
+        const result = updateDemoUser(updatedDemoUser);
+        
+        // Update player info in parent component
+        if (result) {
+          setPlayerInfo(result);
+        }
+        
+        setLoading(false);
+        notification.success({
+          message: 'Profile Updated',
+          description: `Nickname: ${nickname}`,
+          placement: 'topRight',
+        });
+      } else {
+        // Normal mode - make backend request
+        await client.graphql({
+          query: mutations.updateUser,
+          variables: { input: updatedUser },
+        });
+        currentAuthenticatedUser();
+        setLoading(false);
+        notification.success({
+          message: 'Profile Updated',
+          description: `Nickname: ${nickname}`,
+          placement: 'topRight',
+        });
+      }
     } catch (error) {
       setLoading(false);
       notification.error({

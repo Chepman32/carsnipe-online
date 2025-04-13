@@ -1,15 +1,12 @@
-import React from 'react';
-import { calculateTimeDifference } from '../../functions';
+import React, { useState, useEffect } from 'react';
+import { calculateTimeDifference, getImageSource } from '../../functions';
 import { Col, Flex, Typography } from 'antd';
 import "./auctionPage.css"
 import ThinText from '../../components/Text/ThinText';
 
-const getImageSource = (make, model) => {
-    const imageName = `${make} ${model}.png`;
-    return require(`../../assets/images/cars/${imageName}`);
-};
-
 export default function AuctionMobilePageItem({ auction, isSelected, isFocused, index, handleItemClick }) {
+    const [imageSrc, setImageSrc] = useState('https://via.placeholder.com/300x200?text=Loading...');
+    
     // Handle click
     const handleClick = () => {
         if (handleItemClick) {
@@ -26,6 +23,22 @@ export default function AuctionMobilePageItem({ auction, isSelected, isFocused, 
         paddingRight: "1vw",
         transition: 'all 0.3s ease-in-out' // Smooth transition for all changes
     };
+    
+    // Load image when auction changes
+    useEffect(() => {
+        if (auction && auction.make && auction.model) {
+            const loadImage = async () => {
+                try {
+                    const src = await getImageSource(auction.make, auction.model);
+                    setImageSrc(src);
+                } catch (error) {
+                    console.error('Error loading image:', error);
+                    setImageSrc('https://via.placeholder.com/300x200?text=No+Image');
+                }
+            };
+            loadImage();
+        }
+    }, [auction]);
 
     return (
         <Col
@@ -37,10 +50,13 @@ export default function AuctionMobilePageItem({ auction, isSelected, isFocused, 
             <Flex justify="space-between" align="flex-end" style={baseStyle} >
                 <div style={{display: "flex", alignItems: "center"}}>
                 <img
-                        src={getImageSource(auction.make, auction.model)}
+                        src={imageSrc}
                         alt="Auction"
                         className="mobileAuctionPageItem__image"
                         style={{ width: 'auto', height: '25vw', objectFit: "contain", marginRight: '10px' }}
+                        onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                        }}
                     />
                     <div style={{height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between"}}>
                     <ThinText>{auction.year}&nbsp;{auction.make}&nbsp;{auction.model} </ThinText>

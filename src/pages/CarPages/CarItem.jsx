@@ -1,13 +1,8 @@
 import React from 'react';
 import { Card, Typography, Button } from 'antd';
-import { calculateTimeDifference } from '../../functions';
+import { calculateTimeDifference, getImageSource } from '../../functions';
 
 const { Title, Text } = Typography;
-
-const getImageSource = (make, model) => {
-  const imageName = `${make} ${model}.png`;
-  return require(`../../assets/images/cars/${imageName}`);
-};
 
 export default function CarItem({ car, onPurchase, currentMoney }) {
   const canAfford = currentMoney >= car.price;
@@ -16,11 +11,19 @@ export default function CarItem({ car, onPurchase, currentMoney }) {
     <Card
       hoverable
       cover={
-        <img
-          alt={`${car.year} ${car.make} ${car.model}`}
-          src={getImageSource(car.make, car.model)}
-          style={{ height: '200px', objectFit: 'contain' }}
-        />
+        React.createElement(
+          'img',
+          {
+            alt: `${car.year} ${car.make} ${car.model}`,
+            src: typeof getImageSource === 'function' ? 
+              (car && car.make && car.model ? 
+                getImageSource(car.make, car.model) : '') : '',
+            style: { height: '200px', objectFit: 'contain' },
+            onError: (e) => {
+              e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+            }
+          }
+        )
       }
     >
       <Title level={4}>{car.year} {car.make} {car.model}</Title>

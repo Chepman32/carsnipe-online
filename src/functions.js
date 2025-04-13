@@ -102,17 +102,24 @@ export const fetchUserInfoById = async (userId) => {
 };
 
 export const getCarTypeColor = (carType) => {
-  switch (carType) {
+  // Handle undefined/null case
+  if (!carType) return "#32a852"; // Default to regular color
+  
+  // Convert to lowercase for case-insensitive comparison
+  const type = carType.toLowerCase();
+  
+  switch (type) {
     case "regular":
-      return "#32a852";
+    case "common":
+      return "#32a852"; // Green for regular/common
     case "rare":
-      return "#397aab";
+      return "#397aab"; // Blue for rare
     case "legendary":
-      return "#d4ca0f";
+      return "#d4ca0f"; // Yellow for legendary
     case "epic":
-      return "#4d1ac4";
+      return "#4d1ac4"; // Purple for epic
     default:
-      return "#32a852";
+      return "#32a852"; // Default to regular color
   }
 };
 
@@ -479,15 +486,26 @@ export function extractNameFromEmail(email) {
 }
 
 export const getImageSource = (make, model) => {
+  if (!make || !model) {
+    console.warn('Missing make or model for getImageSource');
+    return 'https://via.placeholder.com/300x200?text=No+Image';
+  }
+  
   const imageName = `${make} ${model}.png`;
-  // Use dynamic import instead of require
-  return import(`./assets/images/cars/${imageName}`)
-    .then(module => module.default)
-    .catch(error => {
-      console.warn(`Car image for ${make} ${model} not found`);
-      // You might want to return a default image here
-      return null;
-    });
+  
+  try {
+    // First try to use dynamic import
+    return import(`./assets/images/cars/${imageName}`)
+      .then(module => module.default)
+      .catch(error => {
+        console.warn(`Car image for ${make} ${model} not found: ${error.message}`);
+        // Return a placeholder image
+        return 'https://via.placeholder.com/300x200?text=No+Image';
+      });
+  } catch (error) {
+    console.warn(`Error loading car image for ${make} ${model}: ${error.message}`);
+    return 'https://via.placeholder.com/300x200?text=No+Image';
+  }
 };
 
 export const getAchievementImageSource = (title) => {

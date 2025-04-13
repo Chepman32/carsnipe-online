@@ -27,7 +27,7 @@ import {
 import useSoundEffects from "../../hooks/useSoundEffects";
 import { useDemoMode } from '../../contexts/DemoModeContext';
 import { getMockCars, updateMockCars } from '../../mockData';
-import CarItem from './CarItem';
+// import CarItem from './CarItem';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -705,17 +705,17 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
   // Memoize image source function generation if performance is critical, though unlikely needed here.
   const getImageSource = (make, model) => {
-      try {
-        // Basic sanitization
-        const safeMake = make?.replace(/[^a-z0-9\s-]/gi, '') || 'default';
-        const safeModel = model?.replace(/[^a-z0-9\s-]/gi, '') || 'model';
-        return require(`../../assets/images/cars/${safeMake} ${safeModel}.png`);
-      } catch (error) {
-         // console.warn(`Image not found for: ${make} ${model}. Using default.`);
-          // Use a placeholder image URL instead of requiring a local file
-          return 'https://via.placeholder.com/300x200?text=Car+Image+Not+Found';
-      }
-  };
+    try {
+      // Basic sanitization
+      const safeMake = make?.replace(/[^a-z0-9\s-]/gi, '') || 'default';
+      const safeModel = model?.replace(/[^a-z0-9\s-]/gi, '') || 'model';
+      return require(`../../assets/images/cars/${safeMake} ${safeModel}.png`);
+    } catch (error) {
+       // console.warn(`Image not found for: ${make} ${model}. Using default.`);
+        // Use a placeholder image URL instead of requiring a local file
+        return 'https://via.placeholder.com/300x200?text=Car+Image+Not+Found';
+    }
+};
 
   if (carsLoading) {
     return <div>Loading...</div>;
@@ -724,22 +724,152 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   return (
     // Add focus outline management if needed, e.g., remove outline when mouse-navigating
     <div className="cars" tabIndex="-1"> {/* Make div focusable but not via sequential keyboard nav */}
-      <div style={{ padding: '20px' }}>
-        <Title level={2}>Available Cars</Title>
-        <Row gutter={[16, 16]}>
-          {cars.map((car) => (
-            <Col key={car.id} xs={24} sm={12} md={8} lg={6}>
-              <CarItem
-                car={car}
-                onPurchase={handlePurchase}
-                currentMoney={isDemoMode ? demoUser.money : money}
-              />
-            </Col>
-          ))}
-        </Row>
-      </div>
+      {isDemoMode ? (
+        // Demo mode layout - simple grid
+        <div style={{ padding: '20px' }}>
+          <Title level={2}>Available Cars</Title>
+          <Row gutter={[16, 16]}>
+            {cars.map((car, index) => (
+              <Col key={car.id} xs={24} sm={12} md={8} lg={6}>
+                <CarCard
+                  car={car}
+                  focusedCar={focusedCar}
+                  selectedCar={selectedCar}
+                  setSelectedCar={setSelectedCar}
+                  showCarDetailsModal={showCarDetailsModal}
+                  getImageSource={getImageSource}
+                  showPrice={true}
+                  setFocusedCar={setFocusedCar}
+                  setFocusPosition={(position) => {
+                    // If you need to track position, implement this
+                    // Otherwise it can be a no-op function
+                  }}
+                  column={index % 4} // Assuming 4 columns per row
+                  row={Math.floor(index / 4)}
+                />
+              </Col>
+            ))}
+          </Row>
+        </div>
+      ) : isMobile ? (
+        // Mobile layout for authenticated mode
+        <div className="cars__container mobile-vertical">
+          {Object.entries(groupCarsByMake(cars)).map(([make, makeCars]) => {
+            // Sort cars by model within each make
+            const sortedCars = [...makeCars].sort((a, b) => 
+              (a.model || "").localeCompare(b.model || "")
+            );
+            
+            return (
+              <div key={make} className="mobile-maker-section">
+                <h2 className="mobile-make-title">{make}</h2>
+                <div className="mobile-car-grid">
+                  {/* Group cars in pairs for mobile view */}
+                  {chunkCars(sortedCars, 2).map((carPair, pairIndex) => (
+                    <div key={pairIndex} className="mobile-car-row">
+                      {carPair.map(car => (
+                        <div key={car.id} className="mobile-car-wrapper" data-car-id={car.id}>
+                          <CarCard
+                            car={car}
+                            focusedCar={focusedCar}
+                            selectedCar={selectedCar}
+                            setSelectedCar={setSelectedCar}
+                            showCarDetailsModal={showCarDetailsModal}
+                            getImageSource={getImageSource}
+                            showPrice={true}
+                            setFocusedCar={setFocusedCar}
+                            setFocusPosition={() => {}}
+                          />
+                        </div>
+                      ))}
+                      {/* Add empty placeholder if odd number of cars */}
+                      {carPair.length === 1 && <div className="mobile-car-wrapper"></div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        // Desktop layout for authenticated mode - grouped by make with two rows
+        <div className="make-grid" data-focused={focusedZone === FOCUS_ZONES.PAGE}>
+          {/* Maker Row */}
+          <div className="make-row">
+            {Object.entries(groupCarsByMake(cars)).map(([make, makeCars]) => {
+              // Sort cars by model within each make
+              const sortedCars = [...makeCars].sort((a, b) => 
+                (a.model || "").localeCompare(b.model || "")
+              );
+              
+              // Split into top and bottom rows
+              const topRowCars = [];
+              const bottomRowCars = [];
+              sortedCars.forEach((car, index) => {
+                if (index % 2 === 0) topRowCars.push(car);
+                else bottomRowCars.push(car);
+              });
+              
+              return (
+                <div 
+                  key={make} 
+                  className="make-section" 
+                  data-make={make}
+                  data-focused={focusedMake === make}
+                >
+                  <h2 
+                    className="make-name" 
+                    data-make={make}
+                    data-focused={focusedMake === make}
+                  >
+                    {make}
+                  </h2>
+                  <div className="make-cars">
+                    {/* Top row */}
+                    <div className="cars-row top-row">
+                      {topRowCars.map(car => (
+                        <div key={car.id} data-car-id={car.id}>
+                          <CarCard
+                            car={car}
+                            focusedCar={focusedCar}
+                            selectedCar={selectedCar}
+                            setSelectedCar={setSelectedCar}
+                            showCarDetailsModal={showCarDetailsModal}
+                            getImageSource={getImageSource}
+                            showPrice={true}
+                            setFocusedCar={setFocusedCar}
+                            setFocusPosition={() => {}}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    {/* Bottom row */}
+                    <div className="cars-row bottom-row">
+                      {bottomRowCars.map(car => (
+                        <div key={car.id} data-car-id={car.id}>
+                          <CarCard
+                            car={car}
+                            focusedCar={focusedCar}
+                            selectedCar={selectedCar}
+                            setSelectedCar={setSelectedCar}
+                            showCarDetailsModal={showCarDetailsModal}
+                            getImageSource={getImageSource}
+                            showPrice={true}
+                            setFocusedCar={setFocusedCar}
+                            setFocusPosition={() => {}}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-        {/* --- Modals --- */}
+      {/* --- Modals --- */}
       {/* Create Car Modal (Admin/Debug tool?) */}
       <Modal
         visible={visible}

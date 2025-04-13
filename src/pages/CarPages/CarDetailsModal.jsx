@@ -19,6 +19,23 @@ const CarDetailsModal = ({
   const totalRows = 6;
   const [focusedRow, setFocusedRow] = useState(0);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [imageSrc, setImageSrc] = useState('https://via.placeholder.com/300x200?text=Loading...');
+  
+  // Load image when selectedCar changes
+  useEffect(() => {
+    if (selectedCar && selectedCar.make && selectedCar.model) {
+      const loadImage = async () => {
+        try {
+          const src = await getImageSource(selectedCar.make, selectedCar.model);
+          setImageSrc(src);
+        } catch (error) {
+          console.error('Error loading image:', error);
+          setImageSrc('https://via.placeholder.com/300x200?text=No+Image');
+        }
+      };
+      loadImage();
+    }
+  }, [selectedCar]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -104,9 +121,12 @@ const CarDetailsModal = ({
     >
       {forAuction && selectedCar && (
         <img
-          src={getImageSource(selectedCar.make, selectedCar.model)}
+          src={imageSrc}
           alt={`${selectedCar.make} ${selectedCar.model}`}
           className="carsPage__modal__image"
+          onError={(e) => {
+            e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+          }}
         />
       )}
       {!forAuction && visible && selectedCar && (

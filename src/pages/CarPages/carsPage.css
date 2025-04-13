@@ -342,6 +342,139 @@
   z-index: 1;
 }
 
+/* Car Card Styles for Authenticated Mode */
+.car-card {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: 38vh;
+  height: 38vh;
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.car-card-focused {
+  border: 4px solid rgb(217, 81, 81);
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.car-card:hover {
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.car-card-header {
+  grid-row: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.car-card-title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.car-card-subtitle {
+  display: flex;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 24px;
+}
+
+.car-card-model {
+  font-size: 3vh;
+  font-weight: 500;
+  color: white;
+}
+
+.car-card-year {
+  font-size: 2.5vh;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.car-card-image-container {
+  grid-row: 2;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+  margin: 12px 0;
+}
+
+.car-card-image {
+  max-width: 85%;
+  max-height: 85%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.car-card-price {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  display: none;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.car-card:hover .car-card-price {
+  display: block;
+}
+
+.car-card-type {
+  grid-row: 3;
+  width: 100%;
+  padding: 0.5vh 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 2.2vh;
+}
+
+.car-card-type.common {
+  background: #4CAF50;
+  color: white;
+}
+
+.car-card-type.rare {
+  background: #2196F3;
+  color: white;
+}
+
+.car-card-type.epic {
+  background: #9C27B0;
+  color: white;
+}
+
+.car-card-type.legendary {
+  background: #FF9800;
+  color: white;
+}
+
+.car-card-rating {
+  font-size: 2.2vh;
+  color: white;
+  margin-left: 8px;
+}
+
 .make-row {
   display: flex;
   gap: 24px;
@@ -380,8 +513,12 @@
 
 .make-cars {
   display: flex;
-  justify-content: flex-start;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cars-row {
+  display: flex;
   gap: 24px;
 }
 
@@ -403,7 +540,7 @@
 }
 
 @media (max-width: 1280px) {
-  .carsPage__item {
+  .carsPage__item, .car-card {
     width: 34vh;
     height: 34vh;
   }
@@ -425,7 +562,7 @@
     font-size: 24px;
   }
   
-  .carsPage__subtitle {
+  .carsPage__subtitle, .car-card-subtitle {
     font-size: 20px;
   }
   
@@ -446,7 +583,7 @@
 }
 
 @media (max-width: 800px) {
-  .carsPage__item {
+  .carsPage__item, .car-card {
     width: 32vh;
     height: 32vh;
   }
@@ -468,8 +605,16 @@
     font-size: 20px;
   }
   
-  .carsPage__subtitle {
+  .carsPage__subtitle, .car-card-subtitle {
     font-size: 18px;
+  }
+  
+  .car-card-model {
+    font-size: 2.8vh;
+  }
+  
+  .car-card-year {
+    font-size: 2.3vh;
   }
   
   .carDetailsModal {
@@ -539,7 +684,7 @@
     padding: 4px;
   }
 
-  .carsPage__item {
+  .carsPage__item, .car-card {
     width: 100%;
     height: 220px;
     min-height: 180px;
@@ -547,33 +692,33 @@
     margin-bottom: 0;
   }
 
-  .carsPage__item__image {
+  .carsPage__item__image, .car-card-image {
     max-width: 90%;
     max-height: 120px;
   }
 
-  .carsPage__model {
+  .carsPage__model, .car-card-model {
     font-size: 14px;
     margin-bottom: 2px;
   }
 
-  .carsPage__year {
+  .carsPage__year, .car-card-year {
     font-size: 12px;
     margin-bottom: 2px;
   }
 
-  .carCard__price {
+  .carCard__price, .car-card-price {
     font-size: 13px;
     padding: 3px 6px;
   }
 
-  .carsPage__type {
+  .carsPage__type, .car-card-type {
     padding: 2px 0;
     font-size: 11px;
     margin-top: 4px;
   }
 
-  .carsPage__rating {
+  .carsPage__rating, .car-card-rating {
     font-size: 10px;
   }
 
@@ -583,7 +728,7 @@
     display: none;
   }
 
-  .carsPage__item_selected {
+  .carsPage__item_selected, .car-card-focused {
     border: none;
     transform: none;
     background: none;

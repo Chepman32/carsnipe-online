@@ -1,22 +1,34 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Space, Typography, Col, Flex } from "antd";
-import { calculateTimeDifference, fetchAuctionUser, selectAvatar } from '../../functions';
+import { calculateTimeDifference, fetchAuctionUser, selectAvatar, getImageSource } from '../../functions';
 import "./auctionPage.css"
-
-const getImageSource = (make, model) => {
-  const imageName = `${make} ${model}.png`;
-  return require(`../../assets/images/cars/${imageName}`);
-};
 
 export const SelectedAuctionDetails = ({ selectedAuction }) => {
   const [avatar, setAvatar] = React.useState(null);
+  const [imageSrc, setImageSrc] = useState('https://via.placeholder.com/300x200?text=Loading...');
 
   useEffect(() => {
     const getAvatar = async () => {
       const auctionUser = await fetchAuctionUser(selectedAuction?.id);
       setAvatar(auctionUser?.avatar);
     }
-    getAvatar()
+    getAvatar();
+  }, [selectedAuction]);
+  
+  // Load image when selectedAuction changes
+  useEffect(() => {
+    if (selectedAuction && selectedAuction.make && selectedAuction.model) {
+      const loadImage = async () => {
+        try {
+          const src = await getImageSource(selectedAuction.make, selectedAuction.model);
+          setImageSrc(src);
+        } catch (error) {
+          console.error('Error loading image:', error);
+          setImageSrc('https://via.placeholder.com/300x200?text=No+Image');
+        }
+      };
+      loadImage();
+    }
   }, [selectedAuction]);
   return (
     <Col className="auctionDetails" span={12} style={{ height: '100%', padding: '20px' }}>
@@ -28,9 +40,12 @@ export const SelectedAuctionDetails = ({ selectedAuction }) => {
           >
             <div style={{ overflow: 'hidden' }}>
               <img
-                src={getImageSource(selectedAuction.make, selectedAuction.model)}
+                src={imageSrc}
                 alt="Auction"
                 className="auctionDetails_image"
+                onError={(e) => {
+                  e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                }}
               />
             </div>
             <Flex direction="column" align="center" style={{ marginTop: '20px', minWidth: "100%", justifyContent: "space-between" }}>
