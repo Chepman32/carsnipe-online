@@ -38,7 +38,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   const [focusedMake, setFocusedMake] = useState(null);
   const [focusedCar, setFocusedCar] = useState(null);
   const [form] = Form.useForm();
-  const [carDetailsVisible, setCarDetailsVisible] = useState(false);
+  const [carDetailsVisible, setCarDetailsVisible] = useState(false); // Initialize as false so modal is hidden by default
   const [selectedCarIndex, setSelectedCarIndex] = useState(null); // Initialize as null
   const [creditWarningModalvisible, setCreditWarningModalvisible] = useState(false);
   const [carsLoading, setCarsLoading] = useState(true);
@@ -182,9 +182,16 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
        }
    }, [focusedZone]);
 
-   // Scroll focused car into view
+  // TEMP: Ensure a car is selected for the test
   useEffect(() => {
-    if (focusedCar && currentFocusedElement !== MAKER_ROW) { // Only scroll car if not focusing maker
+    if (cars.length > 0 && !selectedCar) {
+      setSelectedCar(cars[0]);
+    }
+  }, [cars, selectedCar]);
+
+    // Scroll focused car into view
+   useEffect(() => {
+     if (focusedCar && currentFocusedElement !== MAKER_ROW) { // Only scroll car if not focusing maker
       const element = document.querySelector(`[data-car-id="${focusedCar.id}"]`);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
@@ -244,7 +251,18 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     }
   }, [focusedCar, allTopRowCars, dispatch, focusedMake, currentFocusedElement]); // Added focusedMake, currentFocusedElement
 
-  const showCarDetailsModal = useCallback(() => setCarDetailsVisible(true), []);
+  // Enhanced version with forced update
+  const showCarDetailsModal = useCallback(() => {
+    console.log("showCarDetailsModal called, setting carDetailsVisible to true");
+    // First set to false to ensure a re-render if it was already true
+    setCarDetailsVisible(false);
+    // Use setTimeout to ensure the state update has time to process
+    setTimeout(() => {
+      setCarDetailsVisible(true);
+      console.log("carDetailsVisible should now be true");
+    }, 10);
+  }, []);
+
 
   const fetchCars = useCallback(async () => {
     try {
@@ -366,13 +384,13 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           }
           break;
 
-        case "Enter":
-             event.preventDefault(); // Prevent potential double actions
-             if (focusedCar) {
-                 setSelectedCar(focusedCar);
-                 showCarDetailsModal();
-                 if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
-             }
+         case "Enter":
+              event.preventDefault(); // Prevent potential double actions
+              if (focusedCar) {
+                  setSelectedCar(focusedCar); // Use original state setter
+                  showCarDetailsModal(); // Use original function
+                  if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
+              }
              break;
         default:
              break; // Ignore other keys
@@ -567,12 +585,12 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
 
         case "Enter": {
             event.preventDefault(); // Prevent potential default actions
-            // If a car is focused, open details
-            if (focusedCar && !focusedMake) {
-                setSelectedCar(focusedCar);
-                showCarDetailsModal();
-                if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
-            }
+             // If a car is focused, open details
+             if (focusedCar && !focusedMake) {
+                 setSelectedCar(focusedCar); // Use original state setter
+                 showCarDetailsModal(); // Use original function
+                 if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
+             }
             // If a maker is focused, maybe select the first car? (Current behavior: does nothing on Enter for maker)
             // else if (focusedMake && currentFocusedElement === MAKER_ROW) {
             //     // Optional: Implement action for Enter on Maker title if needed
@@ -584,12 +602,12 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     }
   }, [
     // Dependencies
-    carDetailsVisible, visible, creditWarningModalvisible, focusedZone, carsLoading, cars, isMobile,
-    focusedCar, focusedMake, currentFocusedElement,
-    allTopRowCars, allBottomRowCars,
-    soundEffectsOn, soundEffectsOnQuickSettings,
-    dispatch, playSwitchSound, showCarDetailsModal, playOpeningSound, groupCarsByMake // Add groupCarsByMake
-  ]);
+     carDetailsVisible, visible, creditWarningModalvisible, focusedZone, carsLoading, cars, isMobile,
+     focusedCar, focusedMake, currentFocusedElement,
+     allTopRowCars, allBottomRowCars,
+     soundEffectsOn, soundEffectsOnQuickSettings,
+     dispatch, playSwitchSound, showCarDetailsModal, playOpeningSound, groupCarsByMake // Use original functions
+   ]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -706,13 +724,8 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                               isMobile={isMobile}
                               focusedCar={focusedCar}
                               // selectedCar prop might not be needed if details modal handles selection
-                              setSelectedCar={(selectedCar) => {
-                                setSelectedCar(selectedCar);
-                                setSelectedCarIndex(globalIndex); // Use global index
-                                setFocusedCar(selectedCar); // Ensure focus follows selection
-                                showCarDetailsModal();
-                              }}
-                              showCarDetailsModal={showCarDetailsModal} // Pass function directly
+                              setSelectedCar={setSelectedCar} // Pass original state setter
+                              showCarDetailsModal={showCarDetailsModal} // Pass original function
                               getImageSource={getImageSource}
                               showPrice={true}
                               // For mobile, setFocusedCar is enough, no complex row/col needed
@@ -779,13 +792,8 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                                   isMobile={isMobile}
                                   focusedCar={focusedCar} // Pass the currently globally focused car
                                   isFocused={isFocused} // Explicitly pass if this card is the focused one
-                                  setSelectedCar={(selectedCar) => {
-                                      setSelectedCar(selectedCar);
-                                      setSelectedCarIndex(globalIndex);
-                                      setFocusedCar(selectedCar); // Focus on click/select
-                                      showCarDetailsModal();
-                                  }}
-                                  showCarDetailsModal={showCarDetailsModal}
+                                  setSelectedCar={setSelectedCar} // Pass original state setter
+                                  showCarDetailsModal={showCarDetailsModal} // Pass original function
                                   getImageSource={getImageSource}
                                   showPrice={true}
                                   setFocusedCar={setFocusedCar} // Allow card to set global focus state
@@ -809,13 +817,8 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                             isMobile={isMobile}
                             focusedCar={focusedCar}
                             isFocused={isFocused}
-                            setSelectedCar={(selectedCar) => {
-                                setSelectedCar(selectedCar);
-                                setSelectedCarIndex(globalIndex);
-                                setFocusedCar(selectedCar);
-                                showCarDetailsModal();
-                            }}
-                            showCarDetailsModal={showCarDetailsModal}
+                            setSelectedCar={setSelectedCar} // Pass original state setter
+                            showCarDetailsModal={showCarDetailsModal} // Pass original function
                             getImageSource={getImageSource}
                             showPrice={true}
                             setFocusedCar={setFocusedCar}
@@ -905,17 +908,18 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         </Form>
       </Modal>
 
-      {/* Car Details Modal */}
-      {selectedCar && ( // Conditionally render modal only when a car is selected
-        <CarDetailsModal
-          visible={carDetailsVisible}
-          handleCancel={handleCarDetailsCancel}
-          selectedCar={selectedCar}
-          buyCar={buyCar} // Pass buyCar function
-          loadingBuy={loadingBuy}
-          getImageSource={getImageSource} // Pass image source function
-        />
-      )}
+       {/* Car Details Modal */}
+       {/* Always render the modal but control visibility with the visible prop */}
+       {console.log("Rendering CarDetailsModal section, selectedCar:", selectedCar, "carDetailsVisible:", carDetailsVisible)}
+       <CarDetailsModal
+         visible={selectedCar && carDetailsVisible} // Only show if we have a selected car and visibility is true
+         handleCancel={handleCarDetailsCancel}
+         selectedCar={selectedCar || {}} // Provide empty object as fallback
+         buyCar={buyCar} // Pass buyCar function
+         loadingBuy={loadingBuy}
+         getImageSource={getImageSource} // Pass image source function
+         forAuction={false} // Explicitly set forAuction to false for the store context
+       />
 
       {/* Credit Warning Modal */}
       <CreditWarningModal

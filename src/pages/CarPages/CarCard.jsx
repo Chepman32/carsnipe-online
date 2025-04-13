@@ -13,9 +13,7 @@ export default function CarCard({
   getImageSource,
   showPrice,
   setFocusedCar,
-  setFocusPosition,
-  column,
-  row,
+  // Removed setFocusPosition, column, row
 }) {
   const dispatch = useDispatch();
 
@@ -31,12 +29,19 @@ export default function CarCard({
   };
 
   const handleClick = () => {
+    console.log("CarCard handleClick called for car:", car);
     playOpeningSound();
     setSelectedCar(car);
     setFocusedCar(car);
-    showCarDetailsModal();
+    
+    // Add a small delay before showing the modal to ensure state updates have propagated
+    setTimeout(() => {
+      console.log("About to call showCarDetailsModal");
+      showCarDetailsModal();
+      console.log("Called showCarDetailsModal");
+    }, 50);
+    
     dispatch(setFocusedZone(FOCUS_ZONES.PAGE));
-    setFocusPosition({ row, column });
   };
 
   return (
