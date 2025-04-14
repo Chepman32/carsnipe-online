@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Spin } from "antd";
+import React, { useEffect, useState } from "react";
+import { Modal, Spin, Tooltip } from "antd";
 import "./carsPage.css";
 import CarDetailsModalRow from "./CarDetailsModalRow";
 import { getImageSource, playSwitchSound } from "../../functions";
 import { isMobile } from "react-device-detect";
 
-// Create a completely custom modal implementation
 const CarDetailsModal = ({
   visible,
   handleCancel,
@@ -20,22 +19,12 @@ const CarDetailsModal = ({
   const totalRows = 6;
   const [focusedRow, setFocusedRow] = useState(0);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const modalRef = useRef(null);
-
-  // Log when component mounts/unmounts and when props change
-  useEffect(() => {
-    console.log("CarDetailsModal mounted or updated with visible:", visible);
-    return () => console.log("CarDetailsModal unmounted");
-  }, [visible]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       const { key } = event;
 
       if (visible) {
-        // Stop propagation to prevent parent components from handling the same key events
-        event.stopPropagation();
-        
         if (key === "ArrowUp") {
           playSwitchSound();
           setFocusedRow((prevRow) => (prevRow === 0 ? totalRows - 1 : prevRow - 1));
@@ -60,28 +49,25 @@ const CarDetailsModal = ({
               break;
             case 4:
               handleCancel();
-              removeCar && removeCar(selectedCar.id);
+              removeCar(selectedCar.id);
               break;
             case 5:
               handleCancel();
-              removeCar && removeCar(selectedCar.id, true);
+              removeCar(selectedCar.id, true);
               break;
             default:
               break;
           }
-        } else if (key === "Escape") {
-          handleCancel();
         }
       } else {
         setFocusedRow(0);
       }
     };
 
-    // Use capture phase to ensure our handler runs before parent handlers
-    document.addEventListener("keydown", handleKeyDown, true);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [visible, focusedRow, selectedCar, buyCar, showNewAuction, forAuction, totalRows, removeCar, handleCancel]);
 
@@ -98,110 +84,50 @@ const CarDetailsModal = ({
     };
   }, []);
 
-  // Focus the modal when it becomes visible
-  useEffect(() => {
-    if (visible && modalRef.current) {
-      modalRef.current.focus();
-    }
-  }, [visible]);
-
-  // Add debugging logs
-  console.log("CarDetailsModal rendering with visible:", visible, "selectedCar:", selectedCar);
-  
-  // If not visible, don't render anything
-  if (!visible) {
-    console.log("CarDetailsModal not rendering because visible is false");
-    return null;
-  }
-  
   return (
-    <div 
-      className="custom-modal-overlay" 
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 9999
-      }}
-      onClick={handleCancel}
-    >
-      <div 
-        ref={modalRef}
-        className="carDetailsModal"
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          width: isMobile ? '80vw' : '50vw',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          position: 'relative',
-          zIndex: 10000
-        }}
-        onClick={(e) => e.stopPropagation()}
-        tabIndex={-1}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ textAlign: "center", fontWeight: "700", margin: 0, flex: 1 }}>
+    <Modal
+      centered
+      className="carDetailsModal"
+      width={isMobile ? window.innerWidth * 0.8 : window.innerWidth * 0.5}
+      open={visible}
+      title={
+        visible && selectedCar ? (
+          <h3 style={{ textAlign: "center", fontWeight: "700" }}>
             {selectedCar?.make} {selectedCar?.model}
           </h3>
-          <button 
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              fontSize: '24px', 
-              cursor: 'pointer',
-              padding: '0 10px'
-            }} 
-            onClick={handleCancel}
-          >
-            ×
-          </button>
-        </div>
-        
-        {selectedCar && (
-          <>
-            {forAuction && (
-              <img
-                src={getImageSource(selectedCar.make, selectedCar.model)}
-                alt={`${selectedCar.make} ${selectedCar.model}`}
-                className="carsPage__modal__image"
-                style={{
-                  width: '100%',
-                  maxWidth: '400px',
-                  height: 'auto',
-                  maxHeight: '300px',
-                  objectFit: 'contain',
-                  margin: '0 auto 20px',
-                  display: 'block',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-                }}
+        ) : (
+          "Car Details"
+        )
+      }
+      onCancel={handleCancel}
+      footer={null}
+      style={{ position: 'relative', zIndex: 9999 }} // Override potential CSS conflicts
+    >
+      {visible && selectedCar && (
+        <>
+          {forAuction && (
+            <img
+              src={getImageSource(selectedCar.make, selectedCar.model)}
+              alt={`${selectedCar.make} ${selectedCar.model}`}
+              className="carsPage__modal__image"
+            />
+          )}
+          {!forAuction && (
+            <>
+              <CarDetailsModalRow
+                selected={focusedRow === 0}
+                title="Buy car"
+                handler={() => buyCar(selectedCar)}
+                text={loadingBuy ? <Spin /> : "Buy"}
+                loading={loadingBuy}
+                price={selectedCar.price}
+                isOnline={isOnline}
               />
-            )}
-            
-            {!forAuction && (
-              <div style={{ marginBottom: '10px' }}>
-                <CarDetailsModalRow
-                  selected={focusedRow === 0}
-                  title="Buy car"
-                  handler={() => buyCar(selectedCar)}
-                  text={loadingBuy ? <Spin /> : "Buy"}
-                  loading={loadingBuy}
-                  price={selectedCar.price}
-                  isOnline={isOnline}
-                />
-              </div>
-            )}
-            
-            {forAuction && (
-              <div style={{ marginBottom: '10px', opacity: !isOnline ? 0.5 : 1 }}>
+            </>
+          )}
+          {forAuction && (
+            <Tooltip title={!isOnline ? "This feature requires internet connection" : ""}>
+              <div style={{ opacity: !isOnline ? 0.5 : 1 }}>
                 <CarDetailsModalRow
                   handler={isOnline ? showNewAuction : undefined}
                   text={loadingNewAuction ? <Spin /> : "Sell on auction"}
@@ -209,39 +135,25 @@ const CarDetailsModal = ({
                   disabled={!isOnline}
                 />
               </div>
-            )}
-            
-            <div style={{ marginBottom: '10px' }}>
-              <CarDetailsModalRow text="Show car info" selected={focusedRow === 1} />
-            </div>
-            
-            <div style={{ marginBottom: '10px' }}>
-              <CarDetailsModalRow text="Choose color" selected={focusedRow === 2} />
-            </div>
-            
-            <div style={{ marginBottom: '10px' }}>
-              <CarDetailsModalRow text="Buy as a gift" selected={focusedRow === 3} />
-            </div>
-            
-            {forAuction && (
-              <div style={{ marginBottom: '10px' }}>
-                <CarDetailsModalRow
-                  text="Remove the car from garage"
-                  selected={focusedRow === 4}
-                  handler={() => {
-                    handleCancel();
-                    removeCar(selectedCar.id);
-                  }}
-                  style={{ color: "red" }}
-                />
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+            </Tooltip>
+          )}
+          <CarDetailsModalRow text="Show car info" selected={focusedRow === 1} />
+          <CarDetailsModalRow text="Choose color" selected={focusedRow === 2} />
+          {forAuction && (
+            <CarDetailsModalRow
+              text="Remove the car from garage"
+              selected={focusedRow === 4}
+              handler={() => {
+                handleCancel();
+                removeCar(selectedCar.id);
+              }}
+              style={{ color: "red" }}
+            />
+          )}
+        </>
+      )}
+    </Modal>
   );
 };
 
-// Make sure the component is properly exported
 export default CarDetailsModal;

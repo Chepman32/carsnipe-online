@@ -28,18 +28,26 @@ export default function CarCard({
     }
   };
 
-  const handleClick = () => {
+  const handleClick = (e) => {
+    // Stop event propagation to prevent parent handlers from interfering
+    e.stopPropagation();
+    
     console.log("CarCard handleClick called for car:", car);
     playOpeningSound();
+    
+    // Set the selected car first
     setSelectedCar(car);
     setFocusedCar(car);
     
-    // Add a small delay before showing the modal to ensure state updates have propagated
+    // Use a slightly longer delay to ensure state updates have propagated
     setTimeout(() => {
       console.log("About to call showCarDetailsModal");
       showCarDetailsModal();
       console.log("Called showCarDetailsModal");
-    }, 50);
+      
+      // Log the current state after calling showCarDetailsModal
+      console.log("Current car:", car);
+    }, 100);
     
     dispatch(setFocusedZone(FOCUS_ZONES.PAGE));
   };

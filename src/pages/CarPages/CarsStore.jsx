@@ -74,7 +74,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         // Handle both vertical and horizontal wheel events
         if (e.deltaY !== 0) {
           // Convert vertical wheel movement to horizontal scrolling
-          carsContainer.scrollLeft += e.deltaY * -1.5;
+          carsContainer.scrollLeft += e.deltaY * 1.5;
         }
         if (e.deltaX !== 0) {
           // Direct horizontal wheel movement
