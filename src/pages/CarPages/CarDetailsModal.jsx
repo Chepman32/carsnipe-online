@@ -106,20 +106,9 @@ const CarDetailsModal = ({
       // Prevent body scrolling when modal is open
       document.body.style.overflow = 'hidden';
       
-      // Store the current scroll position
-      const scrollY = window.scrollY;
-      
       // Handle window resize to ensure modal stays centered
       const handleResize = () => {
-        if (modalRef.current) {
-          // Force a reflow to ensure the modal is properly centered
-          modalRef.current.style.display = 'none';
-          setTimeout(() => {
-            if (modalRef.current) {
-              modalRef.current.style.display = 'block';
-            }
-          }, 0);
-        }
+        // No need to force reflow - the fixed positioning will keep it centered
       };
       
       // Add resize event listener
@@ -129,9 +118,6 @@ const CarDetailsModal = ({
       return () => {
         // Restore body scrolling when modal is closed
         document.body.style.overflow = '';
-        
-        // Restore scroll position
-        window.scrollTo(0, scrollY);
         
         // Remove resize event listener
         window.removeEventListener('resize', handleResize);
@@ -162,14 +148,9 @@ const CarDetailsModal = ({
         right: 0,
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
         zIndex: 9999,
-        // Ensure the overlay covers the entire viewport regardless of scroll position
-        width: '100vw',
-        height: '100vh',
-        // Reset any scroll position
+        width: '100%',
+        height: '100%',
         overflow: 'hidden'
       }}
       onClick={handleCancel}
@@ -184,12 +165,12 @@ const CarDetailsModal = ({
           width: isMobile ? '80vw' : '50vw',
           maxHeight: '80vh',
           overflowY: 'auto',
-          position: 'relative',
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           zIndex: 10000,
-          // Ensure the modal is centered in the viewport
-          margin: 'auto',
-          // Add a transform to ensure perfect centering
-          transform: 'translateY(0)'
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
         }}
         onClick={(e) => e.stopPropagation()}
         tabIndex={-1}
