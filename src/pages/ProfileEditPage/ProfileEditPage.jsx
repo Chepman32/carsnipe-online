@@ -254,23 +254,27 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   };
 
   const handleSignOut = () => {
-    setPlayerInfo(null);
-    signOut();
-    
-    if (isDemoMode) {
-      // If in demo mode, redirect to signin page
-      toggleDemoMode(); // Exit demo mode
-      navigate('/'); // This will show the signin page since we're exiting demo mode
-    } else {
-      // Normal sign out behavior
-      navigate('/');
-    }
-    
+    // First, show notification
     notification.info({
       message: 'Signed Out',
       description: 'You have been signed out successfully',
       placement: 'topRight',
     });
+    
+    // Clear user data
+    setPlayerInfo(null);
+    
+    // Handle demo mode
+    if (isDemoMode) {
+      toggleDemoMode(); // Exit demo mode
+    }
+    
+    // Perform sign out
+    signOut();
+    
+    // Navigate to root route which will show the sign-in page
+    // since the user is now signed out
+    navigate('/');
   };
 
   return (
