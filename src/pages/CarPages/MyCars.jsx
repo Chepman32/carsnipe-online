@@ -25,6 +25,8 @@ import {
   setIsTopCar,
   TOP_CAR,
 } from "../../redux/slices/focusSlice";
+import { useDemoMode } from "../../contexts/DemoModeContext";
+import { getMockCars, updateMockCars } from "../../mockData";
 
 const client = generateClient();
 
@@ -45,6 +47,7 @@ const MyCars = ({ playerInfo }) => {
   const [allTopRowCars, setAllTopRowCars] = useState([]);
   const [allBottomRowCars, setAllBottomRowCars] = useState([]);
 
+  const { isDemoMode, demoUser, updateDemoUser } = useDemoMode();
   const soundEffectsOnQuickSettings = useSelector((state) => state.quickSettings.soundEffectsOn);
   const soundEffectsOn = useSelector((state) => state.mainSettings.soundEffectsOn);
   const { focusedZone, currentFocusedElement } = useSelector((state) => state.focus);
@@ -57,9 +60,12 @@ const MyCars = ({ playerInfo }) => {
 
   const groupCarsByMake = (cars) => {
     const groups = cars.reduce((acc, item) => {
-      const make = item?.car?.make?.trim().toUpperCase() || "UNKNOWN";
+      // Handle both structures: item.car or direct car object
+      const car = item.car || item;
+      const make = car?.make?.trim().toUpperCase() || "UNKNOWN";
+      
       if (!acc[make]) acc[make] = [];
-      acc[make].push(item.car);
+      acc[make].push(car);
       return acc;
     }, {});
     return Object.fromEntries(Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0])));
@@ -129,20 +135,100 @@ const MyCars = ({ playerInfo }) => {
   const fetchUserCars = useCallback(async () => {
     try {
       setLoading(true);
-      const userCars = await fetchUserCarsRequest(playerInfo.id);
-      setCars(userCars || []);
+      
+      if (isDemoMode) {
+        console.log("Demo mode: Fetching user cars from localStorage");
+        
+        // Get user cars from localStorage
+        const demoUserCars = JSON.parse(localStorage.getItem('demoUserCars') || '[]');
+        
+        if (demoUserCars && demoUserCars.length > 0) {
+          console.log("Found user cars in localStorage:", demoUserCars.length);
+          
+          // Format the cars to match the expected structure
+          // The structure in localStorage has car objects inside each item
+          const formattedCars = demoUserCars.map(userCar => {
+            // If the car is already in the expected format, use it as is
+            if (userCar.car) {
+              return userCar;
+            }
+            
+            // Otherwise, create the expected structure
+            return {
+              id: userCar.id,
+              userId: userCar.userId,
+              carId: userCar.carId,
+              car: userCar.car || {
+                id: userCar.carId,
+                make: userCar.make,
+                model: userCar.model,
+                year: userCar.year,
+                type: userCar.type || 'COMMON',
+                price: userCar.price
+              }
+            };
+          });
+          
+          setCars(formattedCars);
+        } else {
+          console.log("No user cars found in localStorage");
+          
+          // Try to fetch from backend as fallback
+          try {
+            if (demoUser && demoUser.id) {
+              const userCars = await fetchUserCarsRequest(demoUser.id);
+              if (userCars && userCars.length > 0) {
+                console.log("Found user cars in backend:", userCars.length);
+                
+                // Save to localStorage for future use
+                localStorage.setItem('demoUserCars', JSON.stringify(userCars));
+                setCars(userCars);
+              } else {
+                console.log("No user cars found in backend either");
+                setCars([]);
+              }
+            } else {
+              console.log("No demo user ID available");
+              setCars([]);
+            }
+          } catch (backendError) {
+            console.warn("Error fetching user cars from backend:", backendError);
+            setCars([]);
+          }
+        }
+      } else {
+        // Normal mode - fetch from API
+        const userCars = await fetchUserCarsRequest(playerInfo.id);
+        setCars(userCars || []);
+      }
     } catch (error) {
       console.error("Error fetching cars:", error);
+      setCars([]);
     } finally {
       setLoading(false);
     }
-  }, [playerInfo.id]);
+  }, [playerInfo.id, isDemoMode, demoUser]);
 
   useEffect(() => {
+    console.log("Fetching user cars...");
     fetchUserCars();
   }, [fetchUserCars, loadingNewAuction]);
+  
+  // Debug: Log cars state when it changes
+  useEffect(() => {
+    console.log("Cars state updated:", cars.length, "cars");
+    if (cars.length > 0) {
+      console.log("First car:", cars[0]);
+    }
+  }, [cars]);
 
   const showCarDetailsModal = useCallback(() => setCarDetailsVisible(true), []);
+  
+  // Create a dummy setFocusPosition function to prevent errors
+  const setFocusPosition = (position) => {
+    console.log("setFocusPosition called with:", position);
+    // This is a no-op function to prevent errors
+  };
 
   const handleKeyDown = (event) => {
     const { key } = event;
@@ -368,31 +454,48 @@ const MyCars = ({ playerInfo }) => {
       endTime,
       status: "Active",
       lastBidPlayer: "",
-      player: playerInfo?.nickname,
+      player: isDemoMode ? demoUser?.nickname || "Demo User" : playerInfo?.nickname,
       buy: selectedCar.price,
       minBid,
     };
 
     try {
       setLoadingNewAuction(true);
-      const result = await client.graphql({
-        query: mutations.createAuction,
-        variables: { input: newAuction },
-      });
-
-      const createdAuctionId = result?.data?.createAuction?.id;
-      if (createdAuctionId) {
-        await createNewAuctionUser(playerInfo.id, createdAuctionId);
-        const carToDelete = await getUserCar(playerInfo.id, selectedCar.id);
-        if (carToDelete && carToDelete.id) {
-          await deleteUserCar(carToDelete.id);
-        } else {
-          throw new Error("Car not found or invalid ID for deletion");
-        }
+      
+      if (isDemoMode) {
+        console.log("Demo mode: Creating auction for car", selectedCar);
+        
+        // In demo mode, we just need to remove the car from the mock cars
+        const mockCars = getMockCars();
+        const updatedMockCars = mockCars.filter(car => car.id !== selectedCar.id);
+        updateMockCars(updatedMockCars);
+        
+        // Remove the car from the current state
+        setCars(prevCars => prevCars.filter(c => c.car.id !== selectedCar.id));
+        
         if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
-        message.success("Auction created successfully!");
+        message.success("Auction created successfully in demo mode!");
       } else {
-        throw new Error("Failed to retrieve the ID of the created auction.");
+        // Normal mode - use API
+        const result = await client.graphql({
+          query: mutations.createAuction,
+          variables: { input: newAuction },
+        });
+
+        const createdAuctionId = result?.data?.createAuction?.id;
+        if (createdAuctionId) {
+          await createNewAuctionUser(playerInfo.id, createdAuctionId);
+          const carToDelete = await getUserCar(playerInfo.id, selectedCar.id);
+          if (carToDelete && carToDelete.id) {
+            await deleteUserCar(carToDelete.id);
+          } else {
+            throw new Error("Car not found or invalid ID for deletion");
+          }
+          if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          message.success("Auction created successfully!");
+        } else {
+          throw new Error("Failed to retrieve the ID of the created auction.");
+        }
       }
     } catch (error) {
       console.error("Error creating auction:", error);
@@ -415,8 +518,16 @@ const MyCars = ({ playerInfo }) => {
   };
 
   const getImageSource = (make, model) => {
-    const imageName = `${make} ${model}.png`;
-    return require(`../../assets/images/cars/${imageName}`);
+    try {
+      // Basic sanitization
+      const safeMake = make?.replace(/[^a-z0-9\s-]/gi, '') || 'default';
+      const safeModel = model?.replace(/[^a-z0-9\s-]/gi, '') || 'model';
+      return require(`../../assets/images/cars/${safeMake} ${safeModel}.png`);
+    } catch (error) {
+      console.warn(`Image not found for: ${make} ${model}. Using default.`);
+      // Use a placeholder image URL instead of requiring a local file
+      return 'https://via.placeholder.com/300x200?text=Car+Image+Not+Found';
+    }
   };
 
   const chunkCars = (cars, size) => {
@@ -429,15 +540,68 @@ const MyCars = ({ playerInfo }) => {
 
   const removeCar = async (carId, permanent = false) => {
     try {
-      const carToDelete = await getUserCar(playerInfo.id, carId);
-      if (carToDelete && carToDelete.id) {
-        await deleteUserCar(carToDelete.id);
-        setCars((prevCars) => prevCars.filter((c) => c.car.id !== carId));
+      if (isDemoMode) {
+        console.log("Demo mode: Removing car", carId);
+        
+        // In demo mode, remove the car from demoUserCars in localStorage
+        const demoUserCars = JSON.parse(localStorage.getItem('demoUserCars') || '[]');
+        
+        // Filter out the car to be removed
+        const updatedDemoUserCars = demoUserCars.filter(userCar => {
+          // Handle both possible structures
+          const carIdToCheck = userCar.carId || (userCar.car && userCar.car.id);
+          return carIdToCheck !== carId;
+        });
+        
+        // Save the updated cars back to localStorage
+        localStorage.setItem('demoUserCars', JSON.stringify(updatedDemoUserCars));
+        console.log("Demo mode: Car removed from localStorage, remaining cars:", updatedDemoUserCars.length);
+        
+        // Try to remove from backend as well if possible
+        try {
+          if (demoUser && demoUser.id) {
+            const carToDelete = await getUserCar(demoUser.id, carId);
+            if (carToDelete && carToDelete.id) {
+              await deleteUserCar(carToDelete.id, demoUser.id);
+              console.log("Demo mode: Car also removed from backend");
+            }
+          }
+        } catch (backendError) {
+          console.warn("Could not remove car from backend in demo mode:", backendError);
+          // Continue with local removal even if backend fails
+        }
+        
+        // Update the UI
+        setCars((prevCars) => {
+          console.log("Filtering cars, before:", prevCars.length);
+          const filteredCars = prevCars.filter((c) => {
+            // Handle both possible structures
+            const carIdToCheck = c.carId || (c.car && c.car.id);
+            const result = carIdToCheck !== carId;
+            if (!result) {
+              console.log("Removing car from UI:", c);
+            }
+            return result;
+          });
+          console.log("After filtering:", filteredCars.length);
+          return filteredCars;
+        });
+        
         setSelectedCar(null);
         setCarDetailsVisible(false);
         message.success(permanent ? "Car permanently removed!" : "Car removed from garage!");
       } else {
-        throw new Error("Car not found or invalid ID for deletion");
+        // Normal mode - use API
+        const carToDelete = await getUserCar(playerInfo.id, carId);
+        if (carToDelete && carToDelete.id) {
+          await deleteUserCar(carToDelete.id, playerInfo.id);
+          setCars((prevCars) => prevCars.filter((c) => c.car.id !== carId));
+          setSelectedCar(null);
+          setCarDetailsVisible(false);
+          message.success(permanent ? "Car permanently removed!" : "Car removed from garage!");
+        } else {
+          throw new Error("Car not found or invalid ID for deletion");
+        }
       }
     } catch (error) {
       console.error("Error deleting car:", error);
@@ -548,6 +712,9 @@ const MyCars = ({ playerInfo }) => {
                             getImageSource={getImageSource}
                             showPrice={false}
                             setFocusedCar={setFocusedCar}
+                            setFocusPosition={setFocusPosition}
+                            row={0}
+                            column={allTopRowCars.findIndex(c => c.id === car.id)}
                             index={realIndex}
                           />
                         );
@@ -576,6 +743,9 @@ const MyCars = ({ playerInfo }) => {
                             getImageSource={getImageSource}
                             showPrice={false}
                             setFocusedCar={setFocusedCar}
+                            setFocusPosition={setFocusPosition}
+                            row={1}
+                            column={allBottomRowCars.findIndex(c => c.id === car.id)}
                             index={realIndex}
                           />
                         );
