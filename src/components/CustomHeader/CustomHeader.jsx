@@ -255,7 +255,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {'$' + money}
+                  {'$' + (money || 0)}
                 </Text>
               </Link>
               <div
@@ -296,9 +296,9 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {nickname}
+                    {nickname || 'User'}
                   </Text>
-                  <img src={avatar} alt="avatar" />
+                  <img src={avatar || 'https://via.placeholder.com/40'} alt="avatar" />
                 </Link>
                 <div
                   className={

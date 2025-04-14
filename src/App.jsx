@@ -242,24 +242,24 @@ const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, sig
     <Provider store={store}>
       <main>
         <CustomHeader 
-          money={isDemoMode ? demoUser?.money : money} 
-          nickname={isDemoMode ? demoUser?.nickname : playerInfo?.nickname} 
-          avatar={isDemoMode ? avatars[demoUser?.avatar] : avatars[playerInfo?.avatar]}
+          money={isDemoMode && demoUser ? demoUser.money : money} 
+          nickname={isDemoMode && demoUser ? demoUser.nickname : playerInfo?.nickname} 
+          avatar={isDemoMode && demoUser ? avatars[demoUser.avatar] : avatars[playerInfo?.avatar]}
         />
         <DarkModeWrapper>
           <Routes>
             <Route path="/" element={<MainPage />} />
-            <Route path="/profileEditPage" element={<ProfileEditPage playerInfo={isDemoMode ? demoUser : playerInfo} currentAuthenticatedUser={currentAuthenticatedUser} signOut={signOut} setPlayerInfo={setPlayerInfo} />} />
-            <Route path="/carsStore" element={<CarsStore playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
-            <Route path="/auctions" element={<AuctionPage playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
-            <Route path="/myCars" element={<MyCars playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/profileEditPage" element={<ProfileEditPage playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} currentAuthenticatedUser={currentAuthenticatedUser} signOut={signOut} setPlayerInfo={setPlayerInfo} />} />
+            <Route path="/carsStore" element={<CarsStore playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
+            <Route path="/auctions" element={<AuctionPage playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
+            <Route path="/myCars" element={<MyCars playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
             <Route path="/auctionsHub" element={<AuctionsHub />} />
-            <Route path="/myBids" element={<MyBids playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
-            <Route path="/myAuctions" element={<MyAuctions playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
-            <Route path="/achievements" element={<AchievementList userId={isDemoMode ? demoUser?.id : playerInfo?.id} />} />
+            <Route path="/myBids" element={<MyBids playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
+            <Route path="/myAuctions" element={<MyAuctions playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
+            <Route path="/achievements" element={<AchievementList userId={isDemoMode && demoUser ? demoUser.id : playerInfo?.id} />} />
             <Route path="/paymentError" element={<PaymentError />} />
-            <Route path="/store" element={<Store email={isDemoMode ? demoUser?.email : playerInfo?.email} />} />
-            <Route path="/settings" element={<GameSettings playerInfo={isDemoMode ? demoUser : playerInfo} />} />
+            <Route path="/store" element={<Store email={isDemoMode && demoUser ? demoUser.email : playerInfo?.email} />} />
+            <Route path="/settings" element={<GameSettings playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} />} />
             <Route path="/musicUpload" element={<MusicUploadPage />} />
             <Route path="/musicLibraryPage" element={<MusicLibraryPage />} />
             <Route path="/user/:id" element={<UserPage />} />
