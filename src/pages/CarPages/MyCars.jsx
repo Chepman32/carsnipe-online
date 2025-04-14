@@ -58,7 +58,7 @@ const MyCars = ({ playerInfo }) => {
 
   const isMobile = window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent);
 
-  const groupCarsByMake = (cars) => {
+  const groupCarsByMake = useCallback((cars) => {
     const groups = cars.reduce((acc, item) => {
       // Handle both structures: item.car or direct car object
       const car = item.car || item;
@@ -69,7 +69,7 @@ const MyCars = ({ playerInfo }) => {
       return acc;
     }, {});
     return Object.fromEntries(Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0])));
-  };
+  }, []);
 
   useEffect(() => {
     const carsContainer = scroller.current;
