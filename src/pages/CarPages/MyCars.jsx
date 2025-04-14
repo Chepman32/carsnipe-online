@@ -75,13 +75,21 @@ const MyCars = ({ playerInfo }) => {
     const carsContainer = scroller.current;
     if (carsContainer) {
       const handleWheel = (e) => {
+        // Always prevent default to avoid any vertical scrolling
+        e.preventDefault();
+
+        // Handle both vertical and horizontal wheel events
         if (e.deltaY !== 0) {
-          e.preventDefault();
-          carsContainer.scrollLeft -= e.deltaY * 1.5;
+          // Convert vertical wheel movement to horizontal scrolling
+          carsContainer.scrollLeft += e.deltaY * -1.5;
+        }
+        if (e.deltaX !== 0) {
+          // Direct horizontal wheel movement
+          carsContainer.scrollLeft += e.deltaX * -1.5;
         }
       };
-      carsContainer.addEventListener("wheel", handleWheel, { passive: false });
-      return () => carsContainer.removeEventListener("wheel", handleWheel);
+      carsContainer.addEventListener('wheel', handleWheel, { passive: false });
+      return () => carsContainer.removeEventListener('wheel', handleWheel);
     }
   }, []);
 
