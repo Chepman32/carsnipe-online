@@ -46,7 +46,7 @@ import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 import { avatars } from "./avatars";
 import { DemoModeProvider, useDemoMode } from "./contexts/DemoModeContext";
-import VideoBackground from "./assets/Intro.mp4"
+import VideoBackground from "./assets/Intro.MP4"
 
 const client = generateClient();
 Amplify.configure(awsExports); 
