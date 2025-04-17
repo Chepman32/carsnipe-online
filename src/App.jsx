@@ -305,7 +305,7 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
             zIndex: -1
           }}
         >
-          <source src={VideoBackground} type="video/mp4" />
+          <source src={VideoBackground} muted type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         <div style={{ 
