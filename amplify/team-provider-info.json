@@ -9,7 +9,7 @@
       "UnauthRoleName": "amplify-carsnipe-staging-43d19-unauthRole",
       "StackName": "amplify-carsnipe-staging-43d19",
       "StackId": "arn:aws:cloudformation:us-east-2:235494793518:stack/amplify-carsnipe-staging-43d19/09cc2d60-eeb2-11ef-8608-063731a449a1",
-      "AmplifyAppId": "d2nlu8r3h4tt2s"
+      "AmplifyAppId": "dlwyqqd2svkoy"
     },
     "categories": {
       "auth": {
@@ -41,7 +41,7 @@
       "UnauthRoleName": "amplify-carsnipe-dev-baa77-unauthRole",
       "StackName": "amplify-carsnipe-dev-baa77",
       "StackId": "arn:aws:cloudformation:us-east-2:235494793518:stack/amplify-carsnipe-dev-baa77/4e353ae0-edf0-11ef-94f0-0a46ef2a628d",
-      "AmplifyAppId": "d2nlu8r3h4tt2s"
+      "AmplifyAppId": "d2nlu8r3dlwyqqd2svkoyh4tt2s"
     },
     "categories": {
       "auth": {
