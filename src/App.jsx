@@ -49,7 +49,7 @@ import { DemoModeProvider, useDemoMode } from "./contexts/DemoModeContext";
 import VideoBackground from "./assets/Intro.mp4"
 
 const client = generateClient();
-Amplify.configure(awsExports);
+Amplify.configure(awsExports); 
 
 function BackspaceHandler() {
   const navigate = useNavigate();
