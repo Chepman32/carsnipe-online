@@ -46,7 +46,6 @@ import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 import { avatars } from "./avatars";
 import { DemoModeProvider, useDemoMode } from "./contexts/DemoModeContext";
-import VideoBackground from "./assets/Intro.MP4"
 
 const client = generateClient();
 Amplify.configure(awsExports); 
@@ -305,10 +304,10 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
             zIndex: -1
           }}
         >
-          <source src={VideoBackground} muted type="video/mp4" />
+          <source src="/videos/Intro.MP4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        <div style={{ 
+        <div style={{
           position: "absolute", 
           top: 0, 
           left: 0, 
