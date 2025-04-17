@@ -28,6 +28,14 @@
 
 .auth-wrapper {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.amplify-tabs {
+  border-radius: 2rem !important;
+  overflow: hidden;
 }
 
 .auth-wrapper .amplify-authenticator {
@@ -52,11 +60,14 @@
 }
 
 .amplify-button {
-  background-color: #0072ff;
+  background: url(./assets/images/999056cafa9423cf4166ee5be451611f.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
   color: white;
   font-weight: bold;
   border-radius: 4px;
   margin-top: 1rem;
+  border: 1px solid #a0adeb;
   border-radius: .7rem !important;
 }
 
