@@ -26,6 +26,20 @@
   height: 100vh;
 }
 
+.auth-wrapper {
+  position: relative;
+}
+
+.auth-wrapper .amplify-authenticator {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  max-width: 400px;
+  width: 90%;
+}
+
 .amplify-form-section-header {
   font-size: 1.5rem;
   font-weight: bold;

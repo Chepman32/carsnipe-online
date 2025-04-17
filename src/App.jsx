@@ -46,6 +46,7 @@ import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 import { avatars } from "./avatars";
 import { DemoModeProvider, useDemoMode } from "./contexts/DemoModeContext";
+import VideoBackground from "./assets/Intro.MP4"
 
 const client = generateClient();
 Amplify.configure(awsExports);
@@ -291,7 +292,31 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
 
   if (!playerInfo) {
     return (
-      <div className="auth-wrapper" style={{ backgroundColor: "#000000", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="auth-wrapper" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+        <video
+          autoPlay
+          loop
+          muted
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            zIndex: -1
+          }}
+        >
+          <source src={VideoBackground} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <div style={{ 
+          position: "absolute", 
+          top: 0, 
+          left: 0, 
+          width: "100%", 
+          height: "100%", 
+          backgroundColor: "rgba(0, 0, 0, 0.5)", 
+          zIndex: -1 
+        }}></div>
         <ThemeProvider theme={theme}>
           <Authenticator 
             components={customComponents} 
