@@ -46,6 +46,9 @@
   z-index: 10;
   max-width: 400px;
   width: 90%;
+  min-height: 500px; /* Ensure minimum height to fit all elements */
+  display: flex;
+  flex-direction: column;
 }
 
 .amplify-form-section-header {
@@ -57,6 +60,24 @@
 
 .amplify-tabs {
   width: 95vw;
+}
+
+/* Ensure the form container has proper spacing */
+.amplify-authenticator [data-amplify-authenticator-signin="true"],
+.amplify-authenticator [data-amplify-authenticator-signup="true"],
+.amplify-authenticator [data-amplify-authenticator-confirm-sign-up="true"],
+.amplify-authenticator [data-amplify-authenticator-confirm-sign-in="true"],
+.amplify-authenticator [data-amplify-authenticator-forgot-password="true"] {
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  justify-content: space-between;
+}
+
+/* Ensure the footer stays at the bottom */
+.amplify-authenticator [data-amplify-footer] {
+  margin-top: auto;
+  padding-top: 20px;
 }
 
 .amplify-button {

@@ -97,7 +97,13 @@ const DemoModeButton = () => {
     <Button
       variation="primary"
       onClick={handleDemoMode}
-      style={{ marginTop: '1rem', width: '100%' }}
+      style={{ 
+        marginTop: '1.5rem', 
+        width: '100%',
+        padding: '0.75rem',
+        fontSize: '1rem',
+        fontWeight: 'bold'
+      }}
     >
       {isDemoMode ? 'Exit Demo Mode' : 'Try Demo Mode'}
     </Button>
@@ -116,6 +122,7 @@ const customComponents = {
   SignIn: {
     Header() {
       const { tokens } = useTheme();
+      const { isDemoMode } = useDemoMode();
       return (
         <View textAlign="center" padding={tokens.space.medium}>
           <Heading level={3} padding={tokens.space.small}>
@@ -221,6 +228,7 @@ const theme = {
           boxShadow: 'none',
           backgroundColor: '#FFFFFF',
           borderRadius: '8px',
+          minHeight: '550px',
         },
       },
       button: {
@@ -291,7 +299,15 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
 
   if (!playerInfo) {
     return (
-      <div className="auth-wrapper" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+      <div className="auth-wrapper" style={{ 
+        minHeight: "100vh", 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        position: "relative", 
+        overflow: "hidden",
+        padding: "20px 0" 
+      }}>
         <video
           autoPlay
           loop
