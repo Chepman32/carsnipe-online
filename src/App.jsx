@@ -275,6 +275,37 @@ const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, sig
 
 const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
   const { isDemoMode } = useDemoMode();
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleAuthStateChange = async (data) => {
+      if (data.payload.event === 'signIn' || data.payload.event === 'signIn_failure') {
+        setIsLoading(true);
+      } else if (data.payload.event === 'signedIn') {
+        try {
+          setIsLoading(true);
+          await currentAuthenticatedUser();
+          if (playerInfo) {
+            setIsLoading(false);
+            navigate('/');
+          }
+        } catch (error) {
+          console.error('Error during authentication:', error);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    const unsubscribe = Hub.listen('auth', handleAuthStateChange);
+    return () => unsubscribe();
+  }, [playerInfo, currentAuthenticatedUser, navigate]);
+
+  useEffect(() => {
+    if (playerInfo) {
+      setIsLoading(false);
+    }
+  }, [playerInfo]);
 
   if (isDemoMode) {
     return (
@@ -316,6 +347,22 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
           backgroundColor: "rgba(0, 0, 0, 0.5)", 
           zIndex: -1 
         }}></div>
+        {isLoading && (
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            zIndex: 1
+          }}>
+            <Spin size="large" />
+          </div>
+        )}
         <ThemeProvider theme={theme}>
           <Authenticator 
             components={customComponents} 
