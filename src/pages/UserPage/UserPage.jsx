@@ -554,6 +554,8 @@ const UserPage = () => {
                     showCarDetailsModal={showCarDetailsModal}
                     car={car.car}
                     getImageSource={getImageSource}
+                    setFocusedCar={() => {}} // Add empty function to prevent errors
+                    setFocusPosition={() => {}} // Add empty function to prevent errors
                   />
                 ))}
               </div>

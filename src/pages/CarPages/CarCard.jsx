@@ -56,10 +56,14 @@ export default function CarCard({
   const handleClick = () => {
     playOpeningSound();
     setSelectedCar(car);
-    setFocusedCar(car);
+    if (setFocusedCar) {
+      setFocusedCar(car);
+    }
     showCarDetailsModal();
     dispatch(setFocusedZone(FOCUS_ZONES.PAGE));
-    setFocusPosition({ row, column });
+    if (setFocusPosition) {
+      setFocusPosition({ row, column });
+    }
   };
 
   // For demo mode, use the new layout
