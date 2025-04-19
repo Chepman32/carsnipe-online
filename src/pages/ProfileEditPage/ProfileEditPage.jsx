@@ -22,8 +22,8 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   const [form] = Form.useForm();
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [nickname, setNickname] = useState(playerInfo.nickname || "");
-  const [bio, setBio] = useState(playerInfo.bio || "");
+  const [nickname, setNickname] = useState(playerInfo?.nickname || "");
+  const [bio, setBio] = useState(playerInfo?.bio || "");
   const [focusedAvatarIndex, setFocusedAvatarIndex] = useState(0);
   const [focusedElement, setFocusedElement] = useState('avatars'); // avatars, nickname, bio, achievements, signout
   const [isEditing, setIsEditing] = useState(false);
@@ -44,9 +44,9 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
   }, [focusedZone]);
 
   useEffect(() => {
-    if (playerInfo.nickname) setNickname(playerInfo.nickname);
-    if (playerInfo.avatar) setSelectedAvatar(playerInfo.avatar);
-    if (playerInfo.bio) setBio(playerInfo.bio);
+    if (playerInfo?.nickname) setNickname(playerInfo?.nickname);
+    if (playerInfo?.avatar) setSelectedAvatar(playerInfo?.avatar);
+    if (playerInfo?.bio) setBio(playerInfo?.bio);
   }, [playerInfo]);
 
   useEffect(() => {
@@ -288,7 +288,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
         </Link>
         <div className="profile-box">
           <Title level={3} className="profile-title">
-            Edit Profile: {playerInfo.nickname}
+            Edit Profile: {playerInfo?.nickname}
           </Title>
           <div className="avatar-container">
             {avatarsList.map((avatarName, index) => (
