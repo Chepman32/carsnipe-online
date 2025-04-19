@@ -48,6 +48,24 @@ html, body {
   position: relative;
 }
 
+/* Stylish scrollbar for profile-container */
+.profile-container::-webkit-scrollbar {
+  width: 12px;
+}
+
+.profile-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.profile-container::-webkit-scrollbar-thumb {
+  background: rgba(135, 206, 250, 0.7);
+  border-radius: 6px;
+}
+
+.profile-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 180, 255, 0.9);
+}
+
 .profile-box {
   background-color: var(--box-background);
   padding: clamp(6px, 1.5vw, 10px);
@@ -66,6 +84,24 @@ html, body {
   margin: 0 auto;
   position: relative;
   z-index: 10;
+}
+
+/* Stylish scrollbar like in carsstore */
+.profile-box::-webkit-scrollbar {
+  width: 12px;
+}
+
+.profile-box::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.profile-box::-webkit-scrollbar-thumb {
+  background: rgba(135, 206, 250, 0.7);
+  border-radius: 6px;
+}
+
+.profile-box::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 180, 255, 0.9);
 }
 
 .dark-mode .profile-title {
@@ -234,10 +270,18 @@ html, body {
     overflow-y: auto;
   }
   
+  /* Responsive scrollbar for smaller screens */
+  .profile-container::-webkit-scrollbar,
+  .profile-box::-webkit-scrollbar {
+    width: 8px;
+  }
+  
   .profile-form {
     width: 50%; /* Wider on medium screens but still narrower than default */
   }
+}
 
+@media (max-width: 768px) {
   .avatar-container {
     width: 100% !important;
     max-width: 100% !important;
@@ -291,6 +335,12 @@ html, body {
 @media (max-width: 480px) {
   .profile-container {
     padding-top: 0.5vh;
+  }
+  
+  /* Even smaller scrollbar for mobile devices */
+  .profile-container::-webkit-scrollbar,
+  .profile-box::-webkit-scrollbar {
+    width: 6px;
   }
   
   .profile-form {
