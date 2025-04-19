@@ -39,7 +39,8 @@ export default function AuctionPageItem({ playerInfo, auction, isSelected, isFoc
         <Col
             className={`auctionPageItem ${isItemSelected ? 'selected-auction' : ''}`}
             span={24}
-            style={{ height: '5%', width: '100%', display: 'flex' }}
+            // Removed fixed height: '5%' to allow content to determine height
+            style={{ width: '100%', display: 'flex' }}
             onClick={handleClick} >
             <Flex justify="space-between" align="flex-end" style={baseStyle} >
                 <div>

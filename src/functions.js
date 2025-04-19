@@ -124,10 +124,27 @@ export const getCarTypeColor = (carType) => {
 };
 
 export function calculateTimeDifference(targetTime) {
-  const targetDateTime = new Date(targetTime);
+  let targetDateTime;
+
+  // Check if targetTime is a string representing a Unix timestamp in seconds
+  if (typeof targetTime === 'string' && /^\d+$/.test(targetTime)) {
+    // Convert seconds string to milliseconds number
+    const timestampMs = parseInt(targetTime, 10) * 1000;
+    targetDateTime = new Date(timestampMs);
+  } else {
+    // Otherwise, assume it's a format Date constructor can handle (ISO string, milliseconds number)
+    targetDateTime = new Date(targetTime);
+  }
+
+  // Check if the date is valid after parsing
+  if (isNaN(targetDateTime.getTime())) {
+    console.error("Invalid date format received in calculateTimeDifference:", targetTime);
+    return "Invalid Date"; // Return an error string or handle appropriately
+  }
+
   const currentTime = new Date();
   const timeDifferenceInSeconds = Math.floor(
-    (targetDateTime - currentTime) / 1000
+    (targetDateTime.getTime() - currentTime.getTime()) / 1000
   );
 
   if (timeDifferenceInSeconds <= 0) {

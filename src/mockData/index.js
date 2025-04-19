@@ -7,7 +7,8 @@ export const mockAuctions = [
     currentBid: 250000,
     minBid: 200000,
     buy: 300000,
-    endTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    // Convert future date to Unix timestamp string (seconds)
+    endTime: String(Math.floor((Date.now() + 24 * 60 * 60 * 1000) / 1000)),
     status: 'Active',
     seller: 'demo-user',
     bids: []
@@ -20,7 +21,8 @@ export const mockAuctions = [
     currentBid: 280000,
     minBid: 250000,
     buy: 350000,
-    endTime: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+    // Convert future date to Unix timestamp string (seconds)
+    endTime: String(Math.floor((Date.now() + 48 * 60 * 60 * 1000) / 1000)),
     status: 'Active',
     seller: 'demo-user',
     bids: []
@@ -33,7 +35,8 @@ export const mockAuctions = [
     currentBid: 220000,
     minBid: 200000,
     buy: 280000,
-    endTime: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+    // Convert future date to Unix timestamp string (seconds)
+    endTime: String(Math.floor((Date.now() + 12 * 60 * 60 * 1000) / 1000)),
     status: 'Active',
     seller: 'demo-user',
     bids: []
@@ -86,4 +89,4 @@ export const updateMockAuctions = (auctions) => {
 
 export const updateMockCars = (cars) => {
   localStorage.setItem('mockCars', JSON.stringify(cars));
-}; 
+};

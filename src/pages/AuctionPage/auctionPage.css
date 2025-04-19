@@ -25,8 +25,7 @@ html, body {
 }
 
 .auctionPageItem {
-  width: 100px;
-  height: 10px;
+  /* Removed fixed width and height */
   display: flex;
   margin: 10px 0;
   background: var(--box-background, #fff);

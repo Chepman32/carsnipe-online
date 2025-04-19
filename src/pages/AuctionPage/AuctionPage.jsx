@@ -685,35 +685,77 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
     }, 10);
   };
 
+  // --- Demo Mode Rendering ---
   if (isDemoMode) {
+    // Use the same structure as live mode for consistency
     return (
-      <div style={{ padding: '20px' }}>
-        <Title level={2}>Active Auctions</Title>
-        <Row gutter={[16, 16]}>
-          {auctions.map((auction) => (
-            <Col key={auction.id} xs={24} sm={12} md={8} lg={6}>
-              {isMobile ? (
-                <AuctionMobilePageItem
-                  auction={auction}
-                  isSelected={selectedAuction?.id === auction.id}
-                  handleItemClick={handleItemClick}
-                />
+      <div
+        className="auctionPage" // Apply same base class
+        tabIndex={0} // Keep focusable for keyboard nav if needed later
+        ref={auctionPageRef}
+      >
+        <div style={{ flex: 1 }}> {/* Mimic flex container */}
+          <div className="auction-items-container" ref={auctionContainerRef}> {/* Use same container class */}
+            {auctions.map((auction, index) => {
+              // Ensure refs are created for potential keyboard navigation/scrolling
+              itemRefs.current[index] = itemRefs.current[index] || React.createRef();
+              return !isMobile ? (
+                <div ref={itemRefs.current[index]} key={auction.id}>
+                  <AuctionPageItem
+                    // Pass necessary props for demo mode
+                    auction={auction}
+                    index={index} // Pass index
+                    isSelected={selectedAuction?.id === auction.id} // Check selection
+                    isFocused={index === focusedIndex} // Check focus
+                    handleItemClick={handleItemClick} // Pass click handler
+                    playerInfo={demoUser} // Pass demo user as playerInfo
+                    // Add other props if needed by AuctionPageItem in demo context
+                  />
+                </div>
               ) : (
-                <AuctionPageItem
-                  auction={auction}
-                  isSelected={selectedAuction?.id === auction.id}
-                  handleItemClick={handleItemClick}
-                  onBid={increaseBid}
-                  currentUser={demoUser}
-                  currentMoney={demoUser.money}
-                />
-              )}
-            </Col>
-          ))}
-        </Row>
+                <div ref={itemRefs.current[index]} key={auction.id}>
+                  <AuctionMobilePageItem
+                    // Pass necessary props for demo mode (mobile)
+                    auction={auction}
+                    index={index}
+                    isSelected={selectedAuction?.id === auction.id}
+                    isFocused={index === focusedIndex}
+                    handleItemClick={handleItemClick}
+                    // Add other props if needed
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {/* Conditionally render details view like in live mode */}
+        {!isMobile && <SelectedAuctionDetails selectedAuction={selectedAuction} />}
+        {/* Keep Modals accessible */}
+        <AuctionActionsModal
+          visible={auctionActionsVisible}
+          handleAuctionActionsCancel={() => setAuctionActionsVisible(false)}
+          selectedAuction={selectedAuction}
+          bid={increaseBid}
+          loadingBid={loadingBid}
+          buyCar={buyItem}
+          loadingBuy={loadingBuy}
+        />
+        <CreditWarningModal
+          isModalVisible={creditWarningModalvisible}
+          setIsModalVisible={setCreditWarningModalvisible}
+        />
+        {isMobile === true && (
+          <SelectedAuctionDetailsModal
+            selectedAuction={selectedAuction}
+            visible={selectedAuctionDetailsModalVisible}
+            close={() => setSelectedAuctionDetailsModalVisible(false)}
+            handleAuctionActionsShow={handleAuctionActionsShow}
+          />
+        )}
       </div>
     );
   }
+  // --- End Demo Mode Rendering ---
 
   return (
     <div
