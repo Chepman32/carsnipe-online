@@ -7,5 +7,42 @@
     "soundEffects": "Звуковые эффекты",
     "musicVolume": "Громкость музыки"
   },
+  "header": {
+    "alt": {
+      "drawer": "Открыть меню",
+      "store": "Магазин",
+      "avatar": "Аватар пользователя"
+    },
+    "drawer": {
+      "menu": "Меню",
+      "close": "Закрыть меню",
+      "mainMenu": "Главное меню",
+      "carsStore": "Автомагазин",
+      "myCars": "Мои автомобили",
+      "auctions": "Аукционы",
+      "messages": "Сообщения"
+    },
+    "quickSettings": {
+      "ariaLabel": "Меню настроек",
+      "darkMode": "Тёмный режим",
+      "music": "Музыка",
+      "sound": "Звук"
+    },
+    "menuItems": {
+      "mainMenu": "Главное меню",
+      "carsStore": "Автомагазин",
+      "myCars": "Мои автомобили",
+      "auctions": "Аукционы",
+      "messages": "Сообщения"
+    },
+    "mainPage": {
+      "myCars": "Мои автомобили",
+      "carsStore": "Автомагазин",
+      "auctions": "Аукционы",
+      "bank": "Банк",
+      "profile": "Профиль",
+      "settings": "Настройки"
+    }
+  },
   "welcome": "Добро пожаловать в CarSnipe"
 }

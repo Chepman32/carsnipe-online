@@ -7,5 +7,42 @@
     "soundEffects": "Efectos de sonido",
     "musicVolume": "Volumen de la música"
   },
+  "header": {
+    "alt": {
+      "drawer": "Abrir menú",
+      "store": "Tienda",
+      "avatar": "Avatar del usuario"
+    },
+    "drawer": {
+      "menu": "Menú",
+      "close": "Cerrar menú",
+      "mainMenu": "Menú principal",
+      "carsStore": "Tienda de coches",
+      "myCars": "Mis coches",
+      "auctions": "Subastas",
+      "messages": "Mensajes"
+    },
+    "quickSettings": {
+      "ariaLabel": "Menú de configuración",
+      "darkMode": "Modo oscuro",
+      "music": "Música",
+      "sound": "Sonido"
+    },
+    "menuItems": {
+      "mainMenu": "Menú principal",
+      "carsStore": "Tienda de coches",
+      "myCars": "Mis coches",
+      "auctions": "Subastas",
+      "messages": "Mensajes"
+    },
+    "mainPage": {
+      "myCars": "Mis coches",
+      "carsStore": "Tienda de coches",
+      "auctions": "Subastas",
+      "bank": "Banco",
+      "profile": "Perfil",
+      "settings": "Ajustes"
+    }
+  },
   "welcome": "Bienvenido a CarSnipe"
 }

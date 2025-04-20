@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isMobile } from 'react-device-detect';
 import { MenuOutlined, BulbOutlined, BulbFilled } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 import {
   toggleMusic,
   toggleDarkMode,
@@ -39,6 +40,7 @@ import rewind from "../../assets/icons/rewind.png";
 const { Text, Title } = Typography;
 
 const CustomHeader = ({ nickname, avatar, money }) => {
+  const { t } = useTranslation(); // Get translation function
   const [isHovered, setIsHovered] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -220,7 +222,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               marginRight: '8px'
             }}
           >
-            <img src={drawer} className='burgerMenuIcon' alt="drawer" style={{ width: '24px', height: '24px' }} />
+            <img src={drawer} className='burgerMenuIcon' alt={t('header.alt.drawer')} style={{ width: '24px', height: '24px' }} />
           </div>
           {!isMobile && <MenuItems />}
           {!isMobile && (
@@ -243,7 +245,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                 }}
                 tabIndex={0}
               >
-                <img src={plus_symbol} alt="plus_symbol" className="headerIcon" />
+                <img src={plus_symbol} alt={t('header.alt.store')} className="headerIcon" />
                 <Text
                   style={{
                     marginRight: 15,
@@ -296,9 +298,9 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {nickname || 'User'}
+                    {nickname || t('common.user')}
                   </Text>
-                  <img src={avatar || 'https://via.placeholder.com/40'} alt="avatar" />
+                  <img src={avatar || 'https://via.placeholder.com/40'} alt={t('header.alt.avatar')} />
                 </Link>
                 <div
                   className={
@@ -312,7 +314,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                   onClick={(e) => e.stopPropagation()}
                   tabIndex={0}
                   role="menu"
-                  aria-label="Settings Menu"
+                  aria-label={t('header.quickSettings.ariaLabel')}
                 >
                   <div
                     className={`settings-menu-item ${
@@ -331,7 +333,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                     ) : (
                       <BulbOutlined style={{ fontSize: '20px' }} />
                     )}
-                    <span style={{ marginLeft: '10px' }}>Dark Mode: {darkMode ? 'On' : 'Off'}</span>
+                    <span style={{ marginLeft: '10px' }}>{t('header.quickSettings.darkMode')}: {darkMode ? t('common.on') : t('common.off')}</span>
                 </div>
                   <div
                     className={`settings-menu-item ${
@@ -346,9 +348,9 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                 >
                   <img
                     src="https://static.vecteezy.com/system/resources/previews/011/934/413/non_2x/silver-music-note-icon-free-png.png"
-                    alt="Music"
+                    alt={t('header.alt.music')}
                   />
-                  <span>Music: {musicOn ? 'On' : 'Off'}</span>
+                  <span>{t('header.quickSettings.music')}: {musicOn ? t('common.on') : t('common.off')}</span>
                 </div>
                   <div
                     className={`settings-menu-item ${
@@ -363,9 +365,9 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                 >
                   <img
                     src="https://cdn1.iconfinder.com/data/icons/ios-and-android-line-set-2/52/call__phone__volume__sound-512.png"
-                    alt="Sound"
+                    alt={t('header.alt.sound')}
                   />
-                  <span>Sound: {soundEffectsOn ? 'On' : 'Off'}</span>
+                  <span>{t('header.quickSettings.sound')}: {soundEffectsOn ? t('common.on') : t('common.off')}</span>
                 </div>
                   <Title
                     level={5}
@@ -394,7 +396,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                     >
                       <img
                         src={rewind}
-                        alt="Previous Station"
+                        alt={t('header.alt.previousStation')}
                         style={{ width: '24px', height: '24px' }}
                       />
                     </button>
@@ -404,7 +406,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                     >
                       <img
                         src={fastForward}
-                        alt="Next Station"
+                        alt={t('header.alt.nextStation')}
                         style={{ width: '24px', height: '24px' }}
                       />
                     </button>
@@ -419,8 +421,8 @@ const CustomHeader = ({ nickname, avatar, money }) => {
       <div className={`custom-mobile-drawer-overlay ${drawerVisible ? 'open' : ''}`} onClick={closeDrawer}></div>
       <div className={`custom-mobile-drawer ${drawerVisible ? 'open' : ''}`}>
         <div className="custom-mobile-drawer-header">
-          <h3 className="custom-mobile-drawer-title">Menu</h3>
-          <button className="custom-mobile-drawer-close" onClick={closeDrawer} aria-label="Close menu">×</button>
+          <h3 className="custom-mobile-drawer-title">{t('header.drawer.menu')}</h3>
+          <button className="custom-mobile-drawer-close" onClick={closeDrawer} aria-label={t('header.drawer.close')}>×</button>
         </div>
         <div className="custom-mobile-drawer-content">
           {/* Profile Link */}
@@ -459,7 +461,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             >
               {nickname}
             </Text>
-            <img src={avatar} alt="avatar" />
+            <img src={avatar} alt={t('header.alt.avatar')} />
           </Link>
 
           {/* Store Link */}
@@ -478,7 +480,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                     : 'transparent'
               }}
             >
-              <img src={plus_symbol} alt="plus_symbol" className="headerIcon" />
+              <img src={plus_symbol} alt={t('header.alt.store')} className="headerIcon" />
               <Text
                 style={{
                   marginLeft: 10,
@@ -504,7 +506,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             }}
           >
             <Link to="/" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
-              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>Main Menu</Text>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>{t('header.drawer.mainMenu')}</Text>
             </Link>
           </div>
 
@@ -517,7 +519,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             }}
           >
             <Link to="/carsStore" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
-              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>Cars Store</Text>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>{t('header.drawer.carsStore')}</Text>
             </Link>
           </div>
 
@@ -530,7 +532,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             }}
           >
             <Link to="/myCars" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
-              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>My Cars</Text>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>{t('header.drawer.myCars')}</Text>
             </Link>
           </div>
 
@@ -543,7 +545,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             }}
           >
             <Link to="/auctionsHub" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
-              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>Auctions</Text>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>{t('header.drawer.auctions')}</Text>
             </Link>
           </div>
 
@@ -556,7 +558,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             }}
           >
             <Link to="/messenger" onClick={closeDrawer} style={{ color: 'var(--text-color)', textDecoration: 'none', width: '100%' }}>
-              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>Messages</Text>
+              <Text style={{ fontSize: '1.6rem', fontWeight: '500' }}>{t('header.drawer.messages')}</Text>
             </Link>
           </div>
         </div>

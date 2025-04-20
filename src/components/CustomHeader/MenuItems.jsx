@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './styles.css';
 import { useSelector, useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   FOCUS_ZONES,
   HEADER_MAIN_MENU,
@@ -15,6 +16,7 @@ import {
 } from '../../redux/slices/focusSlice';
 
 export const MenuItems = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -90,7 +92,7 @@ export const MenuItems = () => {
         className="customHeader__menuItem"
       >
         <Link to="/">
-          <h2 style={{ fontWeight: 'bold' }}>Main Menu</h2>
+          <h2 style={{ fontWeight: 'bold' }}>{t('header.menuItems.mainMenu')}</h2>
         </Link>
       </Menu.Item>
 
@@ -102,7 +104,7 @@ export const MenuItems = () => {
         }}
         className="customHeader__menuItem"
       >
-        <Link to="/carsStore">Cars Store</Link>
+        <Link to="/carsStore">{t('header.menuItems.carsStore')}</Link>
       </Menu.Item>
 
       <Menu.Item
@@ -113,7 +115,7 @@ export const MenuItems = () => {
         }}
         className="customHeader__menuItem"
       >
-        <Link to="/myCars">My Cars</Link>
+        <Link to="/myCars">{t('header.menuItems.myCars')}</Link>
       </Menu.Item>
 
       <Menu.Item
@@ -124,7 +126,7 @@ export const MenuItems = () => {
         }}
         className="customHeader__menuItem"
       >
-        <Link to="/auctionsHub">Auctions</Link>
+        <Link to="/auctionsHub">{t('header.menuItems.auctions')}</Link>
       </Menu.Item>
 
       <Menu.Item
@@ -135,7 +137,7 @@ export const MenuItems = () => {
         }}
         className="customHeader__menuItem"
       >
-        <Link to="/messenger">Messages</Link>
+        <Link to="/messenger">{t('header.menuItems.messages')}</Link>
       </Menu.Item>
     </section>
   );
