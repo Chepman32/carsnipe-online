@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select Language",
+    "darkMode": "Dark Mode",
+    "soundEffects": "Sound Effects",
+    "musicVolume": "Music Volume"
+  },
+  "welcome": "Welcome to CarSnipe"
+}

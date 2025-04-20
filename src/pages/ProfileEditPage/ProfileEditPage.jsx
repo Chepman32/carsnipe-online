@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, notification, Typography } from 'antd';
+import { Form, Input, Button, notification, Typography, Select } from 'antd';
 import { LogoutOutlined } from '@ant-design/icons';
 import { generateClient } from 'aws-amplify/api';
 import * as mutations from '../../graphql/mutations';
 import "./styles.css";
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FOCUS_ZONES, HEADER_MAIN_MENU, setCurrentFocusedElement, setFocusedZone } from '../../redux/slices/focusSlice';
@@ -19,6 +20,7 @@ const avatarsList = Object.keys(avatars);
 const avatarsPerRow = 4; // Number of avatars in one row
 
 const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
+  const { t, i18n } = useTranslation();
   const [form] = Form.useForm();
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -279,25 +281,36 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
 
   return (
     <>
-      <div className={`profile-container ${darkMode ? 'dark-mode' : 'light-mode'}`}>
-        <Link 
+      <div className={"profile-container " + (darkMode ? 'dark-mode' : 'light-mode')}>
+        <Link
           to="/achievements#/achievements"
-          className={`achievements-button ${focusedElement === 'achievements' ? 'focused' : ''}`}
+          className={"achievements-button " + (focusedElement === 'achievements' ? 'focused' : '')}
         >
           My Achievements
         </Link>
         <div className="profile-box">
           <Title level={3} className="profile-title">
-            Edit Profile: {playerInfo?.nickname}
+            {t('settings.title')}: {playerInfo?.nickname}
           </Title>
+          <Form.Item label={t('settings.language')}>
+            <Select
+              defaultValue={i18n.language}
+              style={{ width: 120 }}
+              onChange={(value) => i18n.changeLanguage(value)}
+              options={[
+                { value: 'en', label: 'English' },
+                { value: 'ru', label: 'Русский' },
+                { value: 'de', label: 'Deutsch' },
+                { value: 'es', label: 'Español' },
+              ]}
+            />
+          </Form.Item>
           <div className="avatar-container">
             {avatarsList.map((avatarName, index) => (
               <img
                 key={index}
                 src={avatars[avatarName]}
-                className={`avatar-item ${selectedAvatar === avatarName ? 'selected' : ''} ${
-                  index === focusedAvatarIndex ? 'focused' : ''
-                }`}
+                className={"avatar-item " + (selectedAvatar === avatarName ? 'selected' : '') + (index === focusedAvatarIndex ? ' focused' : '')}
                 alt={avatarName}
                 onClick={() => handleAvatarSelect(avatarName)}
               />
@@ -306,40 +319,40 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
           <div className="profile-form">
             <Form form={form} layout="vertical" onFinish={handleSubmit}>
               <Form.Item>
-                <Input 
-                  placeholder="Enter your nickname" 
-                  value={nickname} 
+                <Input
+                  placeholder={t('settings.selectLanguage')}
+                  value={nickname}
                   onChange={(event) => setNickname(event.target.value)}
-                  className={`input-field ${focusedElement === 'nickname' && !isEditing ? 'focused' : ''}`}
+                  className={"input-field " + (focusedElement === 'nickname' && !isEditing ? 'focused' : '')}
                   onClick={() => setIsEditing(true)}
                 />
               </Form.Item>
               <Form.Item>
-                <TextArea 
-                  placeholder="Tell us a couple of words about yourself" 
+                <TextArea
+                  placeholder="Tell us a couple of words about yourself"
                   rows={3}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  className={`textarea-field ${focusedElement === 'bio' && !isEditing ? 'focused' : ''}`}
+                  className={"textarea-field " + (focusedElement === 'bio' && !isEditing ? 'focused' : '')}
                   onClick={() => setIsEditing(true)}
                 />
               </Form.Item>
             </Form>
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={handleSubmit}
               block
-              className={`save-button ${focusedElement === 'save' ? 'focused' : ''}`}
+              className={"save-button " + (focusedElement === 'save' ? 'focused' : '')}
               loading={loading}
             >
               Save Changes
             </Button>
-            <Button 
+            <Button
               danger
               icon={<LogoutOutlined />}
               onClick={handleSignOut}
               block
-              className={`signout-button ${focusedElement === 'signout' ? 'focused' : ''}`}
+              className={"signout-button " + (focusedElement === 'signout' ? 'focused' : '')}
             >
               Sign Out
             </Button>

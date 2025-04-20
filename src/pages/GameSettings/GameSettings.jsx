@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Switch, Slider, Card, Row, Col } from 'antd';
+import { Switch, Slider, Card, Row, Col, Select } from 'antd'; // Import Select
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 import 'antd/dist/reset.css';
 import './GameSettings.css';
 import { setDarkMode, setMusicVolume, setSoundEffectsOn } from '../../redux/slices/mainSettingsSlice';
@@ -12,6 +13,7 @@ import {
   SETTINGS_DARK_MODE,
   SETTINGS_SOUND_EFFECTS,
   SETTINGS_MUSIC_VOLUME,
+  SETTINGS_LANGUAGE, // Add new focus key constant
   handleKeyDown as handleKeyDownAction,
   setFocusedZone,
   setCurrentFocusedElement,
@@ -25,11 +27,13 @@ const GameSettings = () => {
   const { darkMode, musicOn, soundEffectsOn } = useSelector((state) => state.quickSettings);
   const { musicVolume } = useSelector((state) => state.mainSettings);
   const { focusedZone, currentSettingsElement, settingsNeedsToggle, settingsVolumeChange } = useSelector((state) => state.focus);
+  const { t, i18n } = useTranslation(); // Get translation function and i18n instance
 
   const options = [
-    { label: 'Dark Mode', type: 'switch', value: darkMode, key: SETTINGS_DARK_MODE },
-    { label: 'Sound Effects', type: 'switch', value: soundEffectsOn, key: SETTINGS_SOUND_EFFECTS },
-    { label: 'Music Volume', type: 'slider', value: musicVolume, key: SETTINGS_MUSIC_VOLUME },
+    { label: t('settings.darkMode'), type: 'switch', value: darkMode, key: SETTINGS_DARK_MODE },
+    { label: t('settings.soundEffects'), type: 'switch', value: soundEffectsOn, key: SETTINGS_SOUND_EFFECTS },
+    { label: t('settings.musicVolume'), type: 'slider', value: musicVolume, key: SETTINGS_MUSIC_VOLUME },
+    { label: t('settings.language'), type: 'select', value: i18n.language, key: SETTINGS_LANGUAGE }, // Add language option
   ];
 
   const previousVolumeRef = useRef(musicVolume);
@@ -123,7 +127,19 @@ const GameSettings = () => {
                   }
                 }}
               />
-            ) : (
+            ) : option.type === 'select' ? ( // Add condition for select type
+              <Select
+                value={option.value}
+                style={{ width: 120 }}
+                onChange={(value) => i18n.changeLanguage(value)}
+                options={[
+                  { value: 'en', label: 'English' },
+                  { value: 'ru', label: 'Русский' },
+                  { value: 'de', label: 'Deutsch' },
+                  { value: 'es', label: 'Español' },
+                ]}
+              />
+            ) : ( // Existing slider logic
               <Row>
                 <Col span={6}>
                   <span>{option.value}%</span>

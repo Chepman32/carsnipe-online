@@ -23,6 +23,7 @@ export const MAKER_ROW = "MAKER_ROW";
 export const SETTINGS_DARK_MODE = "SETTINGS_DARK_MODE";
 export const SETTINGS_SOUND_EFFECTS = "SETTINGS_SOUND_EFFECTS";
 export const SETTINGS_MUSIC_VOLUME = "SETTINGS_MUSIC_VOLUME";
+export const SETTINGS_LANGUAGE = "SETTINGS_LANGUAGE"; // Add language constant
 
 export const TOP_CAR = "TOP_CAR";
 
@@ -124,14 +125,16 @@ const focusSlice = createSlice({
         }
         case FOCUS_ZONES.SETTINGS: {
           if (key === "ArrowUp") {
-            if (state.currentSettingsElement === SETTINGS_MUSIC_VOLUME) {
+            if (state.currentSettingsElement === SETTINGS_LANGUAGE) { // Added case for language
+              state.currentSettingsElement = SETTINGS_MUSIC_VOLUME;
+              state.currentFocusedElement = SETTINGS_MUSIC_VOLUME;
+            } else if (state.currentSettingsElement === SETTINGS_MUSIC_VOLUME) { // Existing case for music volume
               state.currentSettingsElement = SETTINGS_SOUND_EFFECTS;
-            } else if (
-              state.currentSettingsElement === SETTINGS_SOUND_EFFECTS
-            ) {
+              state.currentFocusedElement = SETTINGS_SOUND_EFFECTS;
+            } else if (state.currentSettingsElement === SETTINGS_SOUND_EFFECTS) { // Existing case for sound effects
               state.currentSettingsElement = SETTINGS_DARK_MODE;
               state.currentFocusedElement = SETTINGS_DARK_MODE;
-            } else if (state.currentSettingsElement === SETTINGS_DARK_MODE) {
+            } else if (state.currentSettingsElement === SETTINGS_DARK_MODE) { // Existing case for dark mode
               state.focusedZone = FOCUS_ZONES.HEADER;
               state.currentFocusedElement = HEADER_MAIN_MENU;
               state.currentSettingsElement = null;
@@ -140,16 +143,19 @@ const focusSlice = createSlice({
             if (
               state.currentSettingsElement === SETTINGS_DARK_MODE ||
               state.currentSettingsElement === null
-            ) {
+            ) { // Existing case for dark mode
               state.currentSettingsElement = SETTINGS_SOUND_EFFECTS;
               state.currentFocusedElement = SETTINGS_SOUND_EFFECTS;
-            } else if (
-              state.currentSettingsElement === SETTINGS_SOUND_EFFECTS
-            ) {
+            } else if (state.currentSettingsElement === SETTINGS_SOUND_EFFECTS) { // Existing case for sound effects
               state.currentSettingsElement = SETTINGS_MUSIC_VOLUME;
               state.currentFocusedElement = SETTINGS_MUSIC_VOLUME;
+            } else if (state.currentSettingsElement === SETTINGS_MUSIC_VOLUME) { // Added case for music volume
+              state.currentSettingsElement = SETTINGS_LANGUAGE;
+              state.currentFocusedElement = SETTINGS_LANGUAGE;
             }
+            // Note: No ArrowDown action from SETTINGS_LANGUAGE for now, stays focused there.
           } else if (key === "Enter" || key === " ") {
+            // Enter/Space only toggles switches for now
             if (
               state.currentSettingsElement === SETTINGS_DARK_MODE ||
               state.currentSettingsElement === SETTINGS_SOUND_EFFECTS
@@ -157,9 +163,11 @@ const focusSlice = createSlice({
               state.settingsNeedsToggle = state.currentSettingsElement;
             }
           } else if (key === "ArrowLeft" || key === "ArrowRight") {
+            // Volume change only applies to music volume slider
             if (state.currentSettingsElement === SETTINGS_MUSIC_VOLUME) {
               state.settingsVolumeChange = key === "ArrowRight" ? 1 : -1;
             }
+            // Potentially add ArrowLeft/Right logic for language select if needed later
           }
           break;
         }
