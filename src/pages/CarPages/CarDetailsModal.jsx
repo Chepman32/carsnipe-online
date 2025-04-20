@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import ReactDOM from 'react-dom'; // Import ReactDOM for Portal
 import { Spin, Tooltip } from "antd";
 import "./carsPage.css";
 import CarDetailsModalRow from "./CarDetailsModalRow";
@@ -98,43 +99,7 @@ const CarDetailsModal = ({
     };
   }, []);
 
-  // Focus the modal when it becomes visible and handle window resize
-  useEffect(() => {
-    if (visible && modalRef.current) {
-      // Store current scroll position
-      const scrollPosition = window.scrollY || document.documentElement.scrollTop;
-      
-      modalRef.current.focus();
-      
-      // Prevent body scrolling when modal is open without changing scroll position
-      document.body.style.overflow = 'hidden';
-      
-      // Handle window resize to ensure modal stays centered
-      const handleResize = () => {
-        // No need to force reflow - the fixed positioning will keep it centered
-      };
-      
-      // Add resize event listener
-      window.addEventListener('resize', handleResize);
-      
-      // Return cleanup function
-      return () => {
-        // Restore body scrolling when modal is closed
-        document.body.style.overflow = '';
-        
-        // Restore scroll position after a short delay to ensure it happens after any other updates
-        setTimeout(() => {
-          window.scrollTo({
-            top: scrollPosition,
-            behavior: 'auto' // Use 'auto' instead of 'smooth' to avoid visible scrolling
-          });
-        }, 0);
-        
-        // Remove resize event listener
-        window.removeEventListener('resize', handleResize);
-      };
-    }
-  }, [visible]);
+  // NOTE: Removed useEffect that focused the modal on visibility, as it might be causing positioning issues.
 
   // Add extensive debugging logs
   console.log("CarDetailsModal rendering with visible:", visible, "selectedCar:", selectedCar);
@@ -147,21 +112,22 @@ const CarDetailsModal = ({
   }
   
   // Log that we're about to render the modal
-  console.log("CarDetailsModal is visible, rendering modal content");
+  console.log("CarDetailsModal is visible, rendering modal content via portal");
   
-  return (
+  // Use ReactDOM.createPortal to render outside the normal DOM hierarchy
+  return ReactDOM.createPortal(
     <div 
       className="custom-modal-overlay" 
       style={{
-        position: 'fixed',
+        position: 'fixed', // Revert overlay to fixed
         top: 0,
         left: 0,
         right: 0,
+        right: 0, // Ensure full coverage with fixed
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         zIndex: 9999,
-        width: '100%',
-        height: '100%',
+        // Removed minHeight and width, rely on fixed positioning
         overflow: 'hidden',
         // Prevent any scroll events from propagating
         touchAction: 'none'
@@ -181,10 +147,10 @@ const CarDetailsModal = ({
           width: isMobile ? '80vw' : '50vw',
           maxHeight: '80vh',
           overflowY: 'auto',
-          position: 'fixed',
-          top: '50%',
+          position: 'fixed', // Revert modal content to fixed
+          top: '50%', // Standard fixed centering
           left: '50%',
-          transform: 'translate(-50%, -50%)',
+          transform: 'translate(-50%, -50%)', // Standard fixed centering
           zIndex: 10000,
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
           // Ensure content scrolls within modal without affecting page
@@ -291,7 +257,8 @@ const CarDetailsModal = ({
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body // Target node for the portal
   );
 };
 
