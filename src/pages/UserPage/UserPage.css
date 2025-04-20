@@ -141,6 +141,33 @@
   margin: 40px 0;
 }
 
+/* Modal styles */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carDetailsModal {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 50vw;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .user-profile-container {
@@ -153,5 +180,10 @@
   
   .statistic-value {
     font-size: 16px;
+  }
+  
+  .carDetailsModal {
+    width: 80vw;
+    padding: 15px;
   }
 }

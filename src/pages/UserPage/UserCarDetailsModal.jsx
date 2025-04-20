@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Spin, Tooltip, message } from "antd";
 import "../CarPages/carsPage.css";
+import "./UserPage.css";
 import CarDetailsModalRow from "../CarPages/CarDetailsModalRow";
 import { getImageSource, playSwitchSound } from "../../functions";
 import { isMobile } from "react-device-detect";
@@ -117,38 +118,12 @@ const UserCarDetailsModal = ({
   
   return (
     <div 
-      className="custom-modal-overlay" 
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        zIndex: 9999,
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden'
-      }}
+      className="custom-modal-overlay"
       onClick={handleCancel}
     >
       <div 
         ref={modalRef}
         className="carDetailsModal"
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          width: isMobile ? '80vw' : '50vw',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 10000,
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
-        }}
         onClick={(e) => e.stopPropagation()}
         tabIndex={-1}
       >
