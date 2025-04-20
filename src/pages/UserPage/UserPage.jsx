@@ -5,8 +5,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { MessageOutlined } from "@ant-design/icons";
 import * as mutations from '../../graphql/mutations';
 import * as queries from '../../graphql/queries';
-import { fetchUserCarsRequest, getUserCar, deleteUserCar, createNewAuctionUser, playSwitchSound, playOpeningSound, playClosingSound, fetchAuctionCreator, fetchUserInfoById, selectAvatar } from "../../functions";
+import { fetchUserCarsRequest, getUserCar, deleteUserCar, createNewAuctionUser, playSwitchSound, playOpeningSound, playClosingSound, fetchAuctionCreator, fetchUserInfoById, selectAvatar, getImageSource as getImageSourceFunc } from "../../functions";
 import CarCard from "../CarPages/CarCard";
+import UserCarDetailsModal from "./UserCarDetailsModal";
 import "./UserPage.css";
 
 // Import custom queries and mutations
@@ -127,6 +128,7 @@ const UserPage = () => {
   const [selectedCarIndex, setSelectedCarIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [loadingBuy, setLoadingBuy] = useState(false);
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -436,8 +438,36 @@ const UserPage = () => {
     setCarDetailsVisible(true);
   };
 
+  const handleCarDetailsCancel = () => {
+    playClosingSound();
+    setCarDetailsVisible(false);
+  };
+
   const cancelNewAuction = () => {
     setNewAuctionVisible(false);
+  };
+  
+  // Function to handle "Buy the same one" action
+  const buySameCar = async (car) => {
+    try {
+      setLoadingBuy(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      message.success(`You would buy the same car: ${car.make} ${car.model}`);
+      // Implement actual functionality later
+      handleCarDetailsCancel(); // Close the modal after successful purchase
+    } catch (error) {
+      console.error('Error buying car:', error);
+      message.error('Failed to buy car');
+    } finally {
+      setLoadingBuy(false);
+    }
+  };
+  
+  // Function to show car history
+  const showCarHistory = (car) => {
+    message.info(`This would show history for: ${car.make} ${car.model}`);
+    // Implement actual functionality later
   };
 
   const getImageSource = (make, model) => {
@@ -565,6 +595,17 @@ const UserPage = () => {
           </Card>
         </Col>
       </Row>
+      
+      {/* Car Details Modal */}
+      <UserCarDetailsModal
+        visible={selectedCar && carDetailsVisible}
+        handleCancel={handleCarDetailsCancel}
+        selectedCar={selectedCar || {}}
+        buyCar={buySameCar} // Use the buySameCar function for the "Buy the same one" action
+        loadingBuy={loadingBuy}
+        getImageSource={getImageSource}
+        fromMyCars={false} // Explicitly set to false since this is UserPage, not MyCars
+      />
     </div>
   );
 };
