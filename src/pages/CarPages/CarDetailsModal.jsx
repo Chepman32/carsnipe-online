@@ -101,9 +101,12 @@ const CarDetailsModal = ({
   // Focus the modal when it becomes visible and handle window resize
   useEffect(() => {
     if (visible && modalRef.current) {
+      // Store current scroll position
+      const scrollPosition = window.scrollY || document.documentElement.scrollTop;
+      
       modalRef.current.focus();
       
-      // Prevent body scrolling when modal is open
+      // Prevent body scrolling when modal is open without changing scroll position
       document.body.style.overflow = 'hidden';
       
       // Handle window resize to ensure modal stays centered
@@ -118,6 +121,14 @@ const CarDetailsModal = ({
       return () => {
         // Restore body scrolling when modal is closed
         document.body.style.overflow = '';
+        
+        // Restore scroll position after a short delay to ensure it happens after any other updates
+        setTimeout(() => {
+          window.scrollTo({
+            top: scrollPosition,
+            behavior: 'auto' // Use 'auto' instead of 'smooth' to avoid visible scrolling
+          });
+        }, 0);
         
         // Remove resize event listener
         window.removeEventListener('resize', handleResize);
@@ -151,9 +162,14 @@ const CarDetailsModal = ({
         zIndex: 9999,
         width: '100%',
         height: '100%',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        // Prevent any scroll events from propagating
+        touchAction: 'none'
       }}
       onClick={handleCancel}
+      // Prevent default behavior for any events that might cause scrolling
+      onWheel={(e) => e.preventDefault()}
+      onTouchMove={(e) => e.preventDefault()}
     >
       <div 
         ref={modalRef}
@@ -170,9 +186,13 @@ const CarDetailsModal = ({
           left: '50%',
           transform: 'translate(-50%, -50%)',
           zIndex: 10000,
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          // Ensure content scrolls within modal without affecting page
+          overflowX: 'hidden'
         }}
         onClick={(e) => e.stopPropagation()}
+        // Prevent scroll events from bubbling up to parent elements
+        onWheel={(e) => e.stopPropagation()}
         tabIndex={-1}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
