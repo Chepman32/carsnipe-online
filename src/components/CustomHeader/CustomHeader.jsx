@@ -59,6 +59,12 @@ const CustomHeader = ({ nickname, avatar, money }) => {
 
   const toggleDrawer = () => {
     console.log('Toggle drawer, current state:', drawerVisible);
+    console.log('Current device info:', {
+      isMobileState: isMobile,
+      isMobileFromLibrary: isMobileDevice,
+      userAgent: navigator.userAgent,
+      windowWidth: window.innerWidth
+    });
     setDrawerVisible(prevState => {
       console.log('Setting drawer to:', !prevState);
       return !prevState;
@@ -171,11 +177,14 @@ const CustomHeader = ({ nickname, avatar, money }) => {
 
   useEffect(() => {
     console.log('Drawer visibility changed to:', drawerVisible);
+    console.log('isMobile state:', isMobile);
+    console.log('isMobileDevice from library:', isMobileDevice);
+    
     // Close drawer when switching from mobile to desktop
     if (!isMobile && drawerVisible) {
       setDrawerVisible(false);
     }
-  }, [isMobile, drawerVisible]);
+  }, [isMobile, drawerVisible, isMobileDevice]);
 
   useEffect(() => {
     return () => {
@@ -188,23 +197,18 @@ const CustomHeader = ({ nickname, avatar, money }) => {
 
   useEffect(() => {
     const checkMobile = () => {
-      // Check if it's a mobile device using multiple methods
-      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-      const isMobileUserAgent = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+      // Use both the imported isMobileDevice and a screen size check
+      // This ensures the drawer shows on both real mobile devices and small browser windows
       const isSmallScreen = window.innerWidth <= 768;
-      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      
-      const isMobileDevice = isMobileUserAgent || (isSmallScreen && isTouchDevice);
+      const shouldShowMobile = isMobileDevice || isSmallScreen;
       
       console.log('Mobile detection:', {
-        userAgent,
-        isMobileUserAgent,
+        isMobileFromLibrary: isMobileDevice,
         isSmallScreen,
-        isTouchDevice,
-        finalResult: isMobileDevice
+        finalResult: shouldShowMobile
       });
       
-      setIsMobile(isMobileDevice);
+      setIsMobile(shouldShowMobile);
     };
 
     checkMobile();
@@ -243,14 +247,14 @@ const CustomHeader = ({ nickname, avatar, money }) => {
           <div
             onClick={toggleDrawer}
             style={{
-              display: isMobile ? 'flex' : 'none',
+              display: isMobile || isMobileDevice ? 'flex' : 'none', // Use both checks
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               padding: '8px',
               marginRight: '8px',
               zIndex: 1000,
-              position: 'relative' // Add this to ensure proper stacking context
+              position: 'relative'
             }}
           >
             <img 
@@ -261,12 +265,12 @@ const CustomHeader = ({ nickname, avatar, money }) => {
                 width: '24px', 
                 height: '24px',
                 filter: darkMode ? 'invert(1)' : 'none',
-                display: 'block' // Ensure the image is always displayed
+                display: 'block'
               }} 
             />
           </div>
-          {!isMobile && <MenuItems />}
-          {!isMobile && (
+          {!isMobile && !isMobileDevice && <MenuItems />}
+          {!isMobile && !isMobileDevice && (
             <section style={{ display: 'flex', alignItems: 'center' }}>
               <Link
                 to="/store"
