@@ -42,6 +42,19 @@
       "bank": "Bank",
       "profile": "Profile",
       "settings": "Settings"
-    },
+    }
+  },
+  "auctionActionsModal": {
+    "carDetails": "Car Details",
+    "makeABid": "Make a bid",
+    "buyOut": "Buy out",
+    "openUserProfile": "Open user's profile",
+    "loading": "Loading...",
+    "errors": {
+      "noAuctionSelected": "Cannot open user profile: No auction selected",
+      "profileNotAvailable": "User profile not available for this auction",
+      "couldNotOpenProfile": "Could not open user profile"
+    }
+  },
   "welcome": "Welcome to CarSnipe"
 }

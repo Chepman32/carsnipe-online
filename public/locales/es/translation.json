@@ -44,5 +44,17 @@
       "settings": "Ajustes"
     }
   },
+  "auctionActionsModal": {
+    "carDetails": "Detalles del coche",
+    "makeABid": "Hacer una oferta",
+    "buyOut": "Comprar ahora",
+    "openUserProfile": "Abrir perfil del usuario",
+    "loading": "Cargando...",
+    "errors": {
+      "noAuctionSelected": "No se puede abrir el perfil del usuario: No hay subasta seleccionada",
+      "profileNotAvailable": "Perfil de usuario no disponible para esta subasta",
+      "couldNotOpenProfile": "No se pudo abrir el perfil del usuario"
+    }
+  },
   "welcome": "Bienvenido a CarSnipe"
 }

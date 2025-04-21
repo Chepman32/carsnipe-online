@@ -44,5 +44,17 @@
       "settings": "Настройки"
     }
   },
+  "auctionActionsModal": {
+    "carDetails": "Детали автомобиля",
+    "makeABid": "Сделать ставку",
+    "buyOut": "Выкупить",
+    "openUserProfile": "Открыть профиль пользователя",
+    "loading": "Загрузка...",
+    "errors": {
+      "noAuctionSelected": "Невозможно открыть профиль пользователя: Аукцион не выбран",
+      "profileNotAvailable": "Профиль пользователя недоступен для этого аукциона",
+      "couldNotOpenProfile": "Не удалось открыть профиль пользователя"
+    }
+  },
   "welcome": "Добро пожаловать в CarSnipe"
 }

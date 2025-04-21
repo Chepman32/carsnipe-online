@@ -1,10 +1,9 @@
 import React, { Suspense } from 'react'; // Import Suspense
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import './i18n'; // Import i18next configuration
+import './i18n';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import './i18n'; // Re-import i18n to trigger re-initialization
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistor } from './redux/store';
 

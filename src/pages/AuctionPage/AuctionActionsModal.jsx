@@ -8,12 +8,14 @@ import AuctionActionsModalRow from "../../components/AuctionActionsModalRow/Auct
 import { isMobile } from "react-device-detect";
 import { generateClient } from 'aws-amplify/api';
 import * as queries from '../../graphql/queries';
+import { useTranslation } from "react-i18next";
 
 const client = generateClient();
 
 const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuction, loadingBid, bid, buyCar, loadingBuy }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const modalRef = useRef(null);
 
   const totalRows = 3;
@@ -141,7 +143,7 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
               try {
                 if (!selectedAuction || !selectedAuction.id) {
                   console.log("No auction selected or auction has no ID");
-                  message.info("Cannot open user profile: No auction selected");
+                  message.info(t('auctionActionsModal.errors.noAuctionSelected'));
                   return;
                 }
 
@@ -150,14 +152,14 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
 
                 if (!user) {
                   console.log("No user found for this auction");
-                  message.info("User profile not available for this auction");
+                  message.info(t('auctionActionsModal.errors.profileNotAvailable'));
                   return;
                 }
                 localStorage.setItem('BUDDY_INFO', JSON.stringify(user));
                 navigate(`/user/${user.id}`);
               } catch (error) {
                 console.error("Error opening user profile:", error);
-                message.error("Could not open user profile");
+                message.error(t('auctionActionsModal.errors.couldNotOpenProfile'));
               } finally {
                 setLoadingProfile(false);
               }
@@ -197,7 +199,7 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
     try {
       if (!selectedAuction || !selectedAuction.id) {
         console.log("No auction selected or auction has no ID");
-        message.info("Cannot open user profile: No auction selected");
+        message.info(t('auctionActionsModal.errors.noAuctionSelected'));
         return;
       }
 
@@ -206,13 +208,13 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
 
       if (!user) {
         console.log("No user found for this auction");
-        message.info("User profile not available for this auction");
+        message.info(t('auctionActionsModal.errors.profileNotAvailable'));
         return;
       }
       navigate(`/user/${user.id}`);
     } catch (error) {
       console.error("Error opening user profile:", error);
-      message.error("Could not open user profile");
+      message.error(t('auctionActionsModal.errors.couldNotOpenProfile'));
     } finally {
       setLoadingProfile(false);
     }
@@ -226,15 +228,10 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
         onClick={(e) => e.stopPropagation()}
         tabIndex={0}
       >
-        <div className="custom-modal-header">
-          <h2>Car Details</h2>
-          <button className="custom-modal-close" onClick={handleClose}>×</button>
-        </div>
-
         <div className="custom-modal-body">
           {selectedAuction?.status === "Active" && location.pathname !== "/myAuctions" && (
             <AuctionActionsModalRow
-              text={loadingBid ? "Loading..." : "Make a bid"}
+              text={loadingBid ? t('auctionActionsModal.loading') : t('auctionActionsModal.makeABid')}
               handler={() => bid(selectedAuction)}
               selected={focusedRow === 0}
             />
@@ -242,14 +239,14 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
 
           {selectedAuction?.status === "Active" && location.pathname !== "/myAuctions" && (
             <AuctionActionsModalRow
-              text={loadingBuy ? "Loading..." : "Buy out"}
+              text={loadingBuy ? t('auctionActionsModal.loading') : t('auctionActionsModal.buyOut')}
               handler={() => buyCar(selectedAuction)}
               selected={focusedRow === 1}
             />
           )}
 
           <AuctionActionsModalRow
-            text={loadingProfile ? "Loading..." : "Open user's profile"}
+            text={loadingProfile ? t('auctionActionsModal.loading') : t('auctionActionsModal.openUserProfile')}
             handler={handleOpenProfile}
             selected={focusedRow === 2}
           />

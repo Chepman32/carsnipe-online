@@ -44,5 +44,17 @@
       "settings": "Einstellungen"
     }
   },
+  "auctionActionsModal": {
+    "carDetails": "Fahrzeugdetails",
+    "makeABid": "Gebot abgeben",
+    "buyOut": "Sofortkauf",
+    "openUserProfile": "Benutzerprofil öffnen",
+    "loading": "Wird geladen...",
+    "errors": {
+      "noAuctionSelected": "Benutzerprofil kann nicht geöffnet werden: Keine Auktion ausgewählt",
+      "profileNotAvailable": "Benutzerprofil für diese Auktion nicht verfügbar",
+      "couldNotOpenProfile": "Benutzerprofil konnte nicht geöffnet werden"
+    }
+  },
   "welcome": "Willkommen bei CarSnipe"
 }
