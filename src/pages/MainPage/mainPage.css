@@ -116,10 +116,9 @@
 }
 
 .mainpage__cardText_black {
-  background-color: rgba(255, 255, 255, 0.7);
   font-size: 5vh;
   font-weight: 600;
-  color: #333;
+  color: #ffffffcc;
   padding: 0.3vh 1.5vh;
   border-radius: 0.7vh;
   text-transform: uppercase;

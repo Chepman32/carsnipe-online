@@ -17,7 +17,7 @@
       "menu": "Меню",
       "close": "Закрыть меню",
       "mainMenu": "Главное меню",
-      "carsStore": "Автомагазин",
+      "carsStore": "Автосалон",
       "myCars": "Мои автомобили",
       "auctions": "Аукционы",
       "messages": "Сообщения"
@@ -30,14 +30,14 @@
     },
     "menuItems": {
       "mainMenu": "Главное меню",
-      "carsStore": "Автомагазин",
+      "carsStore": "Автосалон",
       "myCars": "Мои автомобили",
       "auctions": "Аукционы",
       "messages": "Сообщения"
     },
     "mainPage": {
       "myCars": "Мои автомобили",
-      "carsStore": "Автомагазин",
+      "carsStore": "Автосалон",
       "auctions": "Аукционы",
       "bank": "Банк",
       "profile": "Профиль",
