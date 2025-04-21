@@ -56,6 +56,8 @@
   width: 50vw;
   height: 100%;
   color: white;
+  align-items: flex-start;
+  padding-top: 30%;
 }
 
 .column:nth-child(2) .darkTile {
@@ -118,7 +120,7 @@
 .mainpage__cardText_black {
   font-size: 5vh;
   font-weight: 600;
-  color: #ffffffcc;
+  color: #333;
   padding: 0.3vh 1.5vh;
   border-radius: 0.7vh;
   text-transform: uppercase;
