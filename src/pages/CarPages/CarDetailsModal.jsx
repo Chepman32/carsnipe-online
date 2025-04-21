@@ -5,6 +5,7 @@ import "./carsPage.css";
 import CarDetailsModalRow from "./CarDetailsModalRow";
 import { getImageSource, playSwitchSound } from "../../functions";
 import { isMobile } from "react-device-detect";
+import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 // Create a completely custom modal implementation
 const CarDetailsModal = ({
@@ -18,7 +19,8 @@ const CarDetailsModal = ({
   showNewAuction,
   removeCar,
 }) => {
-  const totalRows = 6;
+  const { t } = useTranslation(); // Initialize translation hook
+  const totalRows = 4;
   const [focusedRow, setFocusedRow] = useState(0);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const modalRef = useRef(null);
@@ -174,6 +176,7 @@ const CarDetailsModal = ({
               padding: '0 10px'
             }} 
             onClick={handleCancel}
+            aria-label={t('carDetailsModal.close')}
           >
             ×
           </button>
@@ -204,9 +207,9 @@ const CarDetailsModal = ({
               <div style={{ marginBottom: '10px' }}>
                 <CarDetailsModalRow
                   selected={focusedRow === 0}
-                  title="Buy car"
+                  title={t('carDetailsModal.buyCar')}
                   handler={() => buyCar(selectedCar)}
-                  text={loadingBuy ? <Spin /> : "Buy"}
+                  text={loadingBuy ? <Spin /> : t('carDetailsModal.buy')}
                   loading={loadingBuy}
                   price={selectedCar.price}
                   isOnline={isOnline}
@@ -216,11 +219,11 @@ const CarDetailsModal = ({
             
             {forAuction && (
               <div style={{ marginBottom: '10px', opacity: !isOnline ? 0.5 : 1 }}>
-                <Tooltip title={!isOnline ? "This feature requires internet connection" : ""}>
+                <Tooltip title={!isOnline ? t('carDetailsModal.offlineFeature') : ""}>
                   <div>
                     <CarDetailsModalRow
                       handler={isOnline ? showNewAuction : undefined}
-                      text={loadingNewAuction ? <Spin /> : "Sell on auction"}
+                      text={loadingNewAuction ? <Spin /> : t('carDetailsModal.sellOnAuction')}
                       selected={focusedRow === 0}
                       disabled={!isOnline}
                     />
@@ -230,21 +233,21 @@ const CarDetailsModal = ({
             )}
             
             <div style={{ marginBottom: '10px' }}>
-              <CarDetailsModalRow text="Show car info" selected={focusedRow === 1} />
+              <CarDetailsModalRow text={t('carDetailsModal.showCarInfo')} selected={focusedRow === 1} />
             </div>
             
             <div style={{ marginBottom: '10px' }}>
-              <CarDetailsModalRow text="Choose color" selected={focusedRow === 2} />
+              <CarDetailsModalRow text={t('carDetailsModal.chooseColor')} selected={focusedRow === 2} />
             </div>
             
             <div style={{ marginBottom: '10px' }}>
-              <CarDetailsModalRow text="Buy as a gift" selected={focusedRow === 3} />
+              <CarDetailsModalRow text={t('carDetailsModal.buyAsGift')} selected={focusedRow === 3} />
             </div>
             
             {forAuction && (
               <div style={{ marginBottom: '10px' }}>
                 <CarDetailsModalRow
-                  text="Remove the car from garage"
+                  text={t('carDetailsModal.removeFromGarage')}
                   selected={focusedRow === 4}
                   handler={() => {
                     handleCancel();

@@ -56,5 +56,16 @@
       "couldNotOpenProfile": "Could not open user profile"
     }
   },
+  "carDetailsModal": {
+    "buyCar": "Buy car",
+    "buy": "Buy",
+    "sellOnAuction": "Sell on auction",
+    "showCarInfo": "Show car info",
+    "chooseColor": "Choose color",
+    "buyAsGift": "Buy as a gift",
+    "removeFromGarage": "Remove the car from garage",
+    "offlineFeature": "This feature requires internet connection",
+    "close": "Close"
+  },
   "welcome": "Welcome to CarSnipe"
 }

@@ -56,5 +56,16 @@
       "couldNotOpenProfile": "No se pudo abrir el perfil del usuario"
     }
   },
+  "carDetailsModal": {
+    "buyCar": "Comprar coche",
+    "buy": "Comprar",
+    "sellOnAuction": "Vender en subasta",
+    "showCarInfo": "Mostrar información del coche",
+    "chooseColor": "Elegir color",
+    "buyAsGift": "Comprar como regalo",
+    "removeFromGarage": "Eliminar coche del garaje",
+    "offlineFeature": "Esta función requiere conexión a internet",
+    "close": "Cerrar"
+  },
   "welcome": "Bienvenido a CarSnipe"
 }

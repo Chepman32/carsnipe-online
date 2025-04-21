@@ -56,5 +56,16 @@
       "couldNotOpenProfile": "Не удалось открыть профиль пользователя"
     }
   },
+  "carDetailsModal": {
+    "buyCar": "Купить автомобиль",
+    "buy": "Купить",
+    "sellOnAuction": "Продать на аукционе",
+    "showCarInfo": "Показать информацию",
+    "chooseColor": "Выбрать цвет",
+    "buyAsGift": "Купить в подарок",
+    "removeFromGarage": "Удалить автомобиль из гаража",
+    "offlineFeature": "Эта функция требует подключения к интернету",
+    "close": "Закрыть"
+  },
   "welcome": "Добро пожаловать в CarSnipe"
 }

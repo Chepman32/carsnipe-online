@@ -1,6 +1,7 @@
 import React from 'react';
-import { Spin } from 'antd';
+import { Spin, Typography } from 'antd';
 import "./carsPage.css";
+import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 export default function CarDetailsModalRow({
   handler,
@@ -16,6 +17,7 @@ export default function CarDetailsModalRow({
   description,
   danger
 }) {
+  const { t } = useTranslation(); // Initialize translation hook
   const getContent = () => {
     if (text) return text;
     if (loading) return <Spin />;
@@ -37,21 +39,17 @@ export default function CarDetailsModalRow({
   };
 
   return (
-    <div 
-      className={`carDetailsModal__row 
-        ${selected ? 'selected' : ''} 
-        ${disabled ? 'disabled' : ''}
-        ${focused ? 'focused' : ''}
-        ${danger ? 'danger' : ''}`
-      } 
-      onClick={disabled ? undefined : handler} 
-      tabIndex={disabled ? -1 : 0}
-      style={{ 
-        cursor: disabled ? 'not-allowed' : handler ? 'pointer' : 'default',
-        color: danger ? '#ff4d4f' : 'inherit'
-      }}
-    >
-      {getContent()}
-    </div>
+    <Typography.Text className={`carDetailsModal__row 
+      ${selected ? 'selected' : ''} 
+      ${disabled ? 'disabled' : ''}
+      ${focused ? 'focused' : ''}
+      ${danger ? 'danger' : ''}`
+    } 
+    onClick={disabled ? undefined : handler} 
+    tabIndex={disabled ? -1 : 0}
+    style={{ 
+      cursor: disabled ? 'not-allowed' : handler ? 'pointer' : 'default',
+      color: danger ? '#ff4d4f' : 'inherit'
+    }}>{getContent()}</Typography.Text>
   );
 }
