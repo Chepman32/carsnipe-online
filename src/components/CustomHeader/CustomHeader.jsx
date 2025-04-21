@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Menu, Typography, Drawer, Button, ConfigProvider } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { isMobile } from 'react-device-detect';
+import { isMobile as isMobileDevice } from 'react-device-detect';
 import { MenuOutlined, BulbOutlined, BulbFilled } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next'; // Import useTranslation
@@ -44,6 +44,7 @@ const CustomHeader = ({ nickname, avatar, money }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const menuRef = useRef(null);
   const profileMenuContainerRef = useRef(null);
   const closeMenuTimeout = useRef(null);
@@ -185,6 +186,32 @@ const CustomHeader = ({ nickname, avatar, money }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const checkMobile = () => {
+      // Check if it's a mobile device using multiple methods
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      const isMobileUserAgent = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+      const isSmallScreen = window.innerWidth <= 768;
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      
+      const isMobileDevice = isMobileUserAgent || (isSmallScreen && isTouchDevice);
+      
+      console.log('Mobile detection:', {
+        userAgent,
+        isMobileUserAgent,
+        isSmallScreen,
+        isTouchDevice,
+        finalResult: isMobileDevice
+      });
+      
+      setIsMobile(isMobileDevice);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   if (location.pathname === '/') {
     return null;
   }
@@ -200,7 +227,8 @@ const CustomHeader = ({ nickname, avatar, money }) => {
           lineHeight: '64px',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          position: 'relative' // Add this to ensure proper stacking context
         }}
       >
         <div
@@ -208,7 +236,8 @@ const CustomHeader = ({ nickname, avatar, money }) => {
             width: '100%',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            position: 'relative' // Add this to ensure proper stacking context
           }}
         >
           <div
@@ -219,10 +248,22 @@ const CustomHeader = ({ nickname, avatar, money }) => {
               justifyContent: 'center',
               cursor: 'pointer',
               padding: '8px',
-              marginRight: '8px'
+              marginRight: '8px',
+              zIndex: 1000,
+              position: 'relative' // Add this to ensure proper stacking context
             }}
           >
-            <img src={drawer} className='burgerMenuIcon' alt={t('header.alt.drawer')} style={{ width: '24px', height: '24px' }} />
+            <img 
+              src={drawer} 
+              className='burgerMenuIcon' 
+              alt={t('header.alt.drawer')} 
+              style={{ 
+                width: '24px', 
+                height: '24px',
+                filter: darkMode ? 'invert(1)' : 'none',
+                display: 'block' // Ensure the image is always displayed
+              }} 
+            />
           </div>
           {!isMobile && <MenuItems />}
           {!isMobile && (
