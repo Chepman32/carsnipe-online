@@ -55,6 +55,20 @@
   background-color: var(--background-color) !important;
   color: var(--text-color) !important;
   border-color: var(--border-color) !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.language-selector .ant-select-selection-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.language-selector .ant-select-selection-item img {
+  width: 20px !important;
+  height: 15px !important;
+  object-fit: cover !important;
 }
 
 .language-selector .ant-select-arrow {
@@ -75,7 +89,16 @@
 }
 
 .language-selector .ant-select-item {
-  color: var(--text-color) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+}
+
+.language-selector .ant-select-item img {
+  width: 20px !important;
+  height: 15px !important;
+  object-fit: cover !important;
 }
 
 .language-selector .ant-select-item:hover {

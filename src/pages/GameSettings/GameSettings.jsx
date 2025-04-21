@@ -22,6 +22,29 @@ import {
   setCurrentSettingsElement
 } from '../../redux/slices/focusSlice';
 
+const languageOptions = [
+  { 
+    value: 'en', 
+    label: 'English',
+    icon: 'https://flagcdn.com/w20/gb.png'
+  },
+  { 
+    value: 'ru', 
+    label: 'Русский',
+    icon: 'https://flagcdn.com/w20/ru.png'
+  },
+  { 
+    value: 'de', 
+    label: 'Deutsch',
+    icon: 'https://flagcdn.com/w20/de.png'
+  },
+  { 
+    value: 'es', 
+    label: 'Español',
+    icon: 'https://flagcdn.com/w20/es.png'
+  }
+];
+
 const GameSettings = () => {
   const dispatch = useDispatch();
   const { darkMode, musicOn, soundEffectsOn } = useSelector((state) => state.quickSettings);
@@ -132,12 +155,19 @@ const GameSettings = () => {
                 value={option.value}
                 style={{ width: 200 }}
                 onChange={(value) => i18n.changeLanguage(value)}
-                options={[
-                  { value: 'en', label: 'English' },
-                  { value: 'ru', label: 'Русский' },
-                  { value: 'de', label: 'Deutsch' },
-                  { value: 'es', label: 'Español' },
-                ]}
+                options={languageOptions.map(opt => ({
+                  value: opt.value,
+                  label: (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <img 
+                        src={opt.icon} 
+                        alt={opt.label} 
+                        style={{ width: '20px', height: '15px', objectFit: 'cover' }}
+                      />
+                      <span>{opt.label}</span>
+                    </div>
+                  )
+                }))}
                 size="large"
                 className="language-selector"
               />
