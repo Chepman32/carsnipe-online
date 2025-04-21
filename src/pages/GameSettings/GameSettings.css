@@ -45,3 +45,44 @@
   background-color: #333333;
   border: 2px solid #1e90ff;
 }
+
+.language-selector {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.language-selector .ant-select-selector {
+  background-color: var(--background-color) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+.language-selector .ant-select-arrow {
+  color: var(--text-color) !important;
+}
+
+.language-selector:hover .ant-select-selector {
+  border-color: var(--primary-color) !important;
+}
+
+.language-selector.ant-select-focused .ant-select-selector {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+.language-selector .ant-select-dropdown {
+  background-color: var(--background-color) !important;
+}
+
+.language-selector .ant-select-item {
+  color: var(--text-color) !important;
+}
+
+.language-selector .ant-select-item:hover {
+  background-color: var(--hover-color) !important;
+}
+
+.language-selector .ant-select-item-option-selected {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}

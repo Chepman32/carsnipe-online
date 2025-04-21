@@ -130,7 +130,7 @@ const GameSettings = () => {
             ) : option.type === 'select' ? ( // Add condition for select type
               <Select
                 value={option.value}
-                style={{ width: 120 }}
+                style={{ width: 200 }}
                 onChange={(value) => i18n.changeLanguage(value)}
                 options={[
                   { value: 'en', label: 'English' },
@@ -138,6 +138,8 @@ const GameSettings = () => {
                   { value: 'de', label: 'Deutsch' },
                   { value: 'es', label: 'Español' },
                 ]}
+                size="large"
+                className="language-selector"
               />
             ) : ( // Existing slider logic
               <Row>
