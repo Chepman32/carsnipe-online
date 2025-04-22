@@ -501,7 +501,7 @@ const UserPage = () => {
             <div className="user-profile-header">
               <Avatar
                 size={120}
-                src={userInfo.avatar ? selectAvatar(userInfo.avatar) : null}
+                src={userInfo?.avatar ? selectAvatar(userInfo?.avatar) : null}
                 className="user-avatar"
               />
 
