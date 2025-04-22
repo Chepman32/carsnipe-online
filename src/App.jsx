@@ -46,6 +46,8 @@ import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 import { avatars } from "./avatars";
 import { DemoModeProvider, useDemoMode } from "./contexts/DemoModeContext";
+import { listCars as listCarsQuery } from "./graphql/queries";
+import * as mutations from "./graphql/mutations";
 
 const client = generateClient();
 Amplify.configure(awsExports); 
@@ -443,6 +445,7 @@ export default function App() {
       };
 
       try {
+        // Create the user
         const createdPlayer = await client.graphql({
           query: createUser,
           variables: { input: newUserData }
@@ -450,6 +453,84 @@ export default function App() {
 
         if (createdPlayer?.data?.createUser) {
           const newUser = createdPlayer.data.createUser;
+          
+          // Fetch all cars from the backend
+          const carData = await client.graphql({ query: listCarsQuery });
+          let availableCars = carData?.data?.listCars?.items || [];
+          
+          // Filter cars with price under 100000
+          const affordableCars = availableCars.filter(car => car.price < 100000);
+          
+          // If no affordable cars found and this is not a demo user, add some default affordable cars
+          if (affordableCars.length === 0) {
+            console.log("No affordable cars found in the database, creating defaults");
+            const defaultCars = [
+              { make: 'Toyota', model: 'Camry', year: 2022, price: 35000, type: 'COMMON' },
+              { make: 'Honda', model: 'Civic', year: 2022, price: 28000, type: 'COMMON' },
+              { make: 'Ford', model: 'Focus', year: 2021, price: 25000, type: 'COMMON' },
+              { make: 'Mazda', model: 'MX-5', year: 2020, price: 32000, type: 'COMMON' },
+              { make: 'Volkswagen', model: 'Golf GTI', year: 2021, price: 38000, type: 'COMMON' },
+              { make: 'Chevrolet', model: 'Corvette C8', year: 2022, price: 80000, type: 'COMMON' },
+              { make: 'BMW', model: '3 Series', year: 2021, price: 45000, type: 'RARE' },
+              { make: 'Hyundai', model: 'Elantra', year: 2022, price: 26000, type: 'COMMON' }
+            ];
+            
+            for (const carData of defaultCars) {
+              try {
+                const createdCar = await client.graphql({
+                  query: mutations.createCar,
+                  variables: { input: carData }
+                });
+                
+                if (createdCar?.data?.createCar) {
+                  affordableCars.push(createdCar.data.createCar);
+                }
+              } catch (err) {
+                console.error("Error creating default car:", err);
+              }
+            }
+          }
+          
+          // If we have affordable cars, add 5 random ones to the user
+          if (affordableCars.length > 0) {
+            // Randomly select 5 cars (or fewer if not enough available)
+            const carsToAdd = Math.min(5, affordableCars.length);
+            const shuffledCars = [...affordableCars].sort(() => 0.5 - Math.random());
+            const selectedCars = shuffledCars.slice(0, carsToAdd);
+            
+            // Add the selected cars to the user
+            for (const car of selectedCars) {
+              try {
+                await client.graphql({
+                  query: mutations.createUserCar,
+                  variables: { 
+                    input: { 
+                      userId: newUser.id, 
+                      carId: car.id 
+                    } 
+                  }
+                });
+              } catch (err) {
+                console.error("Error adding car to user:", err);
+              }
+            }
+            
+            // Update user's totalCarsOwned count
+            try {
+              await client.graphql({
+                query: mutations.updateUser,
+                variables: {
+                  input: {
+                    id: newUser.id,
+                    totalCarsOwned: selectedCars.length
+                  }
+                }
+              });
+            } catch (err) {
+              console.error("Error updating user's totalCarsOwned:", err);
+            }
+          }
+          
           setPlayerInfo(newUser);
           setMoney(newUser.money);
           localStorage.setItem("userInfo", JSON.stringify(newUser));
