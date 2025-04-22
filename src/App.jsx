@@ -235,6 +235,12 @@ const theme = {
   },
 };
 
+const backgrounds = [
+  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/2025-04-16%2016:03:33.MP4",
+  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/1741772788746328592-video_watermark_ad86d1dad424eb5a55eaa31c00cd56bb_356162892570988546-vmake.MP4",
+  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/Generated File April 15 2025 - 8_17PM-vmake.MP4",
+]
+
 const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
   const { isDemoMode, demoUser } = useDemoMode();
 
@@ -335,7 +341,7 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
             zIndex: -1
           }}
         >
-          <source src="/videos/video.mp4" type="video/mp4" />
+          <source src={backgrounds[Math.floor(Math.random() * backgrounds.length)]} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         <div style={{
