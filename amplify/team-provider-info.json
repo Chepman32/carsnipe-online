@@ -26,7 +26,7 @@
         },
         "userCreationFunction": {
           "deploymentBucketName": "amplify-carsnipe-staging-43d19-deployment",
-          "s3Key": "amplify-builds/userCreationFunction-483064587a4470785177-build.zip"
+          "s3Key": "amplify-builds/userCreationFunction-7a746f6d37572b36676b-build.zip"
         }
       },
       "api": {
