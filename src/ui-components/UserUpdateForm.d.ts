@@ -5,7 +5,7 @@
  **************************************************************************/
 
 import * as React from "react";
-import { GridProps, TextFieldProps } from "@aws-amplify/ui-react";
+import { GridProps, SwitchFieldProps, TextFieldProps } from "@aws-amplify/ui-react";
 export declare type EscapeHatchProps = {
     [elementHierarchy: string]: Record<string, unknown>;
 } | null;
@@ -34,6 +34,7 @@ export declare type UserUpdateFormInputValues = {
     totalSpent?: number;
     totalAuctionsWon?: number;
     totalProfitEarned?: number;
+    isMock?: boolean;
 };
 export declare type UserUpdateFormValidationValues = {
     nickname?: ValidationFunction<string>;
@@ -48,6 +49,7 @@ export declare type UserUpdateFormValidationValues = {
     totalSpent?: ValidationFunction<number>;
     totalAuctionsWon?: ValidationFunction<number>;
     totalProfitEarned?: ValidationFunction<number>;
+    isMock?: ValidationFunction<boolean>;
 };
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type UserUpdateFormOverridesProps = {
@@ -64,6 +66,7 @@ export declare type UserUpdateFormOverridesProps = {
     totalSpent?: PrimitiveOverrideProps<TextFieldProps>;
     totalAuctionsWon?: PrimitiveOverrideProps<TextFieldProps>;
     totalProfitEarned?: PrimitiveOverrideProps<TextFieldProps>;
+    isMock?: PrimitiveOverrideProps<SwitchFieldProps>;
 } & EscapeHatchProps;
 export declare type UserUpdateFormProps = React.PropsWithChildren<{
     overrides?: UserUpdateFormOverridesProps | undefined | null;

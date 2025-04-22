@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Card, Space, Typography, Col, Flex } from "antd";
-import { calculateTimeDifference, fetchAuctionUser, selectAvatar, getImageSource } from '../../functions';
+import { calculateTimeDifference, fetchAuctionUser, selectAvatar, getImageSource, createNewAuctionUser } from '../../functions';
 import "./auctionPage.css"
+import { avatars } from "../../avatars";
+import { generateClient } from 'aws-amplify/api';
+import * as queries from '../../graphql/queries';
+
+const client = generateClient();
 
 export const SelectedAuctionDetails = ({ selectedAuction }) => {
   const [avatar, setAvatar] = React.useState(null);
@@ -9,8 +14,36 @@ export const SelectedAuctionDetails = ({ selectedAuction }) => {
 
   useEffect(() => {
     const getAvatar = async () => {
-      const auctionUser = await fetchAuctionUser(selectedAuction?.id);
-      setAvatar(auctionUser?.avatar);
+      if (!selectedAuction?.id) return;
+
+      const auctionUser = await fetchAuctionUser(selectedAuction.id);
+      console.log("auction user:", auctionUser);
+      
+      if (auctionUser) {
+        setAvatar(auctionUser.avatar);
+      } else if (selectedAuction.player) {
+        // Try to find user by nickname and create association
+        try {
+          console.log("Finding user by nickname:", selectedAuction.player);
+          const userData = await client.graphql({
+            query: queries.listUsers,
+            variables: {
+              filter: {
+                nickname: { eq: selectedAuction.player }
+              }
+            }
+          });
+          
+          const user = userData?.data?.listUsers?.items?.[0];
+          if (user) {
+            console.log("Found user by nickname, creating association", user);
+            await createNewAuctionUser(user.id, selectedAuction.id);
+            setAvatar(user.avatar);
+          }
+        } catch (error) {
+          console.error("Error finding user by nickname:", error);
+        }
+      }
     }
     getAvatar();
   }, [selectedAuction]);
@@ -50,7 +83,7 @@ export const SelectedAuctionDetails = ({ selectedAuction }) => {
             </div>
             <Flex direction="column" align="center" style={{ marginTop: '20px', minWidth: "100%", justifyContent: "space-between" }}>
               <div className="selectedAuction__avatar">
-                <img src={selectAvatar(avatar)} alt="Avatar" />
+                <img src={avatars[avatar]} alt="Avatar" />
                 <Typography.Text className="subText">{selectedAuction?.lastBidPlayer}</Typography.Text>
               </div>
               <Space direction="vertical" style={{width: "50%"}}>

@@ -91,6 +91,11 @@
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
+    },
+    "userCreationFunction": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
     }
   },
   "parameters": {
@@ -123,6 +128,22 @@
         {
           "category": "function",
           "resourceName": "payments"
+        }
+      ]
+    },
+    "AMPLIFY_function_userCreationFunction_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "userCreationFunction"
+        }
+      ]
+    },
+    "AMPLIFY_function_userCreationFunction_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "userCreationFunction"
         }
       ]
     }

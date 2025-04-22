@@ -40,6 +40,7 @@ export const getUser = /* GraphQL */ `
         nextToken
         __typename
       }
+      isMock
       createdAt
       updatedAt
       __typename
@@ -67,6 +68,7 @@ export const listUsers = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -303,6 +305,7 @@ export const getUserCar = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -423,6 +426,7 @@ export const getAuctionUser = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -549,6 +553,7 @@ export const getUserConversation = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename

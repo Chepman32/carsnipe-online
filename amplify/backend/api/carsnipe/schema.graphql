@@ -20,6 +20,7 @@ type User @model
   totalAuctionsWon: Int
   totalProfitEarned: Int
   conversations: [Conversation] @manyToMany(relationName: "UserConversation")
+  isMock: Boolean @default(value: "false")
 }
 
 type Car @model

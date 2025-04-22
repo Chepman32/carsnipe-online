@@ -29,7 +29,7 @@ const awsmobile = {
         "redirectSignOut": "http://localhost:3000/,https://carsnipe.online/",
         "responseType": "code"
     },
-    "federationTarget": "COGNITO_USER_POOLS",
+    "federationTarget": "COGNITO_USER_AND_IDENTITY_POOLS",
     "aws_cognito_username_attributes": [
         "EMAIL"
     ],

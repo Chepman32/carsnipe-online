@@ -60,6 +60,10 @@ async function getRandomUser() {
     const userTableName = "User-d5sbvamfrnfcdkuamsf6bannaa-staging";
     const scanParams = {
       TableName: userTableName,
+      FilterExpression: "isMock = :isMockValue",
+      ExpressionAttributeValues: {
+        ":isMockValue": { BOOL: true }
+      }
     };
 
     const scanCommand = new ScanCommand(scanParams);

@@ -43,6 +43,7 @@ export const createUser = /* GraphQL */ `
         nextToken
         __typename
       }
+      isMock
       createdAt
       updatedAt
       __typename
@@ -91,6 +92,7 @@ export const updateUser = /* GraphQL */ `
         nextToken
         __typename
       }
+      isMock
       createdAt
       updatedAt
       __typename
@@ -139,6 +141,7 @@ export const deleteUser = /* GraphQL */ `
         nextToken
         __typename
       }
+      isMock
       createdAt
       updatedAt
       __typename
@@ -507,6 +510,7 @@ export const createUserCar = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -554,6 +558,7 @@ export const updateUserCar = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -601,6 +606,7 @@ export const deleteUserCar = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -648,6 +654,7 @@ export const createAuctionUser = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -701,6 +708,7 @@ export const updateAuctionUser = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -754,6 +762,7 @@ export const deleteAuctionUser = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -807,6 +816,7 @@ export const createUserConversation = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -851,6 +861,7 @@ export const updateUserConversation = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename
@@ -895,6 +906,7 @@ export const deleteUserConversation = /* GraphQL */ `
         totalSpent
         totalAuctionsWon
         totalProfitEarned
+        isMock
         createdAt
         updatedAt
         __typename

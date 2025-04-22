@@ -9,7 +9,7 @@
       "UnauthRoleName": "amplify-carsnipe-staging-43d19-unauthRole",
       "StackName": "amplify-carsnipe-staging-43d19",
       "StackId": "arn:aws:cloudformation:us-east-2:235494793518:stack/amplify-carsnipe-staging-43d19/09cc2d60-eeb2-11ef-8608-063731a449a1",
-      "AmplifyAppId": "dlwyqqd2svkoy"
+      "AmplifyAppId": "d2nlu8r3h4tt2s"
     },
     "categories": {
       "auth": {
@@ -22,7 +22,11 @@
         },
         "automaticalyAuctionCreation": {
           "deploymentBucketName": "amplify-carsnipe-staging-43d19-deployment",
-          "s3Key": "amplify-builds/automaticalyAuctionCreation-515a496a315530694d56-build.zip"
+          "s3Key": "amplify-builds/automaticalyAuctionCreation-51417a5267546d516545-build.zip"
+        },
+        "userCreationFunction": {
+          "deploymentBucketName": "amplify-carsnipe-staging-43d19-deployment",
+          "s3Key": "amplify-builds/userCreationFunction-483064587a4470785177-build.zip"
         }
       },
       "api": {

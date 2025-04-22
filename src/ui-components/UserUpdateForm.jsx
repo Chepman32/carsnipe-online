@@ -14,6 +14,7 @@ import {
   Grid,
   Icon,
   ScrollView,
+  SwitchField,
   Text,
   TextField,
   useTheme,
@@ -203,6 +204,7 @@ export default function UserUpdateForm(props) {
     totalSpent: "",
     totalAuctionsWon: "",
     totalProfitEarned: "",
+    isMock: false,
   };
   const [nickname, setNickname] = React.useState(initialValues.nickname);
   const [money, setMoney] = React.useState(initialValues.money);
@@ -225,6 +227,7 @@ export default function UserUpdateForm(props) {
   const [totalProfitEarned, setTotalProfitEarned] = React.useState(
     initialValues.totalProfitEarned
   );
+  const [isMock, setIsMock] = React.useState(initialValues.isMock);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     const cleanValues = userRecord
@@ -243,6 +246,7 @@ export default function UserUpdateForm(props) {
     setTotalSpent(cleanValues.totalSpent);
     setTotalAuctionsWon(cleanValues.totalAuctionsWon);
     setTotalProfitEarned(cleanValues.totalProfitEarned);
+    setIsMock(cleanValues.isMock);
     setErrors({});
   };
   const [userRecord, setUserRecord] = React.useState(userModelProp);
@@ -276,6 +280,7 @@ export default function UserUpdateForm(props) {
     totalSpent: [],
     totalAuctionsWon: [],
     totalProfitEarned: [],
+    isMock: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -315,6 +320,7 @@ export default function UserUpdateForm(props) {
           totalSpent: totalSpent ?? null,
           totalAuctionsWon: totalAuctionsWon ?? null,
           totalProfitEarned: totalProfitEarned ?? null,
+          isMock: isMock ?? null,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -387,6 +393,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.nickname ?? value;
@@ -426,6 +433,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.money ?? value;
@@ -461,6 +469,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.email ?? value;
@@ -496,6 +505,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.avatar ?? value;
@@ -531,6 +541,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.bio ?? value;
@@ -562,6 +573,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             values = result?.sold ?? values;
@@ -626,6 +638,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.totalCarsOwned ?? value;
@@ -665,6 +678,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.totalAuctionsParticipated ?? value;
@@ -709,6 +723,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.totalBidsPlaced ?? value;
@@ -748,6 +763,7 @@ export default function UserUpdateForm(props) {
               totalSpent: value,
               totalAuctionsWon,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.totalSpent ?? value;
@@ -787,6 +803,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon: value,
               totalProfitEarned,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.totalAuctionsWon ?? value;
@@ -826,6 +843,7 @@ export default function UserUpdateForm(props) {
               totalSpent,
               totalAuctionsWon,
               totalProfitEarned: value,
+              isMock,
             };
             const result = onChange(modelFields);
             value = result?.totalProfitEarned ?? value;
@@ -842,6 +860,42 @@ export default function UserUpdateForm(props) {
         hasError={errors.totalProfitEarned?.hasError}
         {...getOverrideProps(overrides, "totalProfitEarned")}
       ></TextField>
+      <SwitchField
+        label="Is mock"
+        defaultChecked={false}
+        isDisabled={false}
+        isChecked={isMock}
+        onChange={(e) => {
+          let value = e.target.checked;
+          if (onChange) {
+            const modelFields = {
+              nickname,
+              money,
+              email,
+              avatar,
+              bio,
+              sold,
+              totalCarsOwned,
+              totalAuctionsParticipated,
+              totalBidsPlaced,
+              totalSpent,
+              totalAuctionsWon,
+              totalProfitEarned,
+              isMock: value,
+            };
+            const result = onChange(modelFields);
+            value = result?.isMock ?? value;
+          }
+          if (errors.isMock?.hasError) {
+            runValidationTasks("isMock", value);
+          }
+          setIsMock(value);
+        }}
+        onBlur={() => runValidationTasks("isMock", isMock)}
+        errorMessage={errors.isMock?.errorMessage}
+        hasError={errors.isMock?.hasError}
+        {...getOverrideProps(overrides, "isMock")}
+      ></SwitchField>
       <Flex
         justifyContent="space-between"
         {...getOverrideProps(overrides, "CTAFlex")}
