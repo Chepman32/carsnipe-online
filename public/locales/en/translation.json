@@ -7,11 +7,20 @@
     "soundEffects": "Sound Effects",
     "musicVolume": "Music Volume"
   },
+  "common": {
+    "on": "On",
+    "off": "Off",
+    "user": "User"
+  },
   "header": {
     "alt": {
       "drawer": "Open Menu",
       "store": "Store",
-      "avatar": "User avatar"
+      "avatar": "User avatar",
+      "music": "Music",
+      "sound": "Sound",
+      "previousStation": "Previous station",
+      "nextStation": "Next station"
     },
     "drawer": {
       "menu": "Menu",

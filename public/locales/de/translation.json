@@ -7,11 +7,20 @@
     "soundEffects": "Soundeffekte",
     "musicVolume": "Musiklautstärke"
   },
+  "common": {
+    "on": "Ein",
+    "off": "Aus",
+    "user": "Benutzer"
+  },
   "header": {
     "alt": {
       "drawer": "Menü öffnen",
       "store": "Laden",
-      "avatar": "Benutzeravatar"
+      "avatar": "Benutzeravatar",
+      "music": "Musik",
+      "sound": "Ton",
+      "previousStation": "Vorheriger Sender",
+      "nextStation": "Nächster Sender"
     },
     "drawer": {
       "menu": "Menü",

@@ -7,11 +7,20 @@
     "soundEffects": "Efectos de sonido",
     "musicVolume": "Volumen de la música"
   },
+  "common": {
+    "on": "Activado",
+    "off": "Desactivado",
+    "user": "Usuario"
+  },
   "header": {
     "alt": {
       "drawer": "Abrir menú",
       "store": "Tienda",
-      "avatar": "Avatar del usuario"
+      "avatar": "Avatar del usuario",
+      "music": "Música",
+      "sound": "Sonido",
+      "previousStation": "Estación anterior",
+      "nextStation": "Siguiente estación"
     },
     "drawer": {
       "menu": "Menú",
