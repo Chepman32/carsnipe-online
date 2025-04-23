@@ -238,13 +238,12 @@ const theme = {
 };
 
 const backgrounds = [
-  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/2025-04-16%2016:03:33.MP4",
-  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/1741772788746328592-video_watermark_ad86d1dad424eb5a55eaa31c00cd56bb_356162892570988546-vmake.MP4",
-  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/Generated File April 22, 2025 - 5_11PM.MP4",
-  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/Generated File April 22, 2025 - 5_11PM 2.MP4",
-  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/Generated File April 22, 2025 - 5_05PM.MP4",
-  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/Generated File April 22, 2025 - 5_03PM.MP4",
-  "https://cdn.jsdelivr.net/gh/Chepman32/media@main/Generated File April 15 2025 - 8_17PM-vmake.MP4",
+  "/videos/Intro.mp4",
+  "/videos/Intro1.mp4",
+  "/videos/Intro2.mp4",
+  "/videos/Intro3.mp4",
+  "/videos/Intro4.mp4",
+  "/videos/Intro5.mp4",
 ]
 
 const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
