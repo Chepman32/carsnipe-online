@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Space, Typography, Col, Flex } from "antd";
 import { calculateTimeDifference, fetchAuctionUser, selectAvatar, getImageSource, createNewAuctionUser } from '../../functions';
-import "./auctionPage.css"
+import "./auctionPage.css";
 import { avatars } from "../../avatars";
 import { generateClient } from 'aws-amplify/api';
 import * as queries from '../../graphql/queries';
@@ -9,48 +9,63 @@ import * as queries from '../../graphql/queries';
 const client = generateClient();
 
 export const SelectedAuctionDetails = ({ selectedAuction }) => {
-  const [avatar, setAvatar] = React.useState(null);
+  const [avatar, setAvatar] = useState("avatar1");
+  const [avatarImage, setAvatarImage] = useState(avatars.avatar1);
   const [imageSrc, setImageSrc] = useState('https://via.placeholder.com/300x200?text=Loading...');
 
   useEffect(() => {
     const getAvatar = async () => {
-      if (!selectedAuction?.id) return;
+      if (!selectedAuction?.id) {
+        setAvatar("avatar1");
+        return;
+      }
 
-      const auctionUser = await fetchAuctionUser(selectedAuction.id);
-      console.log("auction user:", auctionUser);
-      
-      if (auctionUser) {
-        setAvatar(auctionUser.avatar);
-      } else if (selectedAuction.player) {
-        // Try to find user by nickname and create association
-        try {
+      try {
+        const auctionUser = await fetchAuctionUser(selectedAuction.id);
+        console.log("Fetched auction user:", auctionUser);
+
+        if (auctionUser?.avatar) {
+          setAvatar(auctionUser.avatar);
+        } else if (selectedAuction.player) {
           console.log("Finding user by nickname:", selectedAuction.player);
           const userData = await client.graphql({
             query: queries.listUsers,
             variables: {
               filter: {
-                nickname: { eq: selectedAuction.player }
-              }
-            }
+                nickname: { eq: selectedAuction.player },
+              },
+            },
           });
-          
+
           const user = userData?.data?.listUsers?.items?.[0];
-          if (user) {
-            console.log("Found user by nickname, creating association", user);
+          if (user?.avatar) {
+            console.log("Found user, creating association:", user);
             await createNewAuctionUser(user.id, selectedAuction.id);
             setAvatar(user.avatar);
+          } else {
+            console.log("No user found, using default avatar");
+            setAvatar("avatar1");
           }
-        } catch (error) {
-          console.error("Error finding user by nickname:", error);
+        } else {
+          console.log("No player info, using default avatar");
+          setAvatar("avatar1");
         }
+      } catch (error) {
+        console.error("Error fetching avatar:", error);
+        setAvatar("avatar1");
       }
-    }
+    };
+
     getAvatar();
   }, [selectedAuction]);
-  
-  // Load image when selectedAuction changes
+
   useEffect(() => {
-    if (selectedAuction && selectedAuction.make && selectedAuction.model) {
+    const selectedAvatar = avatars[avatar] || avatars.avatar1;
+    setAvatarImage(selectedAvatar);
+  }, [avatar, selectedAuction]);
+
+  useEffect(() => {
+    if (selectedAuction?.make && selectedAuction?.model) {
       const loadImage = async () => {
         try {
           const src = await getImageSource(selectedAuction.make, selectedAuction.model);
@@ -63,12 +78,13 @@ export const SelectedAuctionDetails = ({ selectedAuction }) => {
       loadImage();
     }
   }, [selectedAuction]);
+
   return (
     <Col className="auctionDetails" span={12} style={{ height: '100%', padding: '20px' }}>
       {selectedAuction && (
         <Flex direction="column" style={{ height: "100%" }}>
           <Card
-            title={<h3>{`${selectedAuction.make.toUpperCase()} ${selectedAuction.model}`} </h3>}
+            title={<h3>{`${selectedAuction.make.toUpperCase()} ${selectedAuction.model}`}</h3>}
             style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
           >
             <div style={{ overflow: 'hidden' }}>
@@ -83,12 +99,19 @@ export const SelectedAuctionDetails = ({ selectedAuction }) => {
             </div>
             <Flex direction="column" align="center" style={{ marginTop: '20px', minWidth: "100%", justifyContent: "space-between" }}>
               <div className="selectedAuction__avatar">
-                <img src={avatars[avatar]} alt="Avatar" />
-                <Typography.Text className="subText">{selectedAuction?.lastBidPlayer}</Typography.Text>
+                <img
+                  src={avatarImage}
+                  alt="Avatar"
+                  onError={(e) => {
+                    console.log("Avatar image error, using fallback");
+                    e.target.src = avatars.avatar1;
+                  }}
+                />
+                <Typography.Text className="subText">{selectedAuction?.lastBidPlayer || "Unknown"}</Typography.Text>
               </div>
-              <Space direction="vertical" style={{width: "50%"}}>
-                <div style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
-                  <Typography.Text className="subText">{`${selectedAuction?.currentBid ? "Highest" : "Start"} Bid:`}&nbsp;</Typography.Text>
+              <Space direction="vertical" style={{ width: "50%" }}>
+                <div style={{ width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <Typography.Text className="subText">{`${selectedAuction?.currentBid ? "Highest" : "Start"} Bid:`}</Typography.Text>
                   <Typography.Text className="price bid">{selectedAuction?.currentBid || selectedAuction.minBid}</Typography.Text>
                 </div>
                 <Space>
@@ -96,7 +119,7 @@ export const SelectedAuctionDetails = ({ selectedAuction }) => {
                   <Typography.Text className="price buy">{selectedAuction.buy}</Typography.Text>
                 </Space>
                 <Typography.Text className="time">
-                {calculateTimeDifference(selectedAuction.endTime)}
+                  {calculateTimeDifference(selectedAuction.endTime)}
                 </Typography.Text>
               </Space>
             </Flex>
