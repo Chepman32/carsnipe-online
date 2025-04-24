@@ -778,13 +778,18 @@ const MyCars = ({ playerInfo }) => {
         showNewAuction={() => {
           handleCarDetailsCancel();
           if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+          console.log("Setting newAuctionVisible to true");
           setNewAuctionVisible(true);
+          console.log("newAuctionVisible set to true, selectedCar:", selectedCar);
         }}
         removeCar={removeCar}
       />
-      {newAuctionVisible && selectedCar && (
+      {/* Render NewAuctionModal unconditionally, control visibility with open prop */}
+      <div style={{ display: 'none' }}>Logging state: {JSON.stringify({ newAuctionVisible, selectedCar: selectedCar ? true : false })}</div>
+      {console.log("Rendering NewAuctionModal condition:", { newAuctionVisible, selectedCar: selectedCar ? true : false })}
+      {selectedCar && (
         <NewAuctionModal
-          visible={newAuctionVisible}
+          open={newAuctionVisible}
           handleCancel={cancelNewAuction}
           handleOk={createNewAuction}
           form={form}
@@ -794,9 +799,9 @@ const MyCars = ({ playerInfo }) => {
           setBuy={setBuy}
           auctionDuration={auctionDuration}
           setAuctionDuration={setAuctionDuration}
-          userCars={cars}
-          setSelectedCar={setSelectedCar}
-          selectedCar={selectedCar}
+          userCars={cars} // Pass userCars if needed, or adjust based on modal's requirements
+          setSelectedCar={setSelectedCar} // Pass if needed
+          selectedCar={selectedCar} // Pass selectedCar
         />
       )}
     </div>
