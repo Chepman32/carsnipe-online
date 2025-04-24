@@ -220,9 +220,10 @@ export default function MyBids({ playerInfo, setMoney, money }) {
         setMoney(newMoney);
 
         const auctionUser = await fetchAuctionUser(auction.id);
+        console.log("MyBids - Fetched auction user:", auctionUser);
 
-        // Check if auctionUser exists before accessing its properties
-        if (auctionUser) {
+        // Check if auctionUser exists and is not the default user
+        if (auctionUser && auctionUser.id !== "default") {
           const updatedSeller = {
             id: auctionUser.id,
             money: auctionUser.money + auction.buy,

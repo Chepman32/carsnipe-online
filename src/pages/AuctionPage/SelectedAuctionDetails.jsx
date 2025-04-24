@@ -21,35 +21,15 @@ export const SelectedAuctionDetails = ({ selectedAuction }) => {
       }
 
       try {
+        // The improved fetchAuctionUser function will handle finding the user
+        // either through the AuctionUser relationship or by player nickname
+        // and will always return an object with at least a default avatar
         const auctionUser = await fetchAuctionUser(selectedAuction.id);
         console.log("Fetched auction user:", auctionUser);
 
-        if (auctionUser?.avatar) {
-          setAvatar(auctionUser.avatar);
-        } else if (selectedAuction.player) {
-          console.log("Finding user by nickname:", selectedAuction.player);
-          const userData = await client.graphql({
-            query: queries.listUsers,
-            variables: {
-              filter: {
-                nickname: { eq: selectedAuction.player },
-              },
-            },
-          });
-
-          const user = userData?.data?.listUsers?.items?.[0];
-          if (user?.avatar) {
-            console.log("Found user, creating association:", user);
-            await createNewAuctionUser(user.id, selectedAuction.id);
-            setAvatar(user.avatar);
-          } else {
-            console.log("No user found, using default avatar");
-            setAvatar("avatar1");
-          }
-        } else {
-          console.log("No player info, using default avatar");
-          setAvatar("avatar1");
-        }
+        // Always set the avatar from the returned object
+        // Our improved fetchAuctionUser will always return an object with avatar property
+        setAvatar(auctionUser.avatar || "avatar1");
       } catch (error) {
         console.error("Error fetching avatar:", error);
         setAvatar("avatar1");

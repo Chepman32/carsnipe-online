@@ -292,19 +292,6 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
           <Title level={3} className="profile-title">
             {t('settings.title')}: {playerInfo?.nickname}
           </Title>
-          <Form.Item label={t('settings.language')}>
-            <Select
-              defaultValue={i18n.language}
-              style={{ width: 120 }}
-              onChange={(value) => i18n.changeLanguage(value)}
-              options={[
-                { value: 'en', label: 'English' },
-                { value: 'ru', label: 'Русский' },
-                { value: 'de', label: 'Deutsch' },
-                { value: 'es', label: 'Español' },
-              ]}
-            />
-          </Form.Item>
           <div className="avatar-container">
             {avatarsList.map((avatarName, index) => (
               <img

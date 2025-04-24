@@ -251,7 +251,26 @@ export const fetchAuctionUser = async (auctionId) => {
       return null;
     }
 
-    console.log("Fetching auction user...:", auctionId);
+    console.log("Fetching auction user for ID:", auctionId);
+    
+    // First try to get the auction to find the player
+    const auctionData = await client.graphql({
+      query: queries.getAuction,
+      variables: {
+        id: auctionId,
+      },
+    });
+    
+    const auction = auctionData?.data?.getAuction;
+    
+    if (!auction) {
+      console.log("No auction found for ID:", auctionId);
+      return null;
+    }
+    
+    console.log("Found auction:", auction.make, auction.model, "Player:", auction.player);
+    
+    // Try to find the auction user relationship
     const auctionUserData = await client.graphql({
       query: queries.listAuctionUsers,
       variables: {
@@ -263,34 +282,103 @@ export const fetchAuctionUser = async (auctionId) => {
 
     const auctionUser = auctionUserData?.data?.listAuctionUsers?.items?.[0];
 
-    if (!auctionUser) {
-      console.log("No auction user found for auction ID:", auctionId);
-      return null;
+    // If we found an auction user relationship, use that to get the user
+    if (auctionUser && auctionUser.userId) {
+      console.log("Found auction user relationship with userId:", auctionUser.userId);
+      const userData = await client.graphql({
+        query: queries.getUser,
+        variables: {
+          id: auctionUser.userId,
+        },
+      });
+
+      const user = userData?.data?.getUser;
+
+      if (user) {
+        console.log("Found user via relationship:", user.nickname);
+        return user;
+      } else {
+        console.log("User not found for userId:", auctionUser.userId);
+      }
+    } else {
+      console.log("No auction user relationship found");
     }
+    
+    // If no auction user relationship found or user not found, try to find by player nickname
+    if (auction.player) {
+      console.log("Finding user by nickname:", auction.player);
+      const userData = await client.graphql({
+        query: queries.listUsers,
+        variables: {
+          filter: {
+            nickname: { eq: auction.player },
+          },
+        },
+      });
 
-    if (!auctionUser.userId) {
-      console.log("Auction user has no userId:", auctionUser);
-      return null;
+      const user = userData?.data?.listUsers?.items?.[0];
+      
+      if (user) {
+        console.log("Found user by nickname:", user.nickname, "with ID:", user.id);
+        // Create the auction user relationship for future use
+        try {
+          const result = await createNewAuctionUser(user.id, auctionId);
+          console.log("Created new auction user relationship:", result);
+          return user;
+        } catch (err) {
+          console.error("Error creating auction user relationship:", err);
+          // Still return the user even if creating the relationship fails
+          return user;
+        }
+      } else {
+        console.log("No user found with nickname:", auction.player);
+      }
+    } else {
+      console.log("Auction has no player field");
     }
+    
+    // If we get here, we couldn't find a user by any method
+    // Let's try one more approach - check if lastBidPlayer exists and find by that
+    if (auction.lastBidPlayer && auction.lastBidPlayer !== auction.player) {
+      console.log("Trying to find user by lastBidPlayer:", auction.lastBidPlayer);
+      const userData = await client.graphql({
+        query: queries.listUsers,
+        variables: {
+          filter: {
+            nickname: { eq: auction.lastBidPlayer },
+          },
+        },
+      });
 
-    const userData = await client.graphql({
-      query: queries.getUser,
-      variables: {
-        id: auctionUser.userId,
-      },
-    });
-
-    const user = userData?.data?.getUser;
-
-    if (!user) {
-      console.log("User not found for userId:", auctionUser.userId);
-      return null;
+      const user = userData?.data?.listUsers?.items?.[0];
+      
+      if (user) {
+        console.log("Found user by lastBidPlayer:", user.nickname);
+        try {
+          await createNewAuctionUser(user.id, auctionId);
+          console.log("Created new auction user relationship for lastBidPlayer");
+        } catch (err) {
+          console.error("Error creating auction user relationship for lastBidPlayer:", err);
+        }
+        return user;
+      }
     }
-
-    return user;
+    
+    console.log("No user found for auction ID:", auctionId);
+    // Return a default user object with a default avatar to prevent null issues
+    return { 
+      id: "default", 
+      nickname: auction.player || "Unknown", 
+      avatar: "avatar1" 
+    };
   } catch (error) {
     console.error("Error in fetchAuctionUser:", error);
-    return null; // Return null instead of throwing to prevent app crashes
+    // Return a default user object with a default avatar to prevent null issues
+    return { 
+      id: "default", 
+      nickname: "Unknown", 
+      avatar: "avatar1" 
+    };
   }
 };
 
@@ -897,8 +985,6 @@ export async function checkAndUpdateAchievements(user) {
     const userCars = await fetchUserCarsRequest(user.id);
     const userBidded = await fetchUserBiddedList(user.id);
     const userSold = info.sold || [];
-    const userNickname = user.nickname || info.nickname || "";
-
     const currentAchievements = Array.isArray(userAchievements)
       ? userAchievements.map((a) => a.name)
       : [];
@@ -918,9 +1004,9 @@ export async function checkAndUpdateAchievements(user) {
     // Make sure all arrays are valid before checking conditions
     if (Array.isArray(userBidded) && userBidded.length === 0)
       addAchievement("First One");
-    if (Array.isArray(userCars) && userCars.length >= 3)
+    if (Array.isArray(userCars) && userCars.length >= 7)
       addAchievement("Starter Pack");
-    if (Array.isArray(userCars) && userCars.length >= 5)
+    if (Array.isArray(userCars) && userCars.length >= 10)
       addAchievement("New Collector");
     if (Array.isArray(userSold) && userSold.length >= 1)
       addAchievement("Quick Sale");

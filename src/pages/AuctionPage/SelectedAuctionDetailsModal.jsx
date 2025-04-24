@@ -17,8 +17,19 @@ export const SelectedAuctionDetailsModal = ({ visible, close, selectedAuction, h
 
   useEffect(() => {
     const getAvatar = async () => {
-      const auctionUser = await fetchAuctionUser(selectedAuction?.id);
-      setAvatar(auctionUser.avatar);
+      if (!selectedAuction?.id) {
+        setAvatar("avatar1");
+        return;
+      }
+      
+      try {
+        const auctionUser = await fetchAuctionUser(selectedAuction.id);
+        console.log("Modal - Fetched auction user:", auctionUser);
+        setAvatar(auctionUser.avatar || "avatar1");
+      } catch (error) {
+        console.error("Error fetching avatar in modal:", error);
+        setAvatar("avatar1");
+      }
     }
     getAvatar()
   }, [selectedAuction]);

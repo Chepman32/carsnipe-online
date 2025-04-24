@@ -181,10 +181,10 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
 
       const id = selectedAuction.id;
 
-      // Fix the parameter order - fetchAuctionUser expects auctionId as the only parameter
+      // fetchAuctionUser expects auctionId as the only parameter
       const auctionUser = await fetchAuctionUser(id);
 
-      console.log('Auction User:', auctionUser);
+      console.log('MyAuctions - Auction User:', auctionUser);
 
       // Create an array of promises to execute
       const promises = [
@@ -206,8 +206,8 @@ export default function MyAuctions({ playerInfo, setMoney, money }) {
         })
       ];
 
-      // Only add the seller update if auctionUser exists
-      if (auctionUser) {
+      // Only add the seller update if auctionUser exists and is not the default user
+      if (auctionUser && auctionUser.id !== "default") {
         promises.push(
           client.graphql({
             query: mutations.updateUser,
