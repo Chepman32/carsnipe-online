@@ -240,9 +240,13 @@ const CarDetailsModal = ({
               <CarDetailsModalRow text={t('carDetailsModal.chooseColor')} selected={focusedRow === 2} />
             </div>
             
-            <div style={{ marginBottom: '10px' }}>
+            {
+              !forAuction && (
+                <div style={{ marginBottom: '10px' }}>
               <CarDetailsModalRow text={t('carDetailsModal.buyAsGift')} selected={focusedRow === 3} />
             </div>
+              )
+            }
             
             {forAuction && (
               <div style={{ marginBottom: '10px' }}>
