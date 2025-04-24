@@ -180,7 +180,7 @@ export default function MyBids({ playerInfo, setMoney, money }) {
         variables: {
           input: {
             id: playerInfo.id,
-            money: auction.lastBidPlayer === playerInfo.nickname ? money - (increasedBidValue - auction.currentBid) : money - increasedBidValue
+            money: auction.lastBidPlayer === playerInfo?.nickname ? money - (increasedBidValue - auction.currentBid) : money - increasedBidValue
           }
         },
       });
@@ -278,7 +278,7 @@ export default function MyBids({ playerInfo, setMoney, money }) {
         const updatedAuctionInput = {
           id: auction.id,
           currentBid: auction.buy,
-          lastBidPlayer: playerInfo.nickname,
+          lastBidPlayer: playerInfo?.nickname,
           status: "Finished",
           finishedAt: new Date().toISOString() // Ensure correct format for Lambda detection
         };
