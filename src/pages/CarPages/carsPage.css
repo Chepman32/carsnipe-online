@@ -364,6 +364,7 @@ body {
   position: relative;
   transition: all 0.3s ease;
   border: 2px solid transparent;
+  overflow: hidden; /* Prevent content from overflowing */
 }
 
 .car-card-focused {
@@ -384,29 +385,30 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  min-height: 0; /* Allow header to shrink if needed */
 }
 
 .car-card-title {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px; /* Reduced gap */
 }
 
 .car-card-subtitle {
   display: flex;
-  gap: 12px;
+  gap: 8px; /* Reduced gap */
   color: rgba(255, 255, 255, 0.7);
-  font-size: 24px;
+  font-size: 20px; /* Reduced font size */
 }
 
 .car-card-model {
-  font-size: 3vh;
+  font-size: 2.5vh; /* Reduced font size */
   font-weight: 500;
   color: white;
 }
 
 .car-card-year {
-  font-size: 2.5vh;
+  font-size: 2vh; /* Reduced font size */
   font-weight: 300;
   color: rgba(255, 255, 255, 0.7);
 }
@@ -417,13 +419,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 0;
-  margin: 12px 0;
+  padding: 8px 0; /* Reduced padding */
+  margin: 8px 0; /* Reduced margin */
+  min-height: 0; /* Allow container to shrink */
+  overflow: hidden; /* Prevent image from overflowing */
 }
 
 .car-card-image {
-  max-width: 85%;
-  max-height: 85%;
+  max-width: 80%; /* Reduced max-width */
+  max-height: 80%; /* Reduced max-height */
   object-fit: contain;
   border-radius: 8px;
 }
@@ -455,7 +459,9 @@ body {
   align-items: center;
   border-radius: 4px;
   font-weight: bold;
-  font-size: 2.2vh;
+  font-size: 2vh; /* Reduced font size */
+  min-height: 0; /* Allow type to shrink if needed */
+  margin-top: 4px; /* Add some margin to ensure it's not cut off */
 }
 
 .car-card-type.common {

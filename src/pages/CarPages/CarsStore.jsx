@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Button, Modal, Form, Input, message, Select, Spin } from "antd";
+import "antd/dist/reset.css"; // Import Ant Design CSS
 import { supabase } from "../../supabase";
 import "./carsPage.css";
 import CarDetailsModal from "./CarDetailsModal";
@@ -34,6 +35,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   const { isDemoMode, demoUser, updateDemoUser } = useDemoMode();
   const [cars, setCars] = useState([]);
   const [visible, setVisible] = useState(false);
+  
   const [loadingBuy, setLoadingBuy] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
   const [focusedMake, setFocusedMake] = useState(null);
@@ -45,6 +47,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   const [carsLoading, setCarsLoading] = useState(true);
   const [allTopRowCars, setAllTopRowCars] = useState([]);
   const [allBottomRowCars, setAllBottomRowCars] = useState([]);
+  const [recreatingCars, setRecreatingCars] = useState(false);
 
   const { playSwitchSound } = useSoundEffects();
 
@@ -429,6 +432,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   useEffect(() => { fetchCars() }, [fetchCars]);
 
 
+
   const chunkCars = (carsToChunk, size) => {
     const chunks = [];
     for (let i = 0; i < carsToChunk.length; i += size) {
@@ -700,16 +704,39 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                    return; // Handled top row up
                }
 
-               // 2b. If in Bottom Row: Move focus to the Header.
+               // 2b. If in Bottom Row: Move focus to the corresponding car in the top row.
                const isBottomRow = allBottomRowCars.some(c => c.id === focusedCar.id);
                if (isBottomRow) {
-                  console.log("Going up from bottom row car", focusedCar.model, "to header");
-                  dispatch(setFocusedZone(FOCUS_ZONES.HEADER));
-                  dispatch(setCurrentFocusedElement(HEADER_MAIN_MENU));
-                  setFocusedCar(null); // Clear car focus
-                  setFocusedMake(null); // Clear maker focus
-                  if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
-                  return; // Handled bottom row up
+                   const makeCars = carsByMake[currentMake];
+                   if (makeCars) {
+                       const sortedMakeCars = [...makeCars].sort((a,b)=>(a.model||"").localeCompare(b.model||""));
+                       const topRowCarsOfMake = sortedMakeCars.filter((_, i) => i % 2 === 0);
+                       const bottomRowCarsOfMake = sortedMakeCars.filter((_, i) => i % 2 === 1);
+                       
+                       const bottomRowIndex = bottomRowCarsOfMake.findIndex(c => c.id === focusedCar.id);
+                       
+                       if (bottomRowIndex !== -1 && topRowCarsOfMake.length > bottomRowIndex) {
+                           const topCar = topRowCarsOfMake[bottomRowIndex];
+                           console.log("Going up from bottom row car", focusedCar.model, "to top row car", topCar.model);
+                           setFocusedCar(topCar);
+                           setSelectedCarIndex(cars.findIndex(c => c.id === topCar.id));
+                           setFocusedMake(null);
+                           dispatch(setCurrentFocusedElement(TOP_CAR));
+                           dispatch(setIsTopCar(true));
+                           if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+                       } else if (topRowCarsOfMake.length > 0) {
+                           // If no direct match, go to the first car in the top row of this make
+                           const firstTopCar = topRowCarsOfMake[0];
+                           console.log("Going up from bottom row car", focusedCar.model, "to first top row car", firstTopCar.model);
+                           setFocusedCar(firstTopCar);
+                           setSelectedCarIndex(cars.findIndex(c => c.id === firstTopCar.id));
+                           setFocusedMake(null);
+                           dispatch(setCurrentFocusedElement(TOP_CAR));
+                           dispatch(setIsTopCar(true));
+                           if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
+                       }
+                   }
+                   return; // Handled bottom row up
                }
            }
            break;
@@ -921,6 +948,139 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           return 'https://via.placeholder.com/300x200?text=Car+Image+Not+Found';
       }
   };
+
+  // Function to recreate all cars from images
+  const recreateCarsFromImages = async () => {
+    try {
+      setRecreatingCars(true);
+      message.loading('Deleting existing cars and recreating from images...', 0);
+
+      // First, delete all existing cars
+      const { error: deleteError } = await supabase
+        .from('cars')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Keep some cars if needed
+
+      if (deleteError) {
+        console.error('Error deleting cars:', deleteError);
+        message.error('Failed to delete existing cars');
+        return;
+      }
+
+      console.log('All existing cars deleted');
+
+      // Define car data based on images
+      const carData = [
+        { make: 'Porsche', model: '911 Turbo S', year: 2023, price: 250000, type: 'LEGENDARY' },
+        { make: 'Ferrari', model: '488 GTB', year: 2022, price: 320000, type: 'LEGENDARY' },
+        { make: 'Audi', model: 'Q8 quattro', year: 2023, price: 85000, type: 'EPIC' },
+        { make: 'Hummer', model: 'H1', year: 2021, price: 150000, type: 'RARE' },
+        { make: 'Volkswagen', model: 'ID4', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'Volkswagen', model: 'Golf GTI', year: 2022, price: 35000, type: 'RARE' },
+        { make: 'Toyota', model: 'Tundra', year: 2023, price: 55000, type: 'REGULAR' },
+        { make: 'Toyota', model: 'Supra', year: 2023, price: 65000, type: 'EPIC' },
+        { make: 'Toyota', model: 'Land Cruiser 300', year: 2023, price: 95000, type: 'EPIC' },
+        { make: 'Toyota', model: 'Highlander', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'Toyota', model: 'GR Corolla', year: 2023, price: 40000, type: 'RARE' },
+        { make: 'Toyota', model: 'Camry', year: 2023, price: 35000, type: 'REGULAR' },
+        { make: 'Tesla', model: 'Model X', year: 2023, price: 95000, type: 'EPIC' },
+        { make: 'Tesla', model: 'Model 3', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'Subaru', model: 'BRZ', year: 2023, price: 35000, type: 'RARE' },
+        { make: 'Rivian', model: 'R1T', year: 2023, price: 85000, type: 'EPIC' },
+        { make: 'Rivian', model: 'R1S', year: 2023, price: 90000, type: 'EPIC' },
+        { make: 'Porsche', model: 'Cayenne', year: 2023, price: 95000, type: 'EPIC' },
+        { make: 'Porsche', model: 'Taycan', year: 2023, price: 110000, type: 'LEGENDARY' },
+        { make: 'Porsche', model: '911 GT3 RS', year: 2023, price: 280000, type: 'LEGENDARY' },
+        { make: 'Porsche', model: '718 Cayman GT4', year: 2023, price: 120000, type: 'EPIC' },
+        { make: 'Pagani', model: 'Zonda S', year: 2022, price: 2500000, type: 'LEGENDARY' },
+        { make: 'Pagani', model: 'Huayra', year: 2023, price: 3000000, type: 'LEGENDARY' },
+        { make: 'Nissan', model: 'GT-R', year: 2023, price: 120000, type: 'EPIC' },
+        { make: 'Mitsubishi', model: 'Eclipse Spyder GT', year: 2022, price: 35000, type: 'RARE' },
+        { make: 'Mercedes-Benz', model: 'GLC', year: 2023, price: 55000, type: 'REGULAR' },
+        { make: 'Mercedes-Benz', model: 'G-class', year: 2023, price: 150000, type: 'EPIC' },
+        { make: 'Mercedes-Benz', model: 'EQS', year: 2023, price: 120000, type: 'LEGENDARY' },
+        { make: 'Mercedes-Benz', model: 'E-Class', year: 2023, price: 65000, type: 'REGULAR' },
+        { make: 'Mercedes-Benz', model: 'AMG SL 63', year: 2023, price: 180000, type: 'LEGENDARY' },
+        { make: 'Mercedes-Benz', model: 'AMG GT', year: 2023, price: 160000, type: 'EPIC' },
+        { make: 'Mercedes-Benz', model: 'A-Class', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'McLaren', model: 'P1', year: 2022, price: 2000000, type: 'LEGENDARY' },
+        { make: 'McLaren', model: 'Artura', year: 2023, price: 250000, type: 'LEGENDARY' },
+        { make: 'McLaren', model: '650S', year: 2022, price: 300000, type: 'LEGENDARY' },
+        { make: 'Mazda', model: 'MX-5', year: 2023, price: 35000, type: 'RARE' },
+        { make: 'Mazda', model: 'CX-90', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'Mazda', model: 'CX-5', year: 2023, price: 35000, type: 'REGULAR' },
+        { make: 'Lucid', model: 'Air Sapphire', year: 2023, price: 250000, type: 'LEGENDARY' },
+        { make: 'Lexus', model: 'NX', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'Lexus', model: 'LFA', year: 2022, price: 500000, type: 'LEGENDARY' },
+        { make: 'Lexus', model: 'GX', year: 2023, price: 65000, type: 'EPIC' },
+        { make: 'Lamborghini', model: 'Urus', year: 2023, price: 250000, type: 'LEGENDARY' },
+        { make: 'Lamborghini', model: 'Revuelto', year: 2023, price: 600000, type: 'LEGENDARY' },
+        { make: 'Lamborghini', model: 'Huracan', year: 2023, price: 280000, type: 'LEGENDARY' },
+        { make: 'Lamborghini', model: 'Centenario', year: 2022, price: 2000000, type: 'LEGENDARY' },
+        { make: 'Kia', model: 'Stinger', year: 2023, price: 45000, type: 'RARE' },
+        { make: 'Kia', model: 'K5', year: 2023, price: 30000, type: 'REGULAR' },
+        { make: 'Kia', model: 'EV9', year: 2023, price: 65000, type: 'EPIC' },
+        { make: 'Hummer', model: 'H3', year: 2022, price: 80000, type: 'RARE' },
+        { make: 'Hummer', model: 'EV', year: 2023, price: 120000, type: 'EPIC' },
+        { make: 'Ford', model: 'Mustang', year: 2023, price: 45000, type: 'RARE' },
+        { make: 'Ford', model: 'Focus', year: 2023, price: 25000, type: 'REGULAR' },
+        { make: 'Ford', model: 'Focus RS', year: 2022, price: 40000, type: 'RARE' },
+        { make: 'Ford', model: 'Explorer', year: 2023, price: 40000, type: 'REGULAR' },
+        { make: 'Ford', model: 'Bronco', year: 2023, price: 55000, type: 'EPIC' },
+        { make: 'Ferrari', model: 'SF90 Stradale', year: 2023, price: 500000, type: 'LEGENDARY' },
+        { make: 'Dodge', model: 'Viper SRT', year: 2022, price: 120000, type: 'EPIC' },
+        { make: 'Dodge', model: 'Charger', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'Dodge', model: 'Challenger Hellcat', year: 2023, price: 65000, type: 'RARE' },
+        { make: 'Chevrolet', model: 'Tahoe', year: 2023, price: 65000, type: 'REGULAR' },
+        { make: 'Chevrolet', model: 'Silverado', year: 2023, price: 55000, type: 'REGULAR' },
+        { make: 'Chevrolet', model: 'Corvette Z06 C7', year: 2022, price: 120000, type: 'EPIC' },
+        { make: 'Chevrolet', model: 'Blazer', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'Bentley', model: 'Continental GTC', year: 2023, price: 220000, type: 'LEGENDARY' },
+        { make: 'Bentley', model: 'Bentayga', year: 2023, price: 200000, type: 'LEGENDARY' },
+        { make: 'BMW', model: 'i4', year: 2023, price: 65000, type: 'EPIC' },
+        { make: 'BMW', model: 'X5', year: 2023, price: 75000, type: 'EPIC' },
+        { make: 'BMW', model: 'M4 CS', year: 2023, price: 120000, type: 'EPIC' },
+        { make: 'BMW', model: '335i', year: 2023, price: 55000, type: 'REGULAR' },
+        { make: 'BMW', model: '218i', year: 2023, price: 35000, type: 'REGULAR' },
+        { make: 'Audi', model: 'TT RS', year: 2023, price: 75000, type: 'EPIC' },
+        { make: 'Audi', model: 'RS E-Tron GT', year: 2023, price: 150000, type: 'LEGENDARY' },
+        { make: 'Audi', model: 'A4', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'Audi', model: 'A1', year: 2023, price: 30000, type: 'REGULAR' },
+        { make: 'Aston Martin', model: 'Vantage', year: 2023, price: 250000, type: 'LEGENDARY' },
+        { make: 'Aston Martin', model: 'DBX', year: 2023, price: 200000, type: 'LEGENDARY' },
+        { make: 'Aston Martin', model: 'DBS', year: 2023, price: 350000, type: 'LEGENDARY' },
+        { make: 'Aston Martin', model: 'DB12', year: 2023, price: 250000, type: 'LEGENDARY' },
+        { make: 'Alfa Romeo', model: 'Stelvio', year: 2023, price: 45000, type: 'REGULAR' },
+        { make: 'Alfa Romeo', model: 'Giulia', year: 2023, price: 35000, type: 'REGULAR' },
+        { make: 'Alfa Romeo', model: '4C', year: 2022, price: 75000, type: 'RARE' }
+      ];
+
+      // Insert all cars
+      const { data: insertedCars, error: insertError } = await supabase
+        .from('cars')
+        .insert(carData)
+        .select();
+
+      if (insertError) {
+        console.error('Error inserting cars:', insertError);
+        message.error('Failed to insert new cars');
+        return;
+      }
+
+      console.log('Successfully inserted cars:', insertedCars.length);
+      message.destroy();
+      message.success(`Successfully recreated ${insertedCars.length} cars from images!`);
+      
+      // Refresh the cars list
+      await fetchCars();
+      
+    } catch (error) {
+      console.error('Error recreating cars:', error);
+      message.error('Failed to recreate cars');
+    } finally {
+      setRecreatingCars(false);
+    }
+  };
   
   // Create a dummy setFocusPosition function to prevent errors
   const setFocusPosition = (position) => {
@@ -929,7 +1089,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
   };
 
   return (
-    // Add focus outline management if needed, e.g., remove outline when mouse-navigating
+    <>
     <div className="cars" tabIndex="-1"> {/* Make div focusable but not via sequential keyboard nav */}
       {carsLoading ? (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -1072,97 +1232,286 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
         </div>
       )}
 
-        {/* --- Modals --- */}
-      {/* Create Car Modal (Admin/Debug tool?) */}
-      <Modal
-        visible={visible}
-        title="Create a New Car"
-        okText="Create"
-        cancelText="Cancel"
-        onCancel={handleCancel}
-        confirmLoading={loadingBuy} // Reuse loading state or add specific one
-        onOk={() => {
-          form.validateFields()
-            .then((values) => createNewCar(values))
-            .catch((info) => console.log('Validate Failed:', info));
-        }}
-        destroyOnClose // Reset form state when closed
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          name="create_car_form"
+{/* <div style={{ 
+        position: 'fixed', 
+        top: '20px', 
+        right: '20px', 
+        zIndex: 9999,
+        backgroundColor: '#1890ff',
+        padding: '10px',
+        borderRadius: '5px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+      }}>
+        <Button
+          type="primary"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setVisible(true);
+          }}
+          style={{ 
+            backgroundColor: '#1890ff',
+            borderColor: '#1890ff',
+            color: 'white',
+            fontWeight: 'bold'
+          }}
         >
-          <Form.Item
-            name="make"
-            label="Make"
-            rules={[{ required: true, message: "Please enter the make!" }]}
+          ➕ Create New Car
+        </Button>
+      </div> */}
+
+
+    </div>
+
+      {/* Modals rendered outside the cars container */}
+      {/* Create Car Modal */}
+      
+      {/* Custom Create Car Modal */}
+      {visible && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 99999,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setVisible(false);
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              padding: '24px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+              maxWidth: '500px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflowY: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <Input autoFocus />
-          </Form.Item>
-          <Form.Item
-            name="model"
-            label="Model"
-            rules={[{ required: true, message: "Please enter the model!" }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="year"
-            label="Year"
-            rules={[
-                { required: true, message: "Please enter the year!" },
-                { pattern: /^(19|20)\d{2}$/, message: "Please enter a valid 4-digit year" }
-            ]}
-          >
-            <Input type="number" />
-          </Form.Item>
-          <Form.Item
-            name="price"
-            label="Price"
-            rules={[
-                { required: true, message: "Please enter the price!" },
-                { type: 'number', min: 0, transform: value => Number(value), message: "Price must be a positive number" }
-            ]}
-          >
-            <Input type="number" min="0" step="100" />
-          </Form.Item>
-          <Form.Item
-            name="type"
-            label="Type"
-            rules={[{ required: true, message: "Please select the type!" }]}
-            initialValue="regular" // Default value
-          >
-            <Select>
-              <Option value="regular">Regular</Option>
-              <Option value="epic">Epic</Option>
-              <Option value="legendary">Legendary</Option>
-            </Select>
-          </Form.Item>
-          {/* Add other car attributes here if needed (e.g., stats) */}
-        </Form>
-      </Modal>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, color: 'black', fontSize: '20px', fontWeight: 'bold' }}>
+                Create a New Car
+              </h2>
+              <button
+                onClick={() => setVisible(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#999',
+                  padding: '0',
+                  width: '24px',
+                  height: '24px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const values = {
+                  make: formData.get('make'),
+                  model: formData.get('model'),
+                  year: formData.get('year'),
+                  price: formData.get('price'),
+                  type: formData.get('type')
+                };
+                
+                // Simple validation
+                if (!values.make || !values.model || !values.year || !values.price || !values.type) {
+                  alert('Please fill in all fields');
+                  return;
+                }
+                
+                if (!/^(19|20)\d{2}$/.test(values.year)) {
+                  alert('Please enter a valid 4-digit year');
+                  return;
+                }
+                
+                if (isNaN(values.price) || values.price < 0) {
+                  alert('Please enter a valid price');
+                  return;
+                }
+                
+                createNewCar(values);
+              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
+              <div>
+                <label style={{ display: 'block', marginBottom: '4px', color: 'black', fontWeight: '500' }}>
+                  Make *
+                </label>
+                <input
+                  name="make"
+                  type="text"
+                  required
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '4px', color: 'black', fontWeight: '500' }}>
+                  Model *
+                </label>
+                <input
+                  name="model"
+                  type="text"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '4px', color: 'black', fontWeight: '500' }}>
+                  Year *
+                </label>
+                <input
+                  name="year"
+                  type="number"
+                  required
+                  min="1900"
+                  max="2030"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '4px', color: 'black', fontWeight: '500' }}>
+                  Price *
+                </label>
+                <input
+                  name="price"
+                  type="number"
+                  required
+                  min="0"
+                  step="100"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '4px', color: 'black', fontWeight: '500' }}>
+                  Type *
+                </label>
+                <select
+                  name="type"
+                  required
+                  defaultValue="regular"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                    backgroundColor: 'white'
+                  }}
+                >
+                  <option value="regular">Regular</option>
+                  <option value="epic">Epic</option>
+                  <option value="legendary">Legendary</option>
+                </select>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setVisible(false)}
+                  style={{
+                    padding: '8px 16px',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: '4px',
+                    backgroundColor: 'white',
+                    color: 'black',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loadingBuy}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: '4px',
+                    backgroundColor: loadingBuy ? '#ccc' : '#1890ff',
+                    color: 'white',
+                    cursor: loadingBuy ? 'not-allowed' : 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  {loadingBuy ? 'Creating...' : 'Create Car'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
        {/* Car Details Modal */}
-       {/* Always render the modal but control visibility with the visible prop */}
-       {console.log("Rendering CarDetailsModal section, selectedCar:", selectedCar, "carDetailsVisible:", carDetailsVisible)}
        <CarDetailsModal
-         visible={selectedCar && carDetailsVisible} // Only show if we have a selected car and visibility is true
+         visible={selectedCar && carDetailsVisible}
          handleCancel={handleCarDetailsCancel}
-         selectedCar={selectedCar || {}} // Provide empty object as fallback
-         buyCar={buyCar} // Pass buyCar function
+         selectedCar={selectedCar || {}}
+         buyCar={buyCar}
          loadingBuy={loadingBuy}
-         getImageSource={getImageSource} // Pass image source function
-         forAuction={false} // Explicitly set forAuction to false for the store context
+         getImageSource={getImageSource}
+         forAuction={false}
        />
 
       {/* Credit Warning Modal */}
       <CreditWarningModal
         isModalVisible={creditWarningModalvisible}
         setIsModalVisible={setCreditWarningModalvisible}
-        // Pass other props if needed by CreditWarningModal
       />
-    </div>
+    </>
   );
 };
 
