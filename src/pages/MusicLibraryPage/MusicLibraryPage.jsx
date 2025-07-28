@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { list } from 'aws-amplify/storage';
+// AWS Amplify storage removed - implement with Supabase storage if needed
 import { Table, notification } from 'antd';
 
 const MusicLibraryPage = () => {
@@ -9,25 +9,13 @@ const MusicLibraryPage = () => {
   const fetchFiles = async () => {
     setLoading(true);
     try {
-      const response = await list({
-        path: 'public/photos/', // Specify your path here
-        options: {
-          pageSize: 20, // Optional: use pagination
-        },
+      // AWS Amplify storage removed - implement with Supabase storage if needed
+      console.log("Music library loading disabled - needs Supabase storage implementation");
+      setFiles([]);
+      notification.info({
+        message: "Info",
+        description: "Music library feature requires Supabase storage implementation",
       });
-      console.log("File list response:", response); // Log response to inspect structure
-
-      // Check if response.items exists and is an array
-      if (response && Array.isArray(response.items)) {
-        setFiles(response.items);
-      } else {
-        console.error("Unexpected response structure:", response);
-        setFiles([]); // Set empty array if response is unexpected
-        notification.error({
-          message: "Error",
-          description: "No files found or failed to retrieve files",
-        });
-      }
       setLoading(false);
     } catch (error) {
       console.error("Error fetching files:", error);

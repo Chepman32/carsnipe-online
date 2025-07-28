@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
 import { Input, Avatar, Button, List, Tag, Spin, message, Modal, Divider, Image } from 'antd';
 import { UserOutlined, SearchOutlined, CloseOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import * as queries from '../../graphql/queries';
-import * as mutations from '../../graphql/mutations';
+import { supabase } from '../../supabase';
+import * as api from '../../api/supabaseApi';
 import { selectAvatar } from '../../functions';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
-
-const client = generateClient();
 
 const EditGroupChatModal = ({
   isOpen,
@@ -124,22 +121,17 @@ const EditGroupChatModal = ({
       setLoading(true);
       console.log("Fetching users with current user ID:", currentUser.id);
 
-      const userData = await client.graphql({
-        query: queries.listUsers,
-        variables: {
-          limit: 100
-        }
-      });
+      const userData = await api.listUsers({}, 100, 0);
 
       console.log("User data response:", userData);
 
-      if (!userData.data || !userData.data.listUsers || !userData.data.listUsers.items) {
+      if (!userData || !Array.isArray(userData)) {
         console.error("Invalid response format for listUsers");
         setLoading(false);
         return;
       }
 
-      const otherUsers = userData.data.listUsers.items.filter(
+      const otherUsers = userData.filter(
         user => user.id !== currentUser.id
       );
 
@@ -204,15 +196,9 @@ const EditGroupChatModal = ({
 
       if (groupName !== conversation.name) {
         changeMessage = `Group name changed to "${groupName}"`;
-        await client.graphql({
-          query: mutations.updateConversation,
-          variables: {
-            input: {
-              id: conversation.id,
-              name: groupName,
-              isGroup: true, // Explicitly mark as a group chat
-            }
-          },
+        await api.updateConversation(conversation.id, {
+          name: groupName,
+          isGroup: true // Explicitly mark as a group chat
         });
         console.log("Group name updated successfully");
 
@@ -235,55 +221,29 @@ const EditGroupChatModal = ({
 
       if (usersToAdd.length > 0) {
         for (const user of usersToAdd) {
-          await client.graphql({
-            query: mutations.createUserConversation,
-            variables: {
-              input: {
-                userId: user.id,
-                conversationId: conversation.id,
-              }
-            },
-          });
+          await api.createUserConversation(user.id, conversation.id);
         }
       }
 
       if (userConversationsToRemove.length > 0) {
         for (const item of userConversationsToRemove) {
-          await client.graphql({
-            query: mutations.deleteUserConversation,
-            variables: {
-              input: {
-                id: item.id
-              }
-            },
-          });
+          await api.deleteUserConversation(item.userId, conversation.id);
         }
       }
 
-      await client.graphql({
-        query: mutations.createMessage,
-        variables: {
-          input: {
-            conversationId: conversation.id,
-            senderId: currentUser.id,
-            content: changeMessage,
-            timestamp,
-            read: false,
-            isEvent: true,
-          }
-        },
+      await api.createMessage({
+        conversationId: conversation.id,
+        senderId: currentUser.id,
+        content: changeMessage,
+        timestamp,
+        read: false,
+        isEvent: true
       });
 
-      await client.graphql({
-        query: mutations.updateConversation,
-        variables: {
-          input: {
-            id: conversation.id,
-            lastMessageAt: timestamp,
-            lastMessageContent: changeMessage,
-            lastMessageSenderId: currentUser.id,
-          }
-        },
+      await api.updateConversation(conversation.id, {
+        lastMessageAt: timestamp,
+        lastMessageContent: changeMessage,
+        lastMessageSenderId: currentUser.id
       });
 
       message.success("Group chat updated successfully!");
@@ -335,38 +295,23 @@ const EditGroupChatModal = ({
       if (conversation.participants && conversation.participants.items) {
         console.log("Deleting participants:", conversation.participants.items.length);
         for (const participant of conversation.participants.items) {
-          await client.graphql({
-            query: mutations.deleteUserConversation,
-            variables: { input: { id: participant.id } },
-          });
+          await api.deleteUserConversation(participant.userId, conversationId);
         }
       }
 
       // Delete all messages in the conversation
-      const messagesData = await client.graphql({
-        query: queries.listMessages,
-        variables: {
-          filter: { conversationId: { eq: conversationId } },
-          limit: 1000,
-        },
-      });
+      const messagesData = await api.listMessages({ conversationId }, 1000, 0);
 
-      if (messagesData.data && messagesData.data.listMessages && messagesData.data.listMessages.items) {
-        console.log("Deleting messages:", messagesData.data.listMessages.items.length);
-        for (const msg of messagesData.data.listMessages.items) {
-          await client.graphql({
-            query: mutations.deleteMessage,
-            variables: { input: { id: msg.id } },
-          });
+      if (messagesData && Array.isArray(messagesData)) {
+        console.log("Deleting messages:", messagesData.length);
+        for (const msg of messagesData) {
+          await api.deleteMessage(msg.id);
         }
       }
 
       // Delete the conversation itself
       console.log("Deleting conversation:", conversationId);
-      await client.graphql({
-        query: mutations.deleteConversation,
-        variables: { input: { id: conversationId } },
-      });
+      await api.deleteConversation(conversationId);
 
       const successMessage = isDirectChat ? "Conversation deleted successfully" : "Group chat deleted successfully";
       message.success(successMessage);
@@ -399,16 +344,10 @@ const EditGroupChatModal = ({
       console.log("Searching messages for:", messageSearchQuery);
 
       // Fetch all messages for the conversation
-      const messagesData = await client.graphql({
-        query: queries.listMessages,
-        variables: {
-          filter: { conversationId: { eq: conversation.id } },
-          limit: 1000,
-        },
-      });
+      const messagesData = await api.listMessages({ conversationId: conversation.id }, 1000, 0);
 
-      if (messagesData.data && messagesData.data.listMessages && messagesData.data.listMessages.items) {
-        const allMessages = messagesData.data.listMessages.items;
+      if (messagesData && Array.isArray(messagesData)) {
+        const allMessages = messagesData;
         console.log("Total messages:", allMessages.length);
 
         // Filter messages that contain the search query

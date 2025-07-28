@@ -6,11 +6,9 @@ import { fetchAuctionCreator, playSwitchSound, playClosingSound, createNewAuctio
 import { useLocation, useNavigate } from "react-router-dom";
 import AuctionActionsModalRow from "../../components/AuctionActionsModalRow/AuctionActionsModalRow";
 import { isMobile } from "react-device-detect";
-import { generateClient } from 'aws-amplify/api';
-import * as queries from '../../graphql/queries';
+import { supabase } from '../../supabase';
+import * as api from '../../api/supabaseApi';
 import { useTranslation } from "react-i18next";
-
-const client = generateClient();
 
 const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuction, loadingBid, bid, buyCar, loadingBuy }) => {
   const navigate = useNavigate();
@@ -27,17 +25,8 @@ const AuctionActionsModal = ({ visible, handleAuctionActionsCancel, selectedAuct
     try {
       if (!nickname) return null;
 
-      const userData = await client.graphql({
-        query: queries.listUsers,
-        variables: {
-          filter: {
-            nickname: { eq: nickname }
-          }
-        }
-      });
-
-      const users = userData?.data?.listUsers?.items || [];
-      return users.length > 0 ? users[0] : null;
+      const users = await api.listUsers({ nickname }, 1, 0);
+      return users && users.length > 0 ? users[0] : null;
     } catch (error) {
       console.error("Error finding user by nickname:", error);
       return null;

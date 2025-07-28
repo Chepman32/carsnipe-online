@@ -1,29 +1,22 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Amplify } from "aws-amplify";
-import { generateClient } from "aws-amplify/api";
-import { getCurrentUser, signOut, fetchAuthSession } from "aws-amplify/auth";
-import { Hub } from "aws-amplify/utils";
+import { supabase, getCurrentUser, getCurrentSession, signOut, signInWithGoogle, signInWithEmail, signUpWithEmail } from "./supabase";
+import { Auth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
 import {
-  Authenticator,
-  useTheme,
-  useAuthenticator,
-  View,
-  Image,
-  Text,
+  Spin,
   Button,
-  Heading,
-  ThemeProvider,
-  defaultTheme
-} from "@aws-amplify/ui-react";
+  Form,
+  Input,
+  message,
+  Card,
+  Typography,
+  Space,
+  Divider
+} from "antd";
 import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
-import { Spin } from "antd";
 import { Provider } from "react-redux";
 import store from "./redux/store";
 import MusicPlayer from "./components/MusicPlayer/MusicPlayer";
-import { listUsers } from "./graphql/queries";
-import { createUser } from "./graphql/mutations";
-import "@aws-amplify/ui-react/styles.css";
-import awsExports from "./aws-exports";
 import AuctionPage from "./pages/AuctionPage/AuctionPage";
 import CustomHeader from "./components/CustomHeader/CustomHeader";
 import CarsStore from "./pages/CarPages/CarsStore";
@@ -37,7 +30,6 @@ import ProfileEditPage from "./pages/ProfileEditPage/ProfileEditPage";
 import { checkAndUpdateAchievements, extractNameFromEmail, selectAvatar } from "./functions";
 import AchievementList from "./pages/AchievementList/AchievementList";
 import { MainPage } from "./pages/MainPage/MainPage";
-import "./AuthStyles.css";
 import MusicUploadPage from "./pages/MusicUploadPage/MusicUploadPage";
 import MusicLibraryPage from "./pages/MusicLibraryPage/MusicLibraryPage";
 import GameSettings from "./pages/GameSettings/GameSettings";
@@ -46,11 +38,11 @@ import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 import { avatars } from "./avatars";
 import { DemoModeProvider, useDemoMode } from "./contexts/DemoModeContext";
-import { listCars as listCarsQuery } from "./graphql/queries";
-import * as mutations from "./graphql/mutations";
+import "./AuthStyles.css";
 
-const client = generateClient();
-Amplify.configure(awsExports); 
+// Supabase client is configured in ./supabase.js
+
+const { Title, Text } = Typography; 
 
 function BackspaceHandler() {
   const navigate = useNavigate();
@@ -77,8 +69,38 @@ function BackspaceHandler() {
   return null;
 }
 
-const DemoModeButton = () => {
+
+const AuthComponent = ({ onAuthSuccess }) => {
+  const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const { isDemoMode, toggleDemoMode } = useDemoMode();
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      await signInWithGoogle();
+    } catch (error) {
+      message.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailAuth = async (values) => {
+    try {
+      setLoading(true);
+      if (isSignUp) {
+        await signUpWithEmail(values.email, values.password);
+        message.success('Check your email for verification link');
+      } else {
+        await signInWithEmail(values.email, values.password);
+      }
+    } catch (error) {
+      message.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDemoMode = () => {
     try {
@@ -86,7 +108,6 @@ const DemoModeButton = () => {
       toggleDemoMode();
       console.log('Demo mode toggled, new state:', !isDemoMode);
       
-      // Use a small timeout to ensure state is updated before redirecting
       setTimeout(() => {
         window.location.href = '/';
       }, 100);
@@ -96,146 +117,97 @@ const DemoModeButton = () => {
   };
 
   return (
-    <Button
-      variation="primary"
-      onClick={handleDemoMode}
-      style={{ marginTop: '1rem', width: '100%' }}
+    <Card
+      style={{
+        width: 400,
+        margin: '0 auto',
+        marginTop: '20vh',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+      }}
     >
-      {isDemoMode ? 'Exit Demo Mode' : 'Try Demo Mode'}
-    </Button>
+      <Space direction="vertical" size="large" style={{ width: '100%', textAlign: 'center' }}>
+        <div>
+          <img 
+            alt="Carsnipe Logo" 
+            src={require("./assets/images/Logo.png")} 
+            width="160px" 
+          />
+          <Title level={3} style={{ marginTop: 16 }}>
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
+          </Title>
+          <Text type="secondary">
+            {isSignUp ? 'Join Carsnipe Online today' : 'Log in to Carsnipe Online to continue'}
+          </Text>
+        </div>
+
+        <Button 
+          type="primary" 
+          size="large" 
+          block
+          loading={loading}
+          onClick={handleGoogleSignIn}
+          style={{ height: 48 }}
+        >
+          Continue with Google
+        </Button>
+
+        <Divider>OR</Divider>
+
+        <Form
+          onFinish={handleEmailAuth}
+          layout="vertical"
+          size="large"
+        >
+          <Form.Item
+            name="email"
+            rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}
+          >
+            <Input placeholder="Email address" />
+          </Form.Item>
+          
+          <Form.Item
+            name="password"
+            rules={[{ required: true, min: 6, message: 'Password must be at least 6 characters' }]}
+          >
+            <Input.Password placeholder="Password" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              block 
+              loading={loading}
+              style={{ height: 48 }}
+            >
+              {isSignUp ? 'Create Account' : 'Sign In'}
+            </Button>
+          </Form.Item>
+        </Form>
+
+        <div>
+          <Button 
+            type="link" 
+            onClick={() => setIsSignUp(!isSignUp)}
+          >
+            {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+          </Button>
+        </div>
+
+        <Button
+          type="default"
+          block
+          onClick={handleDemoMode}
+          style={{ marginTop: 16 }}
+        >
+          {isDemoMode ? 'Exit Demo Mode' : 'Try Demo Mode'}
+        </Button>
+      </Space>
+    </Card>
   );
 };
 
-const customComponents = {
-  Header() {
-    const { tokens } = useTheme();
-    return (
-      <View textAlign="center" padding={tokens.space.medium}>
-        <Image alt="Carsnipe Logo" src={require("./assets/images/Logo.png")} width="160px" />
-      </View>
-    );
-  },
-  SignIn: {
-    Header() {
-      const { tokens } = useTheme();
-      return (
-        <View textAlign="center" padding={tokens.space.medium}>
-          <Heading level={3} padding={tokens.space.small}>
-            Welcome
-          </Heading>
-          <Text color={tokens.colors.neutral}>
-            Log in to Carsnipe Online to continue.
-          </Text>
-        </View>
-      );
-    },
-    Footer() {
-      const { tokens } = useTheme();
-      const { toForgotPassword, toSignUp } = useAuthenticator();
-      return (
-        <View textAlign="center" padding={tokens.space.medium}>
-          <View paddingBottom={tokens.space.medium}>
-            <Button
-              fontWeight="normal"
-              onClick={toForgotPassword}
-              size="small"
-              variation="link"
-            >
-              Forgot password?
-            </Button>
-          </View>
-          <Text color={tokens.colors.neutral}>
-            Don't have an account?{" "}
-            <Button
-              fontWeight="normal"
-              onClick={toSignUp}
-              size="small"
-              variation="link"
-            >
-              Sign up
-            </Button>
-          </Text>
-          <DemoModeButton />
-        </View>
-      );
-    }
-  },
-  SocialProviders: {
-    CustomSocialProvider() {
-      const { tokens } = useTheme();
-      return (
-        <View textAlign="center" paddingTop={tokens.space.small}>
-          <View
-            backgroundColor={tokens.colors.neutral}
-            height="1px"
-            width="100%"
-            position="relative"
-            marginBottom={tokens.space.medium}
-          >
-            <Text
-              position="absolute"
-              top="-10px"
-              left="50%"
-              transform="translateX(-50%)"
-              backgroundColor={tokens.colors.background.primary}
-              paddingLeft={tokens.space.small}
-              paddingRight={tokens.space.small}
-            >
-              OR
-            </Text>
-          </View>
-        </View>
-      );
-    }
-  }
-};
 
-const customFormFields = {
-  signIn: {
-    username: {
-      placeholder: "Email address",
-      label: "Email address",
-      type: "email"
-    },
-    password: {
-      placeholder: "Password",
-      label: "Password"
-    }
-  }
-};
-
-const theme = {
-  name: 'Auth0Theme',
-  tokens: {
-    colors: {
-      brand: {
-        primary: {
-          80: '#2684FF',
-          90: '#0066EE',
-          100: '#0052CC',
-        },
-      },
-    },
-    components: {
-      authenticator: {
-        router: {
-          borderWidth: '0px',
-          boxShadow: 'none',
-          backgroundColor: '#FFFFFF',
-          borderRadius: '8px',
-        },
-      },
-      button: {
-        primary: {
-          backgroundColor: '#2684FF',
-          _hover: {
-            backgroundColor: '#0066EE',
-          },
-        },
-      },
-    },
-  },
-};
 
 const backgrounds = [
   "/videos/Intro.mp4",
@@ -289,28 +261,13 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Handle auth loading states
   useEffect(() => {
-    const handleAuthStateChange = async (data) => {
-      if (data.payload.event === 'signIn' || data.payload.event === 'signIn_failure') {
-        setIsLoading(true);
-      } else if (data.payload.event === 'signedIn') {
-        try {
-          setIsLoading(true);
-          await currentAuthenticatedUser();
-          if (playerInfo) {
-            setIsLoading(false);
-            navigate('/');
-          }
-        } catch (error) {
-          console.error('Error during authentication:', error);
-          setIsLoading(false);
-        }
-      }
-    };
-
-    const unsubscribe = Hub.listen('auth', handleAuthStateChange);
-    return () => unsubscribe();
-  }, [playerInfo, currentAuthenticatedUser, navigate]);
+    if (playerInfo) {
+      setIsLoading(false);
+      navigate('/');
+    }
+  }, [playerInfo, navigate]);
 
   useEffect(() => {
     if (playerInfo) {
@@ -374,13 +331,7 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
             <Spin size="large" />
           </div>
         )}
-        <ThemeProvider theme={theme}>
-          <Authenticator 
-            components={customComponents} 
-            formFields={customFormFields} 
-            socialProviders={["google"]}
-          />
-        </ThemeProvider>
+        <AuthComponent onAuthSuccess={() => setIsLoading(false)} />
       </div>
     );
   }
@@ -411,20 +362,23 @@ export default function App() {
     }
   }, [playerInfo?.id, money]);
 
-  const createNewPlayer = useCallback(async (email, nickname) => {
-    if (!email) return;
+  const createNewPlayer = useCallback(async (user) => {
+    if (!user?.email) return;
     
     try {
       setCreatingUser(true);
       
-      const existingUsersResponse = await client.graphql({
-        query: listUsers,
-        variables: { filter: { email: { eq: email } } }
-      });
+      // Check if user already exists in our database
+      const { data: existingUsers, error: fetchError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', user.email);
       
-      const existingUsers = existingUsersResponse?.data?.listUsers?.items || [];
+      if (fetchError) {
+        console.error('Error checking for existing user:', fetchError);
+      }
       
-      if (existingUsers.length > 0) {
+      if (existingUsers && existingUsers.length > 0) {
         const existingUser = existingUsers[0];
         setPlayerInfo(existingUser);
         setMoney(existingUser.money);
@@ -437,115 +391,39 @@ export default function App() {
       const randomAvatar = `avatar${randomAvatarNumber}`;
       
       const newUserData = {
-        nickname: extractNameFromEmail(nickname) || nickname || email.split('@')[0],
-        email,
+        id: user.id, // Use Supabase auth user ID
+        nickname: user.user_metadata?.full_name || user.email.split('@')[0],
+        email: user.email,
         money: 100000,
-        bidded: [],
         avatar: randomAvatar,
         bio: "",
-        achievements: [],
-        sold: []
+        sold: [],
+        total_cars_owned: 0,
+        total_auctions_participated: 0,
+        total_bids_placed: 0,
+        total_spent: 0,
+        total_auctions_won: 0,
+        total_profit_earned: 0,
+        is_mock: false
       };
 
-      try {
-        // Create the user
-        const createdPlayer = await client.graphql({
-          query: createUser,
-          variables: { input: newUserData }
-        });
+      // Create the user in our database
+      const { data: createdPlayer, error: createError } = await supabase
+        .from('users')
+        .insert([newUserData])
+        .select()
+        .single();
 
-        if (createdPlayer?.data?.createUser) {
-          const newUser = createdPlayer.data.createUser;
+      if (createError) {
+        console.error('Error creating user:', createError);
+        // If user already exists due to race condition, fetch them
+        if (createError.code === '23505') { // Unique violation
+          const { data: retryUser } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', user.email)
+            .single();
           
-          // Fetch all cars from the backend
-          const carData = await client.graphql({ query: listCarsQuery });
-          let availableCars = carData?.data?.listCars?.items || [];
-          
-          // Filter cars with price under 100000
-          const affordableCars = availableCars.filter(car => car.price < 100000);
-          
-          // If no affordable cars found and this is not a demo user, add some default affordable cars
-          if (affordableCars.length === 0) {
-            console.log("No affordable cars found in the database, creating defaults");
-            const defaultCars = [
-              { make: 'Toyota', model: 'Camry', year: 2022, price: 35000, type: 'COMMON' },
-              { make: 'Honda', model: 'Civic', year: 2022, price: 28000, type: 'COMMON' },
-              { make: 'Ford', model: 'Focus', year: 2021, price: 25000, type: 'COMMON' },
-              { make: 'Mazda', model: 'MX-5', year: 2020, price: 32000, type: 'COMMON' },
-              { make: 'Volkswagen', model: 'Golf GTI', year: 2021, price: 38000, type: 'COMMON' },
-              { make: 'Chevrolet', model: 'Corvette C8', year: 2022, price: 80000, type: 'COMMON' },
-              { make: 'BMW', model: '3 Series', year: 2021, price: 45000, type: 'RARE' },
-              { make: 'Hyundai', model: 'Elantra', year: 2022, price: 26000, type: 'COMMON' }
-            ];
-            
-            for (const carData of defaultCars) {
-              try {
-                const createdCar = await client.graphql({
-                  query: mutations.createCar,
-                  variables: { input: carData }
-                });
-                
-                if (createdCar?.data?.createCar) {
-                  affordableCars.push(createdCar.data.createCar);
-                }
-              } catch (err) {
-                console.error("Error creating default car:", err);
-              }
-            }
-          }
-          
-          // If we have affordable cars, add 5 random ones to the user
-          if (affordableCars.length > 0) {
-            // Randomly select 5 cars (or fewer if not enough available)
-            const carsToAdd = Math.min(5, affordableCars.length);
-            const shuffledCars = [...affordableCars].sort(() => 0.5 - Math.random());
-            const selectedCars = shuffledCars.slice(0, carsToAdd);
-            
-            // Add the selected cars to the user
-            for (const car of selectedCars) {
-              try {
-                await client.graphql({
-                  query: mutations.createUserCar,
-                  variables: { 
-                    input: { 
-                      userId: newUser.id, 
-                      carId: car.id 
-                    } 
-                  }
-                });
-              } catch (err) {
-                console.error("Error adding car to user:", err);
-              }
-            }
-            
-            // Update user's totalCarsOwned count
-            try {
-              await client.graphql({
-                query: mutations.updateUser,
-                variables: {
-                  input: {
-                    id: newUser.id,
-                    totalCarsOwned: selectedCars.length
-                  }
-                }
-              });
-            } catch (err) {
-              console.error("Error updating user's totalCarsOwned:", err);
-            }
-          }
-          
-          setPlayerInfo(newUser);
-          setMoney(newUser.money);
-          localStorage.setItem("userInfo", JSON.stringify(newUser));
-        }
-      } catch (creationError) {
-        if (creationError.errors?.some(e => e.message.includes('duplicate') || e.message.includes('unique'))) {
-          const retryFetch = await client.graphql({
-            query: listUsers,
-            variables: { filter: { email: { eq: email } } }
-          });
-          
-          const retryUser = retryFetch?.data?.listUsers?.items[0];
           if (retryUser) {
             setPlayerInfo(retryUser);
             setMoney(retryUser.money);
@@ -553,17 +431,83 @@ export default function App() {
             return;
           }
         }
-        throw creationError;
+        throw createError;
+      }
+
+      if (createdPlayer) {
+        // Fetch all cars from the backend
+        const { data: availableCars, error: carsError } = await supabase
+          .from('cars')
+          .select('*')
+          .lt('price', 100000);
+        
+        if (carsError) {
+          console.error('Error fetching cars:', carsError);
+        }
+        
+        let affordableCars = availableCars || [];
+        
+        // If no affordable cars found, add some default ones
+        if (affordableCars.length === 0) {
+          console.log("No affordable cars found in the database, creating defaults");
+          const defaultCars = [
+            { make: 'Toyota', model: 'Camry', year: 2022, price: 35000, type: 'COMMON' },
+            { make: 'Honda', model: 'Civic', year: 2022, price: 28000, type: 'COMMON' },
+            { make: 'Ford', model: 'Focus', year: 2021, price: 25000, type: 'COMMON' },
+            { make: 'Mazda', model: 'MX-5', year: 2020, price: 32000, type: 'COMMON' },
+            { make: 'Volkswagen', model: 'Golf GTI', year: 2021, price: 38000, type: 'COMMON' },
+            { make: 'Chevrolet', model: 'Corvette C8', year: 2022, price: 80000, type: 'COMMON' },
+            { make: 'BMW', model: '3 Series', year: 2021, price: 45000, type: 'RARE' },
+            { make: 'Hyundai', model: 'Elantra', year: 2022, price: 26000, type: 'COMMON' }
+          ];
+          
+          const { data: createdCars } = await supabase
+            .from('cars')
+            .insert(defaultCars)
+            .select();
+          
+          if (createdCars) {
+            affordableCars = createdCars;
+          }
+        }
+        
+        // If we have affordable cars, add 5 random ones to the user
+        if (affordableCars.length > 0) {
+          const carsToAdd = Math.min(5, affordableCars.length);
+          const shuffledCars = [...affordableCars].sort(() => 0.5 - Math.random());
+          const selectedCars = shuffledCars.slice(0, carsToAdd);
+          
+          // Add the selected cars to the user
+          const userCarInserts = selectedCars.map(car => ({
+            user_id: createdPlayer.id,
+            car_id: car.id
+          }));
+          
+          await supabase
+            .from('user_cars')
+            .insert(userCarInserts);
+          
+          // Update user's total_cars_owned count
+          await supabase
+            .from('users')
+            .update({ total_cars_owned: selectedCars.length })
+            .eq('id', createdPlayer.id);
+        }
+        
+        setPlayerInfo(createdPlayer);
+        setMoney(createdPlayer.money);
+        localStorage.setItem("userInfo", JSON.stringify(createdPlayer));
       }
       
     } catch (error) {
       console.error("Error in createNewPlayer:", error);
-      const finalCheck = await client.graphql({
-        query: listUsers,
-        variables: { filter: { email: { eq: email } } }
-      });
+      // Try to fetch user one more time
+      const { data: finalUser } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', user.email)
+        .single();
       
-      const finalUser = finalCheck?.data?.listUsers?.items[0];
       if (finalUser) {
         setPlayerInfo(finalUser);
         setMoney(finalUser.money);
@@ -580,38 +524,29 @@ export default function App() {
   const currentAuthenticatedUser = useCallback(async () => {
     try {
       const user = await getCurrentUser();
-      const session = await fetchAuthSession();
       
-      let userEmail = '';
-      let userNickname = '';
-      let provider = '';
-
-      if (session?.tokens?.idToken?.payload) {
-        const idToken = session.tokens.idToken.payload;
-        userEmail = idToken.email || '';
-        userNickname = idToken.name || idToken.given_name || userEmail.split('@')[0];
-        provider = idToken.iss.includes('google') ? 'Google' : 'Cognito';
-      } else if (user.signInDetails) {
-        userEmail = user.signInDetails.loginId;
-        userNickname = userEmail;
-        provider = 'Cognito';
-      }
-
-      if (!userEmail) {
+      if (!user?.email) {
         throw new Error("Could not retrieve user email");
       }
 
-      setEmail(userEmail);
+      setEmail(user.email);
 
-      const playersData = await client.graphql({ query: listUsers });
-      const playersList = playersData?.data?.listUsers.items;
-      const existingUser = playersList.find((u) => u?.email === userEmail);
+      // Check if user exists in our database
+      const { data: existingUser, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', user.email)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+        console.error('Error checking for existing user:', error);
+      }
 
       const isNewUser = !existingUser;
       setIsNewUser(isNewUser);
 
       if (!existingUser) {
-        await createNewPlayer(userEmail, userNickname);
+        await createNewPlayer(user);
       } else {
         setPlayerInfo(existingUser);
         setMoney(existingUser?.money);
@@ -624,17 +559,26 @@ export default function App() {
     }
   }, [createNewPlayer]);
 
-  const listener = useCallback(async (data) => {
-    const { payload } = data;
-    if (payload.event === 'signIn') {
-      await currentAuthenticatedUser();
-    }
-  }, [currentAuthenticatedUser]);
-
+  // Listen for auth state changes
   useEffect(() => {
-    const unsubscribe = Hub.listen("auth", listener);
-    return () => unsubscribe();
-  }, [listener]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          await currentAuthenticatedUser();
+        } else if (event === 'SIGNED_OUT') {
+          setPlayerInfo(null);
+          setMoney(null);
+          setEmail('');
+          localStorage.removeItem('userInfo');
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [currentAuthenticatedUser]);
 
   useEffect(() => {
     currentAuthenticatedUser();

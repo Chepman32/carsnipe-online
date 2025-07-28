@@ -3,10 +3,8 @@ import { Card, Space, Typography, Col, Flex } from "antd";
 import { calculateTimeDifference, fetchAuctionUser, selectAvatar, getImageSource, createNewAuctionUser } from '../../functions';
 import "./auctionPage.css";
 import { avatars } from "../../avatars";
-import { generateClient } from 'aws-amplify/api';
-import * as queries from '../../graphql/queries';
-
-const client = generateClient();
+import { supabase } from '../../supabase';
+import * as api from '../../api/supabaseApi';
 
 export const SelectedAuctionDetails = ({ selectedAuction }) => {
   const [avatar, setAvatar] = useState("avatar1");

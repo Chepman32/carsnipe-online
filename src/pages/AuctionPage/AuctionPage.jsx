@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import "@aws-amplify/ui-react/styles.css";
 import { Form, Select, message, notification } from "antd";
-import { generateClient } from 'aws-amplify/api';
-import * as mutations from '../../graphql/mutations';
-import { listAuctions as listAuctionsQuery } from '../../graphql/queries';
+import { supabase } from '../../supabase';
 import {
   calculateTimeDifference,
   fetchUserBiddedList,
@@ -26,10 +23,7 @@ import { useDemoMode } from '../../contexts/DemoModeContext';
 import { getMockAuctions, updateMockAuctions } from '../../mockData';
 import { Row, Col, Typography } from 'antd';
 import { useMediaQuery } from 'react-responsive';
-import { createBid } from '../../graphql/mutations';
-
 const { Title } = Typography;
-const client = generateClient();
 
 export default function AuctionPage({ playerInfo, setMoney, money }) {
   const [auctions, setAuctions] = useState([]);
@@ -52,13 +46,33 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         const mockAuctions = getMockAuctions();
         setAuctions(mockAuctions);
       } else {
-        const auctionData = await client.graphql({ query: listAuctionsQuery });
+        const { data: auctionData, error } = await supabase
+          .from('auctions')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error("Error fetching auctions:", error);
+          throw error;
+        }
+
         console.log("Raw auction data:", auctionData);
 
-        let auctions = auctionData.data.listAuctions.items.map((auction) => {
-          const endTime = new Date(parseInt(auction.endTime) * 1000);
+        let auctions = auctionData.map((auction) => {
+          const endTime = new Date(parseInt(auction.end_time) * 1000);
           const timeLeft = calculateTimeDifference(endTime);
-          return { ...auction, endTime, timeLeft };
+          return { 
+            ...auction, 
+            endTime, 
+            timeLeft,
+            // Map snake_case to camelCase for compatibility
+            endTime: auction.end_time,
+            currentBid: auction.current_bid,
+            lastBidPlayer: auction.last_bid_player,
+            minBid: auction.min_bid,
+            bidsCount: auction.bids_count,
+            finishedAt: auction.finished_at
+          };
         }).filter(a => a.id);
 
         // Filter out finished auctions that ended more than 5 minutes ago
@@ -208,18 +222,32 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
           bidded: bidInputs,
         };
     
-        await client.graphql({
-          query: mutations.updateUser,
-          variables: { input: updatedUser },
-        });
+        // Update user money
+        const { error: userError } = await supabase
+          .from('users')
+          .update({ money: newMoney })
+          .eq('id', playerInfo.id);
+
+        if (userError) throw userError;
+
+        // Add bid info record
+        const { error: bidError } = await supabase
+          .from('bid_info')
+          .insert([{
+            user_id: playerInfo.id,
+            auction_id: auction.id,
+            bid_value: increasedBidValue,
+            timestamp: new Date().toISOString()
+          }]);
+
+        if (bidError) throw bidError;
     
         const updatedAuction = {
-          id: auction.id,
-          currentBid: increasedBidValue,
-          lastBidPlayer: playerInfo?.nickname,
-          bidsCount: auction.bidsCount + 1,
+          current_bid: increasedBidValue,
+          last_bid_player: playerInfo?.nickname,
+          bids_count: auction.bidsCount + 1,
           status: increasedBidValue < auction.buy ? "Active" : "Finished",
-          ...(increasedBidValue >= auction.buy && { finishedAt: new Date().toISOString() }) // Add finishedAt when auction is finished
+          ...(increasedBidValue >= auction.buy && { finished_at: new Date().toISOString() })
         };
     
         setAuctions(prevAuctions =>
@@ -228,10 +256,12 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
           )
         );
     
-        const response = await client.graphql({
-          query: mutations.updateAuction,
-          variables: { input: updatedAuction },
-        });
+        const { data: response, error: auctionError } = await supabase
+          .from('auctions')
+          .update(updatedAuction)
+          .eq('id', auction.id)
+          .select()
+          .single();
         console.log("Update Auction Response:", response);
     
         message.success('Bid successfully increased!');
@@ -239,17 +269,18 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         const currentIndex = auctions.findIndex(a => a.id === auction.id);
         await listAuctions(currentIndex);
     
-        if (playerInfo && auction.player !== playerInfo.nickname) {
-          await client.graphql({
-            query: mutations.updateUser,
-            variables: {
-              input: {
-                id: playerInfo.id,
-                totalAuctionsParticipated: (playerInfo.totalAuctionsParticipated || 0) + 1,
-              }
-            }
-          });
-        }
+        // TODO: Update user participation statistics when GraphQL is implemented
+        // if (playerInfo && auction.player !== playerInfo.nickname) {
+        //   await client.graphql({
+        //     query: mutations.updateUser,
+        //     variables: {
+        //       input: {
+        //         id: playerInfo.id,
+        //         totalAuctionsParticipated: (playerInfo.totalAuctionsParticipated || 0) + 1,
+        //       }
+        //     }
+        //   });
+        // }
       }
     } catch (error) {
       console.error("Error in increaseBid:", error);
@@ -330,22 +361,26 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
               sold: [...(auctionUser.sold || []), auction.id],
             };
 
-            await client.graphql({
-              query: mutations.updateUser,
-              variables: { input: updatedSeller },
-            });
+            // Update seller's money and sold list
+            const { error: sellerError } = await supabase
+              .from('users')
+              .update({ 
+                money: auctionUser.money + auction.buy,
+                sold: [...(auctionUser.sold || []), auction.id]
+              })
+              .eq('id', auctionUser.id);
+
+            if (sellerError) console.error("Error updating seller:", sellerError);
 
             // Only try to delete the user car if we have a valid auctionUser
             try {
-              await client.graphql({
-                query: mutations.deleteUserCar,
-                variables: {
-                  input: {
-                    userId: auctionUser.id,
-                    carId: auction.carId,
-                  },
-                },
-              });
+              const { error: deleteError } = await supabase
+                .from('user_cars')
+                .delete()
+                .eq('user_id', auctionUser.id)
+                .eq('car_id', auction.carId);
+
+              if (deleteError) throw deleteError;
             } catch (error) {
               console.error("Error deleting user car:", error);
               // Continue with the purchase even if this fails
@@ -355,88 +390,46 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
           }
 
           // Create user car regardless of whether we found the seller
-          await client.graphql({
-            query: mutations.createUserCar,
-            variables: {
-              input: {
-                userId: playerInfo.id,
-                carId: auction.carId,
-              },
-            },
-          });
+          const { error: createCarError } = await supabase
+            .from('user_cars')
+            .insert([{
+              user_id: playerInfo.id,
+              car_id: auction.carId
+            }]);
 
-          await client.graphql({
-            query: mutations.updateUser,
-            variables: {
-              input: {
-                id: playerInfo.id,
-                money: newMoney,
-              },
-            },
-          });
+          if (createCarError) throw createCarError;
 
-          const updatedAuctionInput = {
-            id: auction.id,
-            currentBid: auction.buy,
-            lastBidPlayer: playerInfo?.nickname,
-            status: "Finished",
-            finishedAt: new Date().toISOString() // Ensure correct format for Lambda detection
-          };
-          await client.graphql({
-            query: mutations.updateAuction,
-            variables: { input: updatedAuctionInput },
-          });
+          // Update buyer's money and total cars owned
+          const { error: buyerError } = await supabase
+            .from('users')
+            .update({ 
+              money: newMoney,
+              total_cars_owned: supabase.raw('total_cars_owned + 1')
+            })
+            .eq('id', playerInfo.id);
+
+          if (buyerError) throw buyerError;
+
+          // Update auction to finished status
+          const { error: auctionUpdateError } = await supabase
+            .from('auctions')
+            .update({
+              current_bid: auction.buy,
+              last_bid_player: playerInfo?.nickname,
+              status: "Finished",
+              finished_at: new Date().toISOString()
+            })
+            .eq('id', auction.id);
+
+          if (auctionUpdateError) throw auctionUpdateError;
 
           message.success('Car successfully bought!');
 
           try {
-            await checkAndUpdateAchievements(playerInfo);
+            await checkAndUpdateAchievements(playerInfo.id);
           } catch (error) {
             console.error("Error checking achievements:", error);
             // Continue even if achievement check fails
-          }
-
-          const userCars = await fetchUserCarsRequest(playerInfo.id);
-          const userAchievements = await fetchUserAchievementsList(playerInfo.id);
-
-          if (userCars.length >= 3 && !userAchievements.some(achievement => achievement.name === "Starter Pack")) {
-            const newAchievement = { name: "Starter Pack", date: new Date().toISOString() };
-            const updatedAchievements = [...userAchievements, newAchievement];
-
-            await client.graphql({
-              query: mutations.updateUser,
-              variables: {
-                input: {
-                  id: playerInfo.id,
-                  achievements: updatedAchievements.map(achievement => ({
-                    name: achievement.name,
-                    date: achievement.date
-                  })),
-                },
-              },
-            });
-
-            message.success("Achievement unlocked: Starter Pack");
-          }
-
-          if (!userAchievements.some(achievement => achievement.name === "First Win")) {
-            const newAchievement = { name: "First Win", date: new Date().toISOString() };
-            const updatedAchievements = [...userAchievements, newAchievement];
-
-            await client.graphql({
-              query: mutations.updateUser,
-              variables: {
-                input: {
-                  id: playerInfo.id,
-                  achievements: updatedAchievements.map(achievement => ({
-                    name: achievement.name,
-                    date: achievement.date
-                  })),
-                },
-              },
-            });
-
-            message.success("Achievement unlocked: First Win");
           }
 
           await listAuctions();

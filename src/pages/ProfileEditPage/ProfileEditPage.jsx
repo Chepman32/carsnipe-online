@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, notification, Typography, Select } from 'antd';
 import { LogoutOutlined } from '@ant-design/icons';
-import { generateClient } from 'aws-amplify/api';
-import * as mutations from '../../graphql/mutations';
+import { supabase } from '../../supabase';
+import * as api from '../../api/supabaseApi';
 import "./styles.css";
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
@@ -11,7 +11,6 @@ import { FOCUS_ZONES, HEADER_MAIN_MENU, setCurrentFocusedElement, setFocusedZone
 import { avatars } from '../../avatars';
 import { useDemoMode } from '../../contexts/DemoModeContext';
 
-const client = generateClient();
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -233,10 +232,7 @@ const ProfileEditPage = ({ playerInfo, currentAuthenticatedUser, signOut, setPla
         });
       } else {
         // Normal mode - make backend request
-        await client.graphql({
-          query: mutations.updateUser,
-          variables: { input: updatedUser },
-        });
+        await api.updateUser(playerInfo.id, updatedUser);
         currentAuthenticatedUser();
         setLoading(false);
         notification.success({

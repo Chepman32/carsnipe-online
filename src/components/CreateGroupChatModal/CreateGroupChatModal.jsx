@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './styles.css';
-import { generateClient } from 'aws-amplify/api';
 import { useNavigate } from 'react-router-dom';
 import { Input, Avatar, Button, List, Tag, Spin, message } from 'antd';
 import { UserOutlined, SearchOutlined, CloseOutlined } from '@ant-design/icons';
-import * as queries from '../../graphql/queries';
-import * as mutations from '../../graphql/mutations';
+import { supabase } from '../../supabase';
+import * as api from '../../api/supabaseApi';
 import { selectAvatar } from '../../functions';
-
-// Extract the specific queries we need
-const { getUser, listUsers } = queries;
-
-// We'll use the auto-generated mutations directly
-
-const client = generateClient();
 
 const CreateGroupChatModal = ({ isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,16 +30,10 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
 
           // Fetch the full user data from the API to ensure we have all fields
           try {
-            const userData = await client.graphql({
-              query: queries.getUser,
-              variables: {
-                id: userInfo.id,
-              },
-            });
-
-            if (userData.data && userData.data.getUser) {
-              console.log("Fetched current user data:", userData.data.getUser);
-              setCurrentUser(userData.data.getUser);
+            const userData = await api.getUser(userInfo.id);
+            if (userData) {
+              console.log("Fetched current user data:", userData);
+              setCurrentUser(userData);
             } else {
               console.log("Using localStorage user info as fallback");
               setCurrentUser(userInfo);
@@ -92,23 +78,18 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
       setLoading(true);
       console.log("Fetching users with current user ID:", currentUser.id);
 
-      const userData = await client.graphql({
-        query: listUsers,
-        variables: {
-          limit: 100 // Increase limit to get more users
-        }
-      });
+      const userData = await api.listUsers({}, 100, 0);
 
       console.log("User data response:", userData);
 
-      if (!userData.data || !userData.data.listUsers || !userData.data.listUsers.items) {
+      if (!userData || !Array.isArray(userData)) {
         console.error("Invalid response format for listUsers");
         setLoading(false);
         return;
       }
 
       // Filter out the current user from the list
-      const otherUsers = userData.data.listUsers.items.filter(
+      const otherUsers = userData.filter(
         user => user.id !== currentUser.id
       );
 
@@ -196,83 +177,25 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
       console.log("Creating conversation with timestamp:", timestamp);
 
       // Create the conversation with minimal required fields
-      // Note: The Conversation model doesn't have a name field in the schema
       try {
-        const newConversationData = await client.graphql({
-          query: mutations.createConversation,
-          variables: {
-            input: {
-              // Create with empty object as the Conversation model doesn't require any fields
-              // except the auto-generated ID
-            }
-          },
+        const newConversationData = await api.createConversation({
+          name: displayGroupName,
+          lastMessageAt: timestamp,
+          lastMessageContent: `${displayGroupName} created`,
+          lastMessageSenderId: currentUser.id,
+          isGroup: true
         });
 
         console.log("Conversation created:", newConversationData);
-        const newConversationId = newConversationData.data.createConversation.id;
+        const newConversationId = newConversationData.id;
 
-        // Update the conversation with additional fields
-        try {
-          // Update the conversation with basic fields
-          await client.graphql({
-            query: mutations.updateConversation,
-            variables: {
-              input: {
-                id: newConversationId,
-                lastMessageAt: timestamp,
-                lastMessageContent: `${displayGroupName} created`,
-                lastMessageSenderId: currentUser.id,
-                isGroup: true, // Explicitly mark as a group chat
-              }
-            },
-          });
-
-          // If a group name was provided, try to update it
-          // We'll use a custom mutation to update the name field
-          if (groupName.trim() !== '') {
-            try {
-              console.log("Attempting to update conversation name to:", groupName.trim());
-
-              // Create a custom mutation to update the name field
-              const updateConversationNameMutation = /* GraphQL */ `
-                mutation UpdateConversationName($id: ID!, $name: String) {
-                  updateConversation(input: {id: $id, name: $name}) {
-                    id
-                    name
-                  }
-                }
-              `;
-
-              await client.graphql({
-                query: updateConversationNameMutation,
-                variables: {
-                  id: newConversationId,
-                  name: groupName.trim(),
-                },
-              });
-
-              console.log("Conversation name updated successfully");
-            } catch (nameError) {
-              console.error("Error updating conversation name:", nameError);
-              console.log("Error details:", JSON.stringify(nameError, null, 2));
-              // Continue even if name update fails
-            }
-          }
-
-          console.log("Conversation updated with message info");
+        // Conversation already created with all required fields
+        console.log("Conversation created with all info");
 
           // Add current user to the conversation
           try {
             console.log("Adding current user to conversation:", currentUser.id);
-            await client.graphql({
-              query: mutations.createUserConversation,
-              variables: {
-                input: {
-                  userId: currentUser.id,
-                  conversationId: newConversationId,
-                }
-              },
-            });
+            await api.createUserConversation(currentUser.id, newConversationId);
 
             console.log("Current user added to conversation");
 
@@ -281,15 +204,7 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
             for (const user of selectedUsers) {
               console.log("Adding user to conversation:", user.id);
               try {
-                await client.graphql({
-                  query: mutations.createUserConversation,
-                  variables: {
-                    input: {
-                      userId: user.id,
-                      conversationId: newConversationId,
-                    }
-                  },
-                });
+                await api.createUserConversation(user.id, newConversationId);
                 addedUsers++;
                 console.log(`User ${user.id} added to conversation (${addedUsers}/${selectedUsers.length})`);
               } catch (err) {
@@ -301,19 +216,13 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
             // Create initial message
             try {
               console.log("Creating initial message");
-              await client.graphql({
-                query: mutations.createMessage,
-                variables: {
-                  input: {
-                    conversationId: newConversationId,
-                    senderId: currentUser.id,
-                    content: `${displayGroupName} created`,
-                    timestamp,
-                    read: false,
-                    isEvent: true,
-                    conversationMessagesId: newConversationId, // Add this field to properly link the message to the conversation
-                  }
-                },
+              await api.createMessage({
+                conversationId: newConversationId,
+                senderId: currentUser.id,
+                content: `${displayGroupName} created`,
+                timestamp,
+                read: false,
+                isEvent: true
               });
 
               console.log("Initial message created");
@@ -336,11 +245,6 @@ const CreateGroupChatModal = ({ isOpen, onClose }) => {
             console.log("Error details:", JSON.stringify(err, null, 2));
             message.error("Failed to add you to the group chat");
           }
-        } catch (err) {
-          console.error("Error updating conversation:", err);
-          console.log("Error details:", JSON.stringify(err, null, 2));
-          message.error("Failed to update group chat information");
-        }
       } catch (err) {
         console.error("Error creating conversation:", err);
         console.log("Error details:", JSON.stringify(err, null, 2));

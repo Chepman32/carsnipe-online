@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Auth } from 'aws-amplify';
-import { Amplify } from 'aws-amplify';
-import { withAuthenticator } from '@aws-amplify/ui-react';
+import { supabase, getCurrentUser, signOut as supabaseSignOut } from '../supabase';
 
 function MyAuth() {
   const [user, setUser] = useState(null);
@@ -12,32 +10,32 @@ function MyAuth() {
 
   async function checkUser() {
     try {  
-      const data = await Auth.currentAuthenticatedUser();
+      const data = await getCurrentUser();
       setUser(data);
     } catch (err) {
       setUser(null);
     }
   }
 
-  function signOut() {
-    Auth.signOut();
+  async function signOut() {
+    await supabaseSignOut();
     setUser(null);
   }
 
   if (!user) {
     return (
-      <button onClick={() => Auth.federatedSignIn()}>
-        Sign in
-      </button>
+      <div>
+        <p>Please sign in to continue</p>
+      </div>
     );
   }
 
   return (
     <div>
-      <div>Welcome, {user.username}!</div>
+      <div>Welcome, {user.email}!</div>
       <button onClick={signOut}>Sign Out</button>
     </div>
   );
 }
 
-export default withAuthenticator(MyAuth);
+export default MyAuth;

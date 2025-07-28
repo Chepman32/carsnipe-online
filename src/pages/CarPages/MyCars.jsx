@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Form, message, Typography, Spin } from "antd";
-import { generateClient } from "aws-amplify/api";
-import { listCars as listCarsQuery } from "../../graphql/queries";
-import * as mutations from "../../graphql/mutations";
+import { supabase } from "../../supabase";
 import "./carsPage.css";
 import CarDetailsModal from "./CarDetailsModal";
 import CarCard from "./CarCard";
@@ -28,7 +26,7 @@ import {
 import { useDemoMode } from "../../contexts/DemoModeContext";
 import { getMockCars, updateMockCars } from "../../mockData";
 
-const client = generateClient();
+// Supabase client configured in ../../supabase.js
 
 const MyCars = ({ playerInfo }) => {
   const [cars, setCars] = useState([]);
@@ -484,18 +482,34 @@ const MyCars = ({ playerInfo }) => {
         if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
         message.success("Auction created successfully in demo mode!");
       } else {
-        // Normal mode - use API
-        const result = await client.graphql({
-          query: mutations.createAuction,
-          variables: { input: newAuction },
-        });
+        // Normal mode - use Supabase API
+        const { data: createdAuction, error } = await supabase
+          .from('auctions')
+          .insert([{
+            make: newAuction.make,
+            model: newAuction.model,
+            year: newAuction.year,
+            car_id: newAuction.carId,
+            current_bid: newAuction.currentBid,
+            end_time: newAuction.endTime,
+            status: newAuction.status,
+            player: newAuction.player,
+            buy: newAuction.buy,
+            min_bid: newAuction.minBid,
+            type: newAuction.type,
+            bids_count: 0
+          }])
+          .select()
+          .single();
 
-        const createdAuctionId = result?.data?.createAuction?.id;
+        if (error) throw error;
+
+        const createdAuctionId = createdAuction?.id;
         if (createdAuctionId) {
           await createNewAuctionUser(playerInfo.id, createdAuctionId);
           const carToDelete = await getUserCar(playerInfo.id, selectedCar.id);
           if (carToDelete && carToDelete.id) {
-            await deleteUserCar(carToDelete.id);
+            await deleteUserCar(carToDelete.id, playerInfo.id);
           } else {
             throw new Error("Car not found or invalid ID for deletion");
           }

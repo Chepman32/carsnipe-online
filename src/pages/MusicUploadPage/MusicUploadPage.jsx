@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { uploadData } from '@aws-amplify/storage';
+// AWS Amplify storage removed - implement with Supabase storage if needed
 
 const MusicUploadPage = () => {
   const [file, setFile] = useState(null);
@@ -25,17 +25,18 @@ const MusicUploadPage = () => {
     };
 
     try {
-      const result = await uploadData({
-        path: `public/album/2024/${file.name}`,
-        data: file,
-        options: {
-          contentType: file.type,
-          progressCallback: onProgress,
-        },
-      });
+      // AWS Amplify storage removed - implement with Supabase storage if needed
+      // const result = await uploadData({
+      //   path: `public/album/2024/${file.name}`,
+      //   data: file,
+      //   options: {
+      //     contentType: file.type,
+      //     progressCallback: onProgress,
+      //   },
+      // });
 
-      console.log('Upload result:', result);
-      setUploadMessage(`File uploaded successfully: ${result.key}`);
+      console.log('Upload disabled - needs Supabase storage implementation');
+      setUploadMessage('Upload feature requires Supabase storage implementation');
       setFile(null);
     } catch (error) {
       console.error("Error uploading file:", error);

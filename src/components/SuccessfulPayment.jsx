@@ -1,13 +1,15 @@
 import React, { useEffect } from 'react';
-import { Amplify } from 'aws-amplify'; // Update the import statement
+import { supabase } from '../supabase';
+import * as api from '../api/supabaseApi';
 
 export default function SuccessfulPayment({playerInfo}) {
     const callLambdaFunction = async () => {
         try {
-            const response = await Amplify.API.post('virtualcars', '/src/processPayment/index.js', {
-                body: { userId: playerInfo.id } // Pass the user ID to identify the user
+            // Update user money directly via Supabase
+            const updatedUser = await api.updateUser(playerInfo.id, {
+                money: (playerInfo.money || 0) + 100000 // Add $100k for successful payment
             });
-            console.log('User money updated:', response);
+            console.log('User money updated:', updatedUser);
         } catch (error) {
             console.error('Error updating user money:', error);
         }

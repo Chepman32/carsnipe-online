@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Button, Modal, Form, Input, message, Select, Spin } from "antd";
-import { generateClient } from "aws-amplify/api";
-import { listCars as listCarsQuery } from "../../graphql/queries";
-import * as mutations from "../../graphql/mutations";
+import { supabase } from "../../supabase";
 import "./carsPage.css";
 import CarDetailsModal from "./CarDetailsModal";
 import CarCard from "./CarCard";
@@ -29,7 +27,7 @@ import { useDemoMode } from "../../contexts/DemoModeContext";
 import { getMockCars, updateMockCars } from "../../mockData";
 
 const { Option } = Select;
-const client = generateClient();
+// Supabase client configured in ../../supabase.js
 
 const CarsStore = ({ playerInfo, setMoney, money }) => {
   const dispatch = useDispatch();
@@ -276,9 +274,18 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
       
       // Always fetch cars from backend, even in demo mode
       console.log("Fetching cars from backend");
-      const carData = await client.graphql({ query: listCarsQuery });
+      const { data: carData, error } = await supabase
+        .from('cars')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching cars:", error);
+        throw error;
+      }
+      
       console.log("Car data received:", carData);
-      carsData = carData.data.listCars.items;
+      carsData = carData;
       
       // If in demo mode and no cars were returned, use default mock cars
       if (isDemoMode && (!carsData || carsData.length === 0)) {
@@ -417,7 +424,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     } finally {
       setCarsLoading(false); // Stop loading indicator
     }
-  }, [isDemoMode, client]); // Add isDemoMode and client as dependencies
+  }, [isDemoMode]); // Add isDemoMode as dependency
 
   useEffect(() => { fetchCars() }, [fetchCars]);
 
@@ -758,10 +765,10 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
             
             // Try to update in backend first
             try {
-              await client.graphql({
-                query: mutations.updateUser,
-                variables: { input: { id: demoUser.id, money: newMoney } }
-              });
+              await supabase
+                .from('users')
+                .update({ money: newMoney })
+                .eq('id', demoUser.id);
               console.log("Demo user money updated in backend");
               
               // Create user car in backend
@@ -797,13 +804,14 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
           }
         } else {
           // For authenticated users, use the backend
-          await client.graphql({
-            query: mutations.updateUser,
-            variables: { input: { id: playerInfo.id, money: newMoney } }
-          });
+          await supabase
+            .from('users')
+            .update({ money: newMoney })
+            .eq('id', playerInfo.id);
+          
           await createNewUserCar(playerInfo.id, car.id); // Ensure this awaits if necessary
           message.success("Car successfully bought!");
-          await checkAndUpdateAchievements(playerInfo); // Check achievements after successful purchase
+          await checkAndUpdateAchievements(playerInfo.id); // Check achievements after successful purchase
         }
       } catch (err) {
         console.error("Error buying car:", err);
@@ -845,10 +853,17 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     try {
         // Always use the backend to create cars, even in demo mode
         console.log("Creating car in backend");
-        await client.graphql({
-          query: mutations.createCar,
-          variables: { input: { ...values, year: parseInt(values.year), price: parseInt(values.price) } }
-        });
+        const { data: newCar, error } = await supabase
+          .from('cars')
+          .insert([{
+            ...values,
+            year: parseInt(values.year),
+            price: parseInt(values.price)
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
         
         // If in demo mode, also update localStorage for backup
         if (isDemoMode) {
