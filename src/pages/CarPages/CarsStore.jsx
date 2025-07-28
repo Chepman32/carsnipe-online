@@ -704,7 +704,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                    return; // Handled top row up
                }
 
-               // 2b. If in Bottom Row: Move focus to the corresponding car in the top row.
+               // 2b. If in Bottom Row: Move focus to the corresponding car in the top row of the same make.
                const isBottomRow = allBottomRowCars.some(c => c.id === focusedCar.id);
                if (isBottomRow) {
                    const makeCars = carsByMake[currentMake];
@@ -713,9 +713,11 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                        const topRowCarsOfMake = sortedMakeCars.filter((_, i) => i % 2 === 0);
                        const bottomRowCarsOfMake = sortedMakeCars.filter((_, i) => i % 2 === 1);
                        
+                       // Find the index of the current car within this make's bottom row
                        const bottomRowIndex = bottomRowCarsOfMake.findIndex(c => c.id === focusedCar.id);
                        
                        if (bottomRowIndex !== -1 && topRowCarsOfMake.length > bottomRowIndex) {
+                           // Move to the corresponding position in the top row of this make
                            const topCar = topRowCarsOfMake[bottomRowIndex];
                            console.log("Going up from bottom row car", focusedCar.model, "to top row car", topCar.model);
                            setFocusedCar(topCar);

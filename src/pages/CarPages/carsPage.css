@@ -354,17 +354,18 @@ body {
 /* Car Card Styles for Authenticated Mode */
 .car-card {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr 30px; /* Fixed height for type section */
   width: 36vh;
   height: 36vh;
   flex: 0 0 auto;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  padding: 12px; /* Reduced padding */
+  padding: 8px; /* Even more reduced padding */
   position: relative;
   transition: all 0.3s ease;
   border: 2px solid transparent;
   overflow: hidden; /* Prevent content from overflowing */
+  gap: 2px; /* Reduced gap between grid rows */
 }
 
 .car-card-focused {
@@ -419,8 +420,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 0; /* Reduced padding */
-  margin: 8px 0; /* Reduced margin */
+  padding: 4px 0; /* Further reduced padding */
+  margin: 4px 0; /* Further reduced margin */
   min-height: 0; /* Allow container to shrink */
   overflow: hidden; /* Prevent image from overflowing */
 }
@@ -453,15 +454,17 @@ body {
 .car-card-type {
   grid-row: 3;
   width: 100%;
-  padding: 0.5vh 0;
+  height: 30px; /* Match the grid row height */
+  padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 4px;
   font-weight: bold;
-  font-size: 2vh; /* Reduced font size */
-  min-height: 0; /* Allow type to shrink if needed */
-  margin-top: 4px; /* Add some margin to ensure it's not cut off */
+  font-size: 1.4vh; /* Even smaller font size */
+  flex-shrink: 0; /* Prevent shrinking */
+  position: relative; /* Ensure proper stacking */
+  z-index: 1; /* Ensure it stays on top */
 }
 
 .car-card-type.common {
