@@ -10,7 +10,7 @@ import { QuickSettingsMenu } from "../../components/QuickSettings/QuickSettingsM
 import { playOpeningSound, playSwitchSound } from "../../functions";
 import MainPageSettings from "./MainPageCards/MainPageSettings";
 
-export const MainPage = ({ selectedElement, handleElementSelect }) => {
+export const MainPage = ({ selectedElement, handleElementSelect } = {}) => {
   const initialFocusedTile = sessionStorage.getItem("lastFocusedTile") || "leftTop";
   const [focusedTile, setFocusedTile] = useState(initialFocusedTile);
   const [lastFocusedLeftTile, setLastFocusedLeftTile] = useState("leftTop");
@@ -104,11 +104,36 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
     setFocusedTile(tile);
   };
 
-  const handleTileClick = (event) => {
+  const handleTileClick = (tileName) => {
     if (settingsMenuOpen) {
       setSettingsMenuOpen(false);
-      alert("stopped");
       return;
+    }
+
+    playOpeningSound();
+    sessionStorage.setItem("lastFocusedTile", tileName);
+
+    switch (tileName) {
+      case "leftTop":
+        navigate("/mycars");
+        break;
+      case "leftBottom":
+        navigate("/carsStore");
+        break;
+      case "center":
+        navigate("/auctionsHub");
+        break;
+      case "rightTop":
+        navigate("/store");
+        break;
+      case "rightBottom":
+        navigate("/profileEditPage");
+        break;
+      case "settingsBtn":
+        navigate("/settings");
+        break;
+      default:
+        break;
     }
   };
 
@@ -119,19 +144,19 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
           <MainPageLeftTop
             focused={focusedTile === "leftTop"}
             handleMouseEnter={handleMouseEnter}
-            onClick={handleTileClick}
+            onClick={() => handleTileClick("leftTop")}
           />
           <MainPageLeftBottom
             focused={focusedTile === "leftBottom"}
             handleMouseEnter={handleMouseEnter}
-            onClick={handleTileClick}
+            onClick={() => handleTileClick("leftBottom")}
           />
         </div>
         <div className="column">
           <MainPageCenter
             focused={focusedTile === "center"}
             handleMouseEnter={handleMouseEnter}
-            onClick={handleTileClick}
+            onClick={() => handleTileClick("center")}
             isMenuOpen={settingsMenuOpen}
           />
         </div>
@@ -139,12 +164,12 @@ export const MainPage = ({ selectedElement, handleElementSelect }) => {
           <MainPageRightTop
             focused={focusedTile === "rightTop"}
             handleMouseEnter={handleMouseEnter}
-            onClick={handleTileClick}
+            onClick={() => handleTileClick("rightTop")}
           />
           <MainPageRightBottom
             focused={focusedTile === "rightBottom"}
             handleMouseEnter={handleMouseEnter}
-            onClick={handleTileClick}
+            onClick={() => handleTileClick("rightBottom")}
           />
           <MainPageSettings
             focused={focusedTile === "settingsBtn"}

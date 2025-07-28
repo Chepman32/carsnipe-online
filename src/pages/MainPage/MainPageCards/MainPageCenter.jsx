@@ -1,17 +1,17 @@
 import { Typography } from 'antd';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const MainPageCenter = ({ focused, handleMouseEnter, onClick, isMenuOpen }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   const { darkMode } = useSelector((state) => state.quickSettings);
 
   const handleClick = () => {
-    !isMenuOpen && navigate("/auctionsHub");
+    if (!isMenuOpen && onClick) {
+      onClick();
+    }
   };
   return (
     <div className={`tile ${darkMode ? 'darkTile' : ''} ${focused ? 'focused' : ''}`} onMouseEnter={() => handleMouseEnter("center")} onClick={handleClick}>

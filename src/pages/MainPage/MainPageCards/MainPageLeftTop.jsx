@@ -1,16 +1,15 @@
 import React from 'react';
-import { Card, Typography } from 'antd';
-import { Link } from 'react-router-dom';
+import { Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 
-const MainPageLeftTop = ({ focused, handleMouseEnter }) => {
+const MainPageLeftTop = ({ focused, handleMouseEnter, onClick }) => {
   const { t } = useTranslation();
   return (
-    <Link to="/mycars" className={`tile ${focused ? 'focused' : ''}`} onMouseEnter={() => handleMouseEnter("leftTop")}>
+    <div className={`tile ${focused ? 'focused' : ''}`} onMouseEnter={() => handleMouseEnter("leftTop")} onClick={onClick}>
       <Typography.Text className="mainpage__cardText_black">
         {t('header.mainPage.myCars')}
       </Typography.Text>
-    </Link>
+    </div>
   );
 };
 
