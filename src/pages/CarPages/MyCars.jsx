@@ -115,7 +115,7 @@ const MyCars = ({ playerInfo }) => {
     if (focusedZone !== FOCUS_ZONES.HEADER) {
       dispatch(setCurrentFocusedElement(TOP_CAR));
     }
-  }, [dispatch]);
+  }, [dispatch, focusedZone]);
 
   useEffect(() => {
     if (focusedZone === FOCUS_ZONES.HEADER) {
@@ -123,7 +123,7 @@ const MyCars = ({ playerInfo }) => {
       setFocusedMake(null);
       setFocusedCar(null);
     }
-  }, [focusedZone]);
+  }, [focusedZone, setSelectedCarIndex, setFocusedMake, setFocusedCar]);
 
   useEffect(() => {
     if (focusedCar) {
@@ -136,7 +136,7 @@ const MyCars = ({ playerInfo }) => {
     if (cars.length > 0 && !focusedCar) {
       setFocusedCar(cars[0].car);
     }
-  }, [cars]);
+  }, [cars, focusedCar]);
 
   const fetchUserCars = useCallback(async () => {
     try {
@@ -152,16 +152,20 @@ const MyCars = ({ playerInfo }) => {
           console.log("Found user cars in localStorage:", demoUserCars.length);
           
           // Format the cars to match the expected structure
-          // The structure in localStorage has car objects inside each item
           const formattedCars = demoUserCars.map(userCar => {
-            // If the car is already in the expected format, use it as is
+            // Handle the structure from CarsStore.jsx buyCar function
             if (userCar.car) {
-              return userCar;
+              return {
+                id: userCar.id,
+                userId: userCar.userId,
+                carId: userCar.carId,
+                car: userCar.car
+              };
             }
             
-            // Otherwise, create the expected structure
+            // Handle legacy structure or fallback
             return {
-              id: userCar.id,
+              id: userCar.id || `user-car-${Date.now()}`,
               userId: userCar.userId,
               carId: userCar.carId,
               car: userCar.car || {
@@ -175,6 +179,7 @@ const MyCars = ({ playerInfo }) => {
             };
           });
           
+          console.log("Formatted cars for demo mode:", formattedCars);
           setCars(formattedCars);
         } else {
           console.log("No user cars found in localStorage");
@@ -213,7 +218,7 @@ const MyCars = ({ playerInfo }) => {
     } finally {
       setLoading(false);
     }
-  }, [playerInfo.id, isDemoMode, demoUser]);
+  }, [playerInfo.id, isDemoMode, demoUser, loadingNewAuction]);
 
   useEffect(() => {
     console.log("Fetching user cars...");
@@ -471,10 +476,13 @@ const MyCars = ({ playerInfo }) => {
       if (isDemoMode) {
         console.log("Demo mode: Creating auction for car", selectedCar);
         
-        // In demo mode, we just need to remove the car from the mock cars
-        const mockCars = getMockCars();
-        const updatedMockCars = mockCars.filter(car => car.id !== selectedCar.id);
-        updateMockCars(updatedMockCars);
+        // In demo mode, remove the car from localStorage
+        const demoUserCars = JSON.parse(localStorage.getItem('demoUserCars') || '[]');
+        const updatedDemoUserCars = demoUserCars.filter(userCar => {
+          const carIdToCheck = userCar.carId || (userCar.car && userCar.car.id);
+          return carIdToCheck !== selectedCar.id;
+        });
+        localStorage.setItem('demoUserCars', JSON.stringify(updatedDemoUserCars));
         
         // Remove the car from the current state
         setCars(prevCars => prevCars.filter(c => c.car.id !== selectedCar.id));

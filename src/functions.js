@@ -7,7 +7,7 @@ import avatar1 from "./assets/images/avatars/avatar1.png";
 import { message } from "antd";
 
 // Import Supabase API functions
-import * as api from './api/supabaseApi';
+import * as api from "./api/supabaseApi";
 
 export const fetchUserCarsRequest = async (id) => {
   try {
@@ -17,8 +17,9 @@ export const fetchUserCarsRequest = async (id) => {
     }
 
     const { data: userCars, error } = await supabase
-      .from('user_cars')
-      .select(`
+      .from("user_cars")
+      .select(
+        `
         car_id,
         cars (
           id,
@@ -28,8 +29,9 @@ export const fetchUserCarsRequest = async (id) => {
           type,
           price
         )
-      `)
-      .eq('user_id', id);
+      `
+      )
+      .eq("user_id", id);
 
     if (error) {
       console.error("Error fetching user's cars:", error);
@@ -37,9 +39,11 @@ export const fetchUserCarsRequest = async (id) => {
     }
 
     // Transform to match expected format
-    return userCars?.map(userCar => ({
-      car: userCar.cars
-    })) || [];
+    return (
+      userCars?.map((userCar) => ({
+        car: userCar.cars,
+      })) || []
+    );
   } catch (error) {
     console.error("Error fetching user's cars:", error);
     return [];
@@ -75,9 +79,9 @@ export const fetchUserInfoById = async (userId) => {
     }
 
     const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
+      .from("users")
+      .select("*")
+      .eq("id", userId)
       .single();
 
     if (error) {
@@ -95,10 +99,10 @@ export const fetchUserInfoById = async (userId) => {
 export const getCarTypeColor = (carType) => {
   // Handle undefined/null case
   if (!carType) return "#32a852"; // Default to regular color
-  
+
   // Convert to lowercase for case-insensitive comparison
   const type = carType.toLowerCase();
-  
+
   switch (type) {
     case "regular":
     case "common":
@@ -118,7 +122,7 @@ export function calculateTimeDifference(targetTime) {
   let targetDateTime;
 
   // Check if targetTime is a string representing a Unix timestamp in seconds
-  if (typeof targetTime === 'string' && /^\d+$/.test(targetTime)) {
+  if (typeof targetTime === "string" && /^\d+$/.test(targetTime)) {
     // Convert seconds string to milliseconds number
     const timestampMs = parseInt(targetTime, 10) * 1000;
     targetDateTime = new Date(timestampMs);
@@ -129,7 +133,10 @@ export function calculateTimeDifference(targetTime) {
 
   // Check if the date is valid after parsing
   if (isNaN(targetDateTime.getTime())) {
-    console.error("Invalid date format received in calculateTimeDifference:", targetTime);
+    console.error(
+      "Invalid date format received in calculateTimeDifference:",
+      targetTime
+    );
     return "Invalid Date"; // Return an error string or handle appropriately
   }
 
@@ -158,18 +165,18 @@ export const createNewUserCar = async (userId, carId) => {
   try {
     // Insert user-car relationship
     const { error: insertError } = await supabase
-      .from('user_cars')
+      .from("user_cars")
       .insert([{ user_id: userId, car_id: carId }]);
 
     if (insertError) throw insertError;
 
     // Update user's total cars owned count
     const { data: user, error: updateError } = await supabase
-      .from('users')
-      .update({ 
-        total_cars_owned: supabase.raw('total_cars_owned + 1')
+      .from("users")
+      .update({
+        total_cars_owned: supabase.raw("total_cars_owned + 1"),
       })
-      .eq('id', userId)
+      .eq("id", userId)
       .select()
       .single();
 
@@ -178,15 +185,16 @@ export const createNewUserCar = async (userId, carId) => {
     return { data: { updateUser: user } };
   } catch (error) {
     console.error("Error associating car with user:", error);
+    throw error; // Re-throw the error so the calling function knows something went wrong
   }
 };
 
 export async function getUserCar(userId, carId) {
   const { data: userCar, error } = await supabase
-    .from('user_cars')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('car_id', carId)
+    .from("user_cars")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("car_id", carId)
     .single();
 
   if (error) {
@@ -200,20 +208,20 @@ export const deleteUserCar = async (carId, userId) => {
   try {
     // Delete user-car relationship
     const { error: deleteError } = await supabase
-      .from('user_cars')
+      .from("user_cars")
       .delete()
-      .eq('car_id', carId)
-      .eq('user_id', userId);
+      .eq("car_id", carId)
+      .eq("user_id", userId);
 
     if (deleteError) throw deleteError;
 
     // Update user's total cars owned count
     const { error: updateError } = await supabase
-      .from('users')
-      .update({ 
-        total_cars_owned: supabase.raw('total_cars_owned - 1')
+      .from("users")
+      .update({
+        total_cars_owned: supabase.raw("total_cars_owned - 1"),
       })
-      .eq('id', userId);
+      .eq("id", userId);
 
     if (updateError) throw updateError;
   } catch (error) {
@@ -224,11 +232,13 @@ export const deleteUserCar = async (carId, userId) => {
 export const createNewAuctionUser = async (userId, auctionId) => {
   try {
     const { data: auctionUser, error } = await supabase
-      .from('auction_users')
-      .insert([{
-        user_id: userId,
-        auction_id: auctionId,
-      }])
+      .from("auction_users")
+      .insert([
+        {
+          user_id: userId,
+          auction_id: auctionId,
+        },
+      ])
       .select()
       .single();
 
@@ -249,37 +259,46 @@ export const fetchAuctionUser = async (auctionId) => {
     }
 
     console.log("Fetching auction user for ID:", auctionId);
-    
+
     // First try to get the auction to find the player
     const { data: auction, error: auctionError } = await supabase
-      .from('auctions')
-      .select('*')
-      .eq('id', auctionId)
+      .from("auctions")
+      .select("*")
+      .eq("id", auctionId)
       .single();
-    
+
     if (auctionError || !auction) {
       console.log("No auction found for ID:", auctionId);
       return null;
     }
-    
-    console.log("Found auction:", auction.make, auction.model, "Player:", auction.player);
-    
+
+    console.log(
+      "Found auction:",
+      auction.make,
+      auction.model,
+      "Player:",
+      auction.player
+    );
+
     // Try to find the auction user relationship
     const { data: auctionUsers, error: auctionUserError } = await supabase
-      .from('auction_users')
-      .select('user_id')
-      .eq('auction_id', auctionId)
+      .from("auction_users")
+      .select("user_id")
+      .eq("auction_id", auctionId)
       .limit(1);
 
     const auctionUser = auctionUsers?.[0];
 
     // If we found an auction user relationship, use that to get the user
     if (auctionUser && auctionUser.user_id) {
-      console.log("Found auction user relationship with userId:", auctionUser.user_id);
+      console.log(
+        "Found auction user relationship with userId:",
+        auctionUser.user_id
+      );
       const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', auctionUser.user_id)
+        .from("users")
+        .select("*")
+        .eq("id", auctionUser.user_id)
         .single();
 
       if (user && !userError) {
@@ -291,20 +310,25 @@ export const fetchAuctionUser = async (auctionId) => {
     } else {
       console.log("No auction user relationship found");
     }
-    
+
     // If no auction user relationship found or user not found, try to find by player nickname
     if (auction.player) {
       console.log("Finding user by nickname:", auction.player);
       const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('nickname', auction.player)
+        .from("users")
+        .select("*")
+        .eq("nickname", auction.player)
         .limit(1);
 
       const user = users?.[0];
-      
+
       if (user && !usersError) {
-        console.log("Found user by nickname:", user.nickname, "with ID:", user.id);
+        console.log(
+          "Found user by nickname:",
+          user.nickname,
+          "with ID:",
+          user.id
+        );
         // Create the auction user relationship for future use
         try {
           const result = await createNewAuctionUser(user.id, auctionId);
@@ -321,45 +345,53 @@ export const fetchAuctionUser = async (auctionId) => {
     } else {
       console.log("Auction has no player field");
     }
-    
+
     // If we get here, we couldn't find a user by any method
     // Let's try one more approach - check if lastBidPlayer exists and find by that
     if (auction.last_bid_player && auction.last_bid_player !== auction.player) {
-      console.log("Trying to find user by lastBidPlayer:", auction.last_bid_player);
+      console.log(
+        "Trying to find user by lastBidPlayer:",
+        auction.last_bid_player
+      );
       const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('nickname', auction.last_bid_player)
+        .from("users")
+        .select("*")
+        .eq("nickname", auction.last_bid_player)
         .limit(1);
 
       const user = users?.[0];
-      
+
       if (user && !usersError) {
         console.log("Found user by lastBidPlayer:", user.nickname);
         try {
           await createNewAuctionUser(user.id, auctionId);
-          console.log("Created new auction user relationship for lastBidPlayer");
+          console.log(
+            "Created new auction user relationship for lastBidPlayer"
+          );
         } catch (err) {
-          console.error("Error creating auction user relationship for lastBidPlayer:", err);
+          console.error(
+            "Error creating auction user relationship for lastBidPlayer:",
+            err
+          );
         }
         return user;
       }
     }
-    
+
     console.log("No user found for auction ID:", auctionId);
     // Return a default user object with a default avatar to prevent null issues
-    return { 
-      id: "default", 
-      nickname: auction.player || "Unknown", 
-      avatar: "avatar1" 
+    return {
+      id: "default",
+      nickname: auction.player || "Unknown",
+      avatar: "avatar1",
     };
   } catch (error) {
     console.error("Error in fetchAuctionUser:", error);
     // Return a default user object with a default avatar to prevent null issues
-    return { 
-      id: "default", 
-      nickname: "Unknown", 
-      avatar: "avatar1" 
+    return {
+      id: "default",
+      nickname: "Unknown",
+      avatar: "avatar1",
     };
   }
 };
@@ -368,17 +400,20 @@ export const increaseAuctionUserMoney = async (auctionUserId) => {
   try {
     // Update user money by adding 2000
     const { data: user, error } = await supabase
-      .from('users')
-      .update({ 
-        money: supabase.raw('money + 2000')
+      .from("users")
+      .update({
+        money: supabase.raw("money + 2000"),
       })
-      .eq('id', auctionUserId)
-      .select('money')
+      .eq("id", auctionUserId)
+      .select("money")
       .single();
 
     if (error) throw error;
 
-    console.log("Increased auction user money by 2000! New amount:", user.money);
+    console.log(
+      "Increased auction user money by 2000! New amount:",
+      user.money
+    );
   } catch (error) {
     console.log(error);
     throw error;
@@ -388,13 +423,13 @@ export const increaseAuctionUserMoney = async (auctionUserId) => {
 export async function getUserCreatedAuction(auctionId) {
   try {
     const { data: auctionUsers, error } = await supabase
-      .from('auction_users')
-      .select('user_id')
-      .eq('auction_id', auctionId)
+      .from("auction_users")
+      .select("user_id")
+      .eq("auction_id", auctionId)
       .single();
 
     if (error) {
-      console.error('Error fetching auction user:', error);
+      console.error("Error fetching auction user:", error);
       return null;
     }
 
@@ -408,11 +443,13 @@ export async function getUserCreatedAuction(auctionId) {
 export const addUserToAuction = async (userId, auctionId) => {
   try {
     const { data, error } = await supabase
-      .from('auction_users')
-      .insert([{
-        user_id: userId,
-        auction_id: auctionId
-      }])
+      .from("auction_users")
+      .insert([
+        {
+          user_id: userId,
+          auction_id: auctionId,
+        },
+      ])
       .select()
       .single();
 
@@ -431,9 +468,9 @@ export const addUserToAuction = async (userId, auctionId) => {
 export const fetchUserBiddedList = async (userId) => {
   try {
     const { data: bidInfo, error } = await supabase
-      .from('bid_info')
-      .select('*')
-      .eq('user_id', userId);
+      .from("bid_info")
+      .select("*")
+      .eq("user_id", userId);
 
     if (error) {
       console.error("Error fetching user's bidded auctions:", error);
@@ -450,9 +487,9 @@ export const fetchUserBiddedList = async (userId) => {
 export const fetchUserData = async (userId) => {
   try {
     const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
+      .from("users")
+      .select("*")
+      .eq("id", userId)
       .single();
 
     if (error) {
@@ -470,9 +507,9 @@ export const fetchUserData = async (userId) => {
 export const fetchUserAchievementsList = async (userId) => {
   try {
     const { data: achievements, error } = await supabase
-      .from('achievements')
-      .select('*')
-      .eq('user_id', userId);
+      .from("achievements")
+      .select("*")
+      .eq("user_id", userId);
 
     if (error) {
       console.error("Error fetching user achievements:", error);
@@ -489,14 +526,16 @@ export const fetchUserAchievementsList = async (userId) => {
 export const getCarPriceByIdFromUserCar = async (userId, carId) => {
   try {
     const { data: userCar, error } = await supabase
-      .from('user_cars')
-      .select(`
+      .from("user_cars")
+      .select(
+        `
         cars (
           price
         )
-      `)
-      .eq('user_id', userId)
-      .eq('car_id', carId)
+      `
+      )
+      .eq("user_id", userId)
+      .eq("car_id", carId)
       .single();
 
     if (error) {
@@ -543,14 +582,14 @@ export const getCarsPerRow = () => {
 export const selectAvatar = (avatar) => {
   try {
     // Extract the number from the avatar string (e.g. "avatar22" -> 22)
-    const avatarNumber = parseInt(avatar.replace('avatar', ''));
-    
+    const avatarNumber = parseInt(avatar.replace("avatar", ""));
+
     if (!isNaN(avatarNumber)) {
       // Use import() instead of require for dynamic imports
       // This returns a Promise, so we need to handle it differently
       return import(`./assets/images/avatars/avatar${avatarNumber}.png`)
-        .then(module => module.default)
-        .catch(error => {
+        .then((module) => module.default)
+        .catch((error) => {
           console.warn(`Avatar ${avatar} not found, falling back to avatar1`);
           return avatar1;
         });
@@ -558,7 +597,7 @@ export const selectAvatar = (avatar) => {
   } catch (error) {
     console.warn(`Avatar ${avatar} not found, falling back to avatar1`);
   }
-  
+
   // Default case if the input is invalid or avatar not found
   return avatar1;
 };
@@ -569,24 +608,28 @@ export function extractNameFromEmail(email) {
 
 export const getImageSource = (make, model) => {
   if (!make || !model) {
-    console.warn('Missing make or model for getImageSource');
-    return 'https://via.placeholder.com/300x200?text=No+Image';
+    console.warn("Missing make or model for getImageSource");
+    return "https://via.placeholder.com/300x200?text=No+Image";
   }
-  
+
   const imageName = `${make} ${model}.png`;
-  
+
   try {
     // First try to use dynamic import
     return import(`./assets/images/cars/${imageName}`)
-      .then(module => module.default)
-      .catch(error => {
-        console.warn(`Car image for ${make} ${model} not found: ${error.message}`);
+      .then((module) => module.default)
+      .catch((error) => {
+        console.warn(
+          `Car image for ${make} ${model} not found: ${error.message}`
+        );
         // Return a placeholder image
-        return 'https://via.placeholder.com/300x200?text=No+Image';
+        return "https://via.placeholder.com/300x200?text=No+Image";
       });
   } catch (error) {
-    console.warn(`Error loading car image for ${make} ${model}: ${error.message}`);
-    return 'https://via.placeholder.com/300x200?text=No+Image';
+    console.warn(
+      `Error loading car image for ${make} ${model}: ${error.message}`
+    );
+    return "https://via.placeholder.com/300x200?text=No+Image";
   }
 };
 
@@ -594,8 +637,8 @@ export const getAchievementImageSource = (title) => {
   const imageName = `${title}.png`;
   // Use dynamic import instead of require
   return import(`./assets/images/achievements/${imageName}`)
-    .then(module => module.default)
-    .catch(error => {
+    .then((module) => module.default)
+    .catch((error) => {
       console.warn(`Achievement image for ${title} not found`);
       // You might want to return a default image here
       return null;
@@ -606,11 +649,13 @@ export async function createConversation(userId1, userId2) {
   try {
     // Create a new conversation
     const { data: newConversation, error: conversationError } = await supabase
-      .from('conversations')
-      .insert([{
-        last_message_at: new Date().toISOString(),
-        is_group: false
-      }])
+      .from("conversations")
+      .insert([
+        {
+          last_message_at: new Date().toISOString(),
+          is_group: false,
+        },
+      ])
       .select()
       .single();
 
@@ -621,20 +666,23 @@ export async function createConversation(userId1, userId2) {
 
     // Add both users to the conversation
     const { error: userConversationError } = await supabase
-      .from('user_conversations')
+      .from("user_conversations")
       .insert([
         {
           user_id: userId1,
-          conversation_id: newConversation.id
+          conversation_id: newConversation.id,
         },
         {
           user_id: userId2,
-          conversation_id: newConversation.id
-        }
+          conversation_id: newConversation.id,
+        },
       ]);
 
     if (userConversationError) {
-      console.error("Error adding users to conversation:", userConversationError);
+      console.error(
+        "Error adding users to conversation:",
+        userConversationError
+      );
       throw userConversationError;
     }
 
@@ -645,21 +693,28 @@ export async function createConversation(userId1, userId2) {
   }
 }
 
-export async function sendMessage(conversationId, senderId, content, isEvent = false) {
+export async function sendMessage(
+  conversationId,
+  senderId,
+  content,
+  isEvent = false
+) {
   try {
     const timestamp = new Date().toISOString();
 
     // Create new message
     const { data: newMessage, error: messageError } = await supabase
-      .from('messages')
-      .insert([{
-        conversation_id: conversationId,
-        sender_id: senderId,
-        content,
-        timestamp,
-        read: false,
-        is_event: isEvent
-      }])
+      .from("messages")
+      .insert([
+        {
+          conversation_id: conversationId,
+          sender_id: senderId,
+          content,
+          timestamp,
+          read: false,
+          is_event: isEvent,
+        },
+      ])
       .select()
       .single();
 
@@ -670,14 +725,14 @@ export async function sendMessage(conversationId, senderId, content, isEvent = f
 
     // Update conversation with last message info
     const { error: conversationError } = await supabase
-      .from('conversations')
+      .from("conversations")
       .update({
         last_message_at: timestamp,
         last_message_content: content,
         last_message_sender_id: senderId,
-        updated_at: timestamp
+        updated_at: timestamp,
       })
-      .eq('id', conversationId);
+      .eq("id", conversationId);
 
     if (conversationError) {
       console.error("Error updating conversation:", conversationError);
@@ -699,9 +754,11 @@ export async function fetchUserConversations(userId) {
     }
 
     // Get all conversations where the user is a participant
-    const { data: userConversations, error: userConversationsError } = await supabase
-      .from('user_conversations')
-      .select(`
+    const { data: userConversations, error: userConversationsError } =
+      await supabase
+        .from("user_conversations")
+        .select(
+          `
         conversation_id,
         conversations (
           id,
@@ -711,11 +768,15 @@ export async function fetchUserConversations(userId) {
           created_at,
           updated_at
         )
-      `)
-      .eq('user_id', userId);
+      `
+        )
+        .eq("user_id", userId);
 
     if (userConversationsError) {
-      console.error("Error fetching user conversations:", userConversationsError);
+      console.error(
+        "Error fetching user conversations:",
+        userConversationsError
+      );
       throw userConversationsError;
     }
 
@@ -730,32 +791,40 @@ export async function fetchUserConversations(userId) {
 
       // Get all participants for this conversation
       const { data: participants, error: participantsError } = await supabase
-        .from('user_conversations')
-        .select(`
+        .from("user_conversations")
+        .select(
+          `
           user_id,
           users (
             id,
             nickname,
             avatar
           )
-        `)
-        .eq('conversation_id', conversationId);
+        `
+        )
+        .eq("conversation_id", conversationId);
 
       if (participantsError) {
-        console.error(`Error fetching participants for conversation ${conversationId}:`, participantsError);
+        console.error(
+          `Error fetching participants for conversation ${conversationId}:`,
+          participantsError
+        );
         return null;
       }
 
       // Get recent messages for this conversation
       const { data: messages, error: messagesError } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('timestamp', { ascending: false })
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("timestamp", { ascending: false })
         .limit(10);
 
       if (messagesError) {
-        console.error(`Error fetching messages for conversation ${conversationId}:`, messagesError);
+        console.error(
+          `Error fetching messages for conversation ${conversationId}:`,
+          messagesError
+        );
       }
 
       return {
@@ -766,23 +835,23 @@ export async function fetchUserConversations(userId) {
         createdAt: conversation.created_at,
         updatedAt: conversation.updated_at,
         participants: {
-          items: participants.map(p => ({
+          items: participants.map((p) => ({
             user: p.users,
             userId: p.user_id,
-            conversationId: conversationId
-          }))
+            conversationId: conversationId,
+          })),
         },
         messages: {
-          items: messages || []
-        }
+          items: messages || [],
+        },
       };
     });
 
     const fetchedConversations = await Promise.all(conversationPromises);
-    
+
     // Filter out null conversations and sort by last message timestamp (newest first)
     return fetchedConversations
-      .filter(conv => conv !== null)
+      .filter((conv) => conv !== null)
       .sort((a, b) => {
         const timeA = new Date(a.lastMessageAt || 0);
         const timeB = new Date(b.lastMessageAt || 0);
@@ -802,10 +871,10 @@ export async function fetchConversationMessages(conversationId) {
     }
 
     const { data: messages, error } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('timestamp', { ascending: true }); // Oldest to newest
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .order("timestamp", { ascending: true }); // Oldest to newest
 
     if (error) {
       console.error("Error fetching messages:", error);
@@ -827,9 +896,9 @@ export async function markMessageAsRead(messageId) {
     }
 
     const { data, error } = await supabase
-      .from('messages')
+      .from("messages")
       .update({ read: true })
-      .eq('id', messageId)
+      .eq("id", messageId)
       .select();
 
     if (error) {
@@ -954,14 +1023,14 @@ export async function checkAndUpdateAchievements(userId) {
     if (newAchievements.length > 0 && userId) {
       try {
         // Insert new achievements
-        const achievementInserts = newAchievements.map(ach => ({
+        const achievementInserts = newAchievements.map((ach) => ({
           user_id: userId,
           name: ach.name,
-          date: ach.date
+          date: ach.date,
         }));
 
         const { error } = await supabase
-          .from('achievements')
+          .from("achievements")
           .insert(achievementInserts);
 
         if (error) throw error;
