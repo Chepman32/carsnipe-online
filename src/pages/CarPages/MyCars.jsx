@@ -57,15 +57,19 @@ const MyCars = ({ playerInfo }) => {
   const isMobile = window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent);
 
   const groupCarsByMake = useCallback((cars) => {
-    const groups = cars.reduce((acc, item) => {
-      // Handle both structures: item.car or direct car object
-      const car = item.car || item;
-      const make = car?.make?.trim().toUpperCase() || "UNKNOWN";
-      
-      if (!acc[make]) acc[make] = [];
-      acc[make].push(car);
-      return acc;
-    }, {});
+    const groups = cars
+      .filter(item => item && (item.car || item)) // Filter out null/undefined items
+      .reduce((acc, item) => {
+        // Handle both structures: item.car or direct car object
+        const car = item.car || item;
+        if (!car || !car.id) return acc; // Skip cars without valid id
+        
+        const make = car?.make?.trim().toUpperCase() || "UNKNOWN";
+        
+        if (!acc[make]) acc[make] = [];
+        acc[make].push(car);
+        return acc;
+      }, {});
     return Object.fromEntries(Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0])));
   }, []);
 
@@ -92,7 +96,7 @@ const MyCars = ({ playerInfo }) => {
   }, []);
 
   useEffect(() => {
-    if (cars.length > 0) {
+    if (!loading && cars && cars.length > 0) {
       const topRowCars = [];
       const bottomRowCars = [];
       Object.entries(groupCarsByMake(cars)).forEach(([make, makeCars]) => {
@@ -101,21 +105,29 @@ const MyCars = ({ playerInfo }) => {
           (a.model || "").localeCompare(b.model || "")
         );
         sortedMakeCars.forEach((car, index) => {
-          if (index % 2 === 0) topRowCars.push(car);
-          else bottomRowCars.push(car);
+          if (car && car.id) { // Additional null check
+            if (index % 2 === 0) topRowCars.push(car);
+            else bottomRowCars.push(car);
+          }
         });
       });
       setAllTopRowCars(topRowCars);
       setAllBottomRowCars(bottomRowCars);
+    } else if (loading) {
+      // Reset rows when loading
+      setAllTopRowCars([]);
+      setAllBottomRowCars([]);
     }
-  }, [cars, groupCarsByMake]);
+  }, [cars, groupCarsByMake, loading]);
 
   useEffect(() => {
-    dispatch(setFocusedZone(FOCUS_ZONES.PAGE));
-    if (focusedZone !== FOCUS_ZONES.HEADER) {
-      dispatch(setCurrentFocusedElement(TOP_CAR));
+    if (!loading) {
+      dispatch(setFocusedZone(FOCUS_ZONES.PAGE));
+      if (focusedZone !== FOCUS_ZONES.HEADER) {
+        dispatch(setCurrentFocusedElement(TOP_CAR));
+      }
     }
-  }, [dispatch, focusedZone]);
+  }, [dispatch, focusedZone, loading]);
 
   useEffect(() => {
     if (focusedZone === FOCUS_ZONES.HEADER) {
@@ -125,22 +137,38 @@ const MyCars = ({ playerInfo }) => {
     }
   }, [focusedZone, setSelectedCarIndex, setFocusedMake, setFocusedCar]);
 
+  // Reset focus states when loading starts
   useEffect(() => {
-    if (focusedCar) {
+    if (loading) {
+      setFocusedCar(null);
+      setFocusedMake(null);
+      setSelectedCarIndex(null);
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (focusedCar && focusedCar.id) {
       const element = document.querySelector(`[data-car-id="${focusedCar.id}"]`);
       if (element) element.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [focusedCar]);
 
   useEffect(() => {
-    if (cars.length > 0 && !focusedCar) {
+    if (!loading && cars && cars.length > 0 && !focusedCar && cars[0] && cars[0].car && cars[0].car.id) {
       setFocusedCar(cars[0].car);
     }
-  }, [cars, focusedCar]);
+  }, [cars, focusedCar, loading]);
 
   const fetchUserCars = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // Early return if playerInfo is not available yet
+      if (!isDemoMode && !playerInfo) {
+        console.log("No playerInfo available yet, skipping fetch");
+        setLoading(false);
+        return;
+      }
       
       if (isDemoMode) {
         console.log("Demo mode: Fetching user cars from localStorage");
@@ -209,7 +237,7 @@ const MyCars = ({ playerInfo }) => {
         }
       } else {
         // Normal mode - fetch from API
-        const userCars = await fetchUserCarsRequest(playerInfo.id);
+        const userCars = await fetchUserCarsRequest(playerInfo?.id);
         setCars(userCars || []);
       }
     } catch (error) {
@@ -218,7 +246,7 @@ const MyCars = ({ playerInfo }) => {
     } finally {
       setLoading(false);
     }
-  }, [playerInfo.id, isDemoMode, demoUser, loadingNewAuction]);
+  }, [playerInfo, isDemoMode, demoUser, loadingNewAuction]);
 
   useEffect(() => {
     console.log("Fetching user cars...");
@@ -243,7 +271,8 @@ const MyCars = ({ playerInfo }) => {
 
   const handleKeyDown = (event) => {
     const { key } = event;
-    if (carDetailsVisible || newAuctionVisible || focusedZone === FOCUS_ZONES.HEADER) return;
+    if (loading || carDetailsVisible || newAuctionVisible || focusedZone === FOCUS_ZONES.HEADER) return;
+    if (!cars || cars.length === 0) return; // Don't handle keys if no cars loaded
 
     const carsByMake = groupCarsByMake(cars);
     const makes = Object.keys(carsByMake);
@@ -251,8 +280,9 @@ const MyCars = ({ playerInfo }) => {
     if (isMobile) {
       const allCarsFlat = cars
         .map((item) => item.car)
+        .filter(car => car && car.id) // Filter out null/undefined cars
         .sort((a, b) => `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`));
-      const currentIndex = focusedCar ? allCarsFlat.findIndex((c) => c.id === focusedCar.id) : -1;
+      const currentIndex = focusedCar && focusedCar.id ? allCarsFlat.findIndex((c) => c.id === focusedCar.id) : -1;
 
       switch (key) {
         case "ArrowRight":
@@ -304,7 +334,7 @@ const MyCars = ({ playerInfo }) => {
         case "Enter":
           if (focusedCar) {
             setSelectedCar(focusedCar);
-            setSelectedCarIndex(allCarsFlat.findIndex((c) => c.id === focusedCar.id));
+            setSelectedCarIndex(focusedCar ? allCarsFlat.findIndex((c) => c.id === focusedCar.id) : -1);
             showCarDetailsModal();
             if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
           }
@@ -327,11 +357,12 @@ const MyCars = ({ playerInfo }) => {
             return;
           }
 
-          const currentArray = allTopRowCars.includes(focusedCar) ? allTopRowCars : allBottomRowCars;
-          const currentIndex = currentArray.indexOf(focusedCar);
-          if (currentIndex < currentArray.length - 1) {
-            setFocusedCar(currentArray[currentIndex + 1]);
-            setSelectedCarIndex(cars.findIndex((c) => c.car.id === currentArray[currentIndex + 1].id));
+          const currentArray = (focusedCar && allTopRowCars.includes(focusedCar)) ? allTopRowCars : allBottomRowCars;
+          const currentIndex = focusedCar ? currentArray.indexOf(focusedCar) : -1;
+          if (currentIndex !== -1 && currentIndex < currentArray.length - 1 && currentArray[currentIndex + 1]) {
+            const nextCar = currentArray[currentIndex + 1];
+            setFocusedCar(nextCar);
+            setSelectedCarIndex(nextCar ? cars.findIndex((c) => c.car && c.car.id === nextCar.id) : -1);
             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           }
           break;
@@ -352,11 +383,12 @@ const MyCars = ({ playerInfo }) => {
             return;
           }
 
-          const currentArray = allTopRowCars.includes(focusedCar) ? allTopRowCars : allBottomRowCars;
-          const currentIndex = currentArray.indexOf(focusedCar);
-          if (currentIndex > 0) {
-            setFocusedCar(currentArray[currentIndex - 1]);
-            setSelectedCarIndex(cars.findIndex((c) => c.car.id === currentArray[currentIndex - 1].id));
+          const currentArray = (focusedCar && allTopRowCars.includes(focusedCar)) ? allTopRowCars : allBottomRowCars;
+          const currentIndex = focusedCar ? currentArray.indexOf(focusedCar) : -1;
+          if (currentIndex > 0 && currentArray[currentIndex - 1]) {
+            const prevCar = currentArray[currentIndex - 1];
+            setFocusedCar(prevCar);
+            setSelectedCarIndex(prevCar ? cars.findIndex((c) => c.car && c.car.id === prevCar.id) : -1);
             if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           }
           break;
@@ -366,10 +398,11 @@ const MyCars = ({ playerInfo }) => {
           event.preventDefault();
           if (focusedMake) {
             const makeCars = carsByMake[focusedMake]?.filter((_, i) => i % 2 === 0);
-            if (makeCars?.length) {
-              setFocusedCar(makeCars[0]);
+            if (makeCars?.length && makeCars[0]) {
+              const firstCar = makeCars[0];
+              setFocusedCar(firstCar);
               setFocusedMake(null);
-              setSelectedCarIndex(cars.findIndex((c) => c.car.id === makeCars[0].id));
+              setSelectedCarIndex(firstCar ? cars.findIndex((c) => c.car && c.car.id === firstCar.id) : -1);
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
             return;
@@ -377,14 +410,14 @@ const MyCars = ({ playerInfo }) => {
 
           const currentMake = focusedCar?.make?.trim().toUpperCase();
           const makeCars = carsByMake[currentMake] || [];
-          const topRowIndex = makeCars
+          const topRowIndex = focusedCar ? makeCars
             .filter((_, i) => i % 2 === 0)
-            .findIndex((c) => c.id === focusedCar.id);
+            .findIndex((c) => c.id === focusedCar.id) : -1;
           if (topRowIndex !== -1) {
             const bottomCar = makeCars.filter((_, i) => i % 2 === 1)[topRowIndex];
             if (bottomCar) {
               setFocusedCar(bottomCar);
-              setSelectedCarIndex(cars.findIndex((c) => c.car.id === bottomCar.id));
+              setSelectedCarIndex(bottomCar ? cars.findIndex((c) => c.car.id === bottomCar.id) : -1);
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
           }
@@ -403,14 +436,14 @@ const MyCars = ({ playerInfo }) => {
 
           const currentMake = focusedCar?.make?.trim().toUpperCase();
           const makeCars = carsByMake[currentMake] || [];
-          const bottomRowIndex = makeCars
+          const bottomRowIndex = focusedCar ? makeCars
             .filter((_, i) => i % 2 === 1)
-            .findIndex((c) => c.id === focusedCar.id);
+            .findIndex((c) => c.id === focusedCar.id) : -1;
           if (bottomRowIndex !== -1) {
             const topCar = makeCars.filter((_, i) => i % 2 === 0)[bottomRowIndex];
             if (topCar) {
               setFocusedCar(topCar);
-              setSelectedCarIndex(cars.findIndex((c) => c.car.id === topCar.id));
+              setSelectedCarIndex(topCar ? cars.findIndex((c) => c.car.id === topCar.id) : -1);
               if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
             }
           } else {
@@ -424,7 +457,7 @@ const MyCars = ({ playerInfo }) => {
         case "Enter": {
           if (focusedCar) {
             setSelectedCar(focusedCar);
-            setSelectedCarIndex(cars.findIndex((c) => c.car.id === focusedCar.id));
+            setSelectedCarIndex(focusedCar ? cars.findIndex((c) => c.car.id === focusedCar.id) : -1);
             showCarDetailsModal();
             if (soundEffectsOn || soundEffectsOnQuickSettings) playOpeningSound();
           }
@@ -438,6 +471,7 @@ const MyCars = ({ playerInfo }) => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
+    loading,
     cars,
     focusedCar,
     focusedMake,
@@ -514,10 +548,10 @@ const MyCars = ({ playerInfo }) => {
 
         const createdAuctionId = createdAuction?.id;
         if (createdAuctionId) {
-          await createNewAuctionUser(playerInfo.id, createdAuctionId);
-          const carToDelete = await getUserCar(playerInfo.id, selectedCar.id);
+          await createNewAuctionUser(playerInfo?.id, createdAuctionId);
+          const carToDelete = await getUserCar(playerInfo?.id, selectedCar.id);
           if (carToDelete && carToDelete.id) {
-            await deleteUserCar(carToDelete.id, playerInfo.id);
+            await deleteUserCar(carToDelete.id, playerInfo?.id);
           } else {
             throw new Error("Car not found or invalid ID for deletion");
           }
@@ -622,9 +656,9 @@ const MyCars = ({ playerInfo }) => {
         message.success(permanent ? "Car permanently removed!" : "Car removed from garage!");
       } else {
         // Normal mode - use API
-        const carToDelete = await getUserCar(playerInfo.id, carId);
+        const carToDelete = await getUserCar(playerInfo?.id, carId);
         if (carToDelete && carToDelete.id) {
-          await deleteUserCar(carToDelete.id, playerInfo.id);
+          await deleteUserCar(carToDelete.id, playerInfo?.id);
           setCars((prevCars) => prevCars.filter((c) => c.car.id !== carId));
           setSelectedCar(null);
           setCarDetailsVisible(false);
@@ -657,7 +691,7 @@ const MyCars = ({ playerInfo }) => {
                   {chunkCars(makeCars, 2).map((row, rowIndex) => (
                     <div key={rowIndex} className="mobile-car-row">
                       {row.map((car) => {
-                        const realIndex = cars.findIndex((c) => c.car.id === car.id);
+                        const realIndex = cars.findIndex((c) => c.car && c.car.id === car.id);
                         return (
                           <div key={car.id} className="mobile-car-wrapper">
                             <CarCard
@@ -722,7 +756,7 @@ const MyCars = ({ playerInfo }) => {
                     {/* Top Row */}
                     <div className="make-row top-row">
                       {topRowCars.map((car) => {
-                        const realIndex = cars.findIndex((c) => c.car.id === car.id);
+                        const realIndex = cars.findIndex((c) => c.car && c.car.id === car.id);
                         const isFocused = focusedCar?.id === car.id;
                         return (
                           <CarCard
@@ -744,7 +778,7 @@ const MyCars = ({ playerInfo }) => {
                             setFocusedCar={setFocusedCar}
                             setFocusPosition={setFocusPosition}
                             row={0}
-                            column={allTopRowCars.findIndex(c => c.id === car.id)}
+                            column={allTopRowCars.findIndex(c => c && c.id === car.id)}
                             index={realIndex}
                           />
                         );
@@ -753,7 +787,7 @@ const MyCars = ({ playerInfo }) => {
                     {/* Bottom Row */}
                     <div className="make-row bottom-row">
                       {bottomRowCars.map((car) => {
-                        const realIndex = cars.findIndex((c) => c.car.id === car.id);
+                        const realIndex = cars.findIndex((c) => c.car && c.car.id === car.id);
                         const isFocused = focusedCar?.id === car.id;
                         return (
                           <CarCard
@@ -775,7 +809,7 @@ const MyCars = ({ playerInfo }) => {
                             setFocusedCar={setFocusedCar}
                             setFocusPosition={setFocusPosition}
                             row={1}
-                            column={allBottomRowCars.findIndex(c => c.id === car.id)}
+                            column={allBottomRowCars.findIndex(c => c && c.id === car.id)}
                             index={realIndex}
                           />
                         );
