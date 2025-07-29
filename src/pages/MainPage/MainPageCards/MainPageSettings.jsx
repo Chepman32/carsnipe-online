@@ -1,23 +1,25 @@
 // MainPageSettings.js
 import React from "react";
 import { Typography } from "antd";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-const MainPageSettings = ({ focused, handleMouseEnter }) => {
+const MainPageSettings = ({ focused, handleMouseEnter, onClick }) => {
   const { t } = useTranslation();
-    const navigate = useNavigate();
-  const handleSettings = () => {
-    navigate("/settings");
+  
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onClick) {
+      onClick();
+    }
   };
 
   return (
     <div
       className={`tile ${focused ? "focused" : ""}`}
-      onClick={handleSettings}
+      onClick={handleClick}
       onMouseEnter={() => handleMouseEnter("settingsBtn")}
     >
-      <Typography.Text className="mainpage__cardText_black">
+      <Typography.Text className="mainpage__cardText_black" style={{ pointerEvents: 'none' }}>
         {t('header.mainPage.settings')}
       </Typography.Text>
     </div>

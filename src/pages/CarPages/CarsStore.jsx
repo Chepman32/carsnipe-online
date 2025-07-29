@@ -838,12 +838,18 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
             .update({ money: newMoney })
             .eq('id', playerInfo.id);
           
-          await createNewUserCar(playerInfo.id, car.id); // Ensure this awaits if necessary
+          await createNewUserCar(playerInfo.id, car.id);
           message.success("Car successfully bought!");
           await checkAndUpdateAchievements(playerInfo.id); // Check achievements after successful purchase
         }
       } catch (err) {
         console.error("Error buying car:", err);
+        console.error("Error details:", {
+          message: err.message,
+          code: err.code,
+          details: err.details,
+          hint: err.hint
+        });
         message.error("Error buying car. Please try again.");
         setMoney(money); // Revert optimistic update on error
       } finally {
@@ -1129,6 +1135,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                               index={globalIndex}
                               // Make card focusable for accessibility/interaction
                               isFocused={focusedCar?.id === car.id}
+                              playerInfo={playerInfo}
                             />
                           </div>
                         );
@@ -1196,6 +1203,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                                   row={0} // Conceptual row number, maybe useful for styling/debugging
                                   column={allTopRowCars.findIndex(c => c.id === car.id)} // Global column index
                                   index={globalIndex} // Pass global index
+                                  playerInfo={playerInfo}
                               />
                          );
                        })}
@@ -1222,6 +1230,7 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
                             row={1} // Conceptual row number
                             column={allBottomRowCars.findIndex(c => c.id === car.id)}
                             index={globalIndex}
+                            playerInfo={playerInfo}
                           />
                         );
                       })}

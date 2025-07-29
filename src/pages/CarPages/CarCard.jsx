@@ -17,6 +17,7 @@ export default function CarCard({
   setFocusPosition,
   column,
   row,
+  playerInfo, // Add playerInfo prop
 }) {
   const dispatch = useDispatch();
   const { isDemoMode } = useDemoMode();

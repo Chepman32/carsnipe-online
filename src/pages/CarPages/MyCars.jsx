@@ -508,21 +508,9 @@ const MyCars = ({ playerInfo }) => {
       setLoadingNewAuction(true);
       
       if (isDemoMode) {
-        console.log("Demo mode: Creating auction for car", selectedCar);
-        
-        // In demo mode, remove the car from localStorage
-        const demoUserCars = JSON.parse(localStorage.getItem('demoUserCars') || '[]');
-        const updatedDemoUserCars = demoUserCars.filter(userCar => {
-          const carIdToCheck = userCar.carId || (userCar.car && userCar.car.id);
-          return carIdToCheck !== selectedCar.id;
-        });
-        localStorage.setItem('demoUserCars', JSON.stringify(updatedDemoUserCars));
-        
-        // Remove the car from the current state
-        setCars(prevCars => prevCars.filter(c => c.car.id !== selectedCar.id));
-        
-        if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
-        message.success("Auction created successfully in demo mode!");
+        console.log("Demo mode: Auction creation not allowed");
+        message.warning("Please sign in to create auctions. Demo mode is for viewing only.");
+        return;
       } else {
         // Normal mode - use Supabase API
         const { data: createdAuction, error } = await supabase
@@ -711,6 +699,7 @@ const MyCars = ({ playerInfo }) => {
                               cars={cars.map((c) => c.car)}
                               setFocusPosition={() => {}}
                               isFocused={focusedCar?.id === car.id}
+                              playerInfo={playerInfo}
                             />
                           </div>
                         );
@@ -780,6 +769,7 @@ const MyCars = ({ playerInfo }) => {
                             row={0}
                             column={allTopRowCars.findIndex(c => c && c.id === car.id)}
                             index={realIndex}
+                            playerInfo={playerInfo}
                           />
                         );
                       })}
@@ -811,6 +801,7 @@ const MyCars = ({ playerInfo }) => {
                             row={1}
                             column={allBottomRowCars.findIndex(c => c && c.id === car.id)}
                             index={realIndex}
+                            playerInfo={playerInfo}
                           />
                         );
                       })}
@@ -832,6 +823,10 @@ const MyCars = ({ playerInfo }) => {
         loadingNewAuction={loadingNewAuction}
         forAuction
         showNewAuction={() => {
+          if (isDemoMode) {
+            message.warning("Please sign in to create auctions. Demo mode is for viewing only.");
+            return;
+          }
           handleCarDetailsCancel();
           if (soundEffectsOn || soundEffectsOnQuickSettings) playSwitchSound();
           console.log("Setting newAuctionVisible to true");

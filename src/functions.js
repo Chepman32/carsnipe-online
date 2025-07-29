@@ -163,14 +163,52 @@ export function calculateTimeDifference(targetTime) {
 
 export const createNewUserCar = async (userId, carId) => {
   try {
+    console.log(
+      "createNewUserCar: Starting with userId:",
+      userId,
+      "carId:",
+      carId
+    );
+
+    // Check if user already owns this car
+    const { data: existingCar, error: checkError } = await supabase
+      .from("user_cars")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("car_id", carId)
+      .single();
+
+    console.log(
+      "createNewUserCar: Check result - existingCar:",
+      existingCar,
+      "checkError:",
+      checkError
+    );
+
+    if (existingCar) {
+      console.log("User already owns this car, skipping insertion");
+      return { data: { updateUser: null } };
+    }
+
     // Insert user-car relationship
+    console.log("createNewUserCar: Inserting new user-car relationship");
     const { error: insertError } = await supabase
       .from("user_cars")
       .insert([{ user_id: userId, car_id: carId }]);
 
-    if (insertError) throw insertError;
+    console.log("createNewUserCar: Insert result - insertError:", insertError);
+
+    if (insertError) {
+      // If it's a unique constraint violation, the user already owns the car
+      if (insertError.code === "23505") {
+        console.log("User already owns this car (unique constraint violation)");
+        return { data: { updateUser: null } };
+      }
+      throw insertError;
+    }
 
     // Update user's total cars owned count
+    console.log("createNewUserCar: Updating user's total cars owned count");
     const { data: user, error: updateError } = await supabase
       .from("users")
       .update({
@@ -180,8 +218,16 @@ export const createNewUserCar = async (userId, carId) => {
       .select()
       .single();
 
+    console.log(
+      "createNewUserCar: Update result - user:",
+      user,
+      "updateError:",
+      updateError
+    );
+
     if (updateError) throw updateError;
 
+    console.log("createNewUserCar: Successfully completed");
     return { data: { updateUser: user } };
   } catch (error) {
     console.error("Error associating car with user:", error);

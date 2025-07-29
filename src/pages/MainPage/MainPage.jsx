@@ -68,7 +68,7 @@ export const MainPage = ({ selectedElement, handleElementSelect } = {}) => {
 
         switch (focusedTile) {
           case "leftTop":
-            navigate("/mycars");
+            navigate("/myCars");
             break;
           case "leftBottom":
             navigate("/carsStore");
@@ -105,37 +105,50 @@ export const MainPage = ({ selectedElement, handleElementSelect } = {}) => {
   };
 
   const handleTileClick = (tileName) => {
+    console.log("handleTileClick called with:", tileName);
+    
     if (settingsMenuOpen) {
+      console.log("Settings menu is open, closing it");
       setSettingsMenuOpen(false);
       return;
     }
 
+    console.log("Playing sound and navigating...");
     playOpeningSound();
     sessionStorage.setItem("lastFocusedTile", tileName);
 
     switch (tileName) {
       case "leftTop":
-        navigate("/mycars");
+        console.log("Navigating to /myCars");
+        navigate("/myCars");
         break;
       case "leftBottom":
+        console.log("Navigating to /carsStore");
         navigate("/carsStore");
         break;
       case "center":
+        console.log("Navigating to /auctionsHub");
         navigate("/auctionsHub");
         break;
       case "rightTop":
+        console.log("Navigating to /store");
         navigate("/store");
         break;
       case "rightBottom":
+        console.log("Navigating to /profileEditPage");
         navigate("/profileEditPage");
         break;
       case "settingsBtn":
+        console.log("Navigating to /settings");
         navigate("/settings");
         break;
       default:
+        console.log("Unknown tile name:", tileName);
         break;
     }
   };
+
+
 
   return (
     <>
@@ -174,6 +187,7 @@ export const MainPage = ({ selectedElement, handleElementSelect } = {}) => {
           <MainPageSettings
             focused={focusedTile === "settingsBtn"}
             handleMouseEnter={handleMouseEnter}
+            onClick={() => handleTileClick("settingsBtn")}
           />
         </div>
       </div>

@@ -3,6 +3,8 @@
   padding: 0.5rem;
   background: url(../../assets/images/soft-background.png);
   height: 100vh;
+  position: relative;
+  z-index: 0;
 }
 
 .mainPage a {
@@ -13,6 +15,8 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .tile {
@@ -22,6 +26,8 @@
   align-items: center;
   cursor: pointer;
   font-size: 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .column:first-child .tile:first-child,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import ReactDOM from 'react-dom'; // Import ReactDOM for Portal
+import { createPortal } from 'react-dom'; // Import createPortal for Portal
 import { Spin, Tooltip } from "antd";
 import "./carsPage.css";
 import CarDetailsModalRow from "./CarDetailsModalRow";
@@ -116,8 +116,8 @@ const CarDetailsModal = ({
   // Log that we're about to render the modal
   console.log("CarDetailsModal is visible, rendering modal content via portal");
   
-  // Use ReactDOM.createPortal to render outside the normal DOM hierarchy
-  return ReactDOM.createPortal(
+  // Use createPortal to render outside the normal DOM hierarchy
+  return createPortal(
     <div 
       className="custom-modal-overlay" 
       style={{

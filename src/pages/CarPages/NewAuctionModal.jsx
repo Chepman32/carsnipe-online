@@ -1,6 +1,6 @@
 import { Form, Input, Select, Button } from 'antd';
 import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
+import { createPortal } from 'react-dom';
 
 const { Option } = Select;
 
@@ -30,7 +30,7 @@ export default function NewAuctionModal({ open, handleCancel, handleOk, selected
 
   console.log("Rendering NewAuctionModal portal with car:", selectedCar.id);
 
-  return ReactDOM.createPortal(
+  return createPortal(
     <div 
       className="custom-modal-overlay" 
       style={{

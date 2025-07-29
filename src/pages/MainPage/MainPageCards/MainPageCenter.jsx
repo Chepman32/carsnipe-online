@@ -8,14 +8,15 @@ const MainPageCenter = ({ focused, handleMouseEnter, onClick, isMenuOpen }) => {
 
   const { darkMode } = useSelector((state) => state.quickSettings);
 
-  const handleClick = () => {
+  const handleClick = (e) => {
+    e.stopPropagation();
     if (!isMenuOpen && onClick) {
       onClick();
     }
   };
   return (
     <div className={`tile ${darkMode ? 'darkTile' : ''} ${focused ? 'focused' : ''}`} onMouseEnter={() => handleMouseEnter("center")} onClick={handleClick}>
-      <Typography.Text className="mainpage__cardText_black">
+      <Typography.Text className="mainpage__cardText_black" style={{ pointerEvents: 'none' }}>
         {t('header.mainPage.auctions')}
       </Typography.Text>
     </div>

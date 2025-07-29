@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Form, Select, message, notification } from "antd";
+import { Form, Select, message, notification, Button } from "antd";
 import { supabase } from '../../supabase';
 import {
   calculateTimeDifference,
@@ -20,7 +20,6 @@ import AuctionMobilePageItem from "./MobileAuctionPageItem";
 import { CreditWarningModal } from "../../components/CreditWarningModal/CreditWarningModal";
 import { SelectedAuctionDetailsModal } from "./SelectedAuctionDetailsModal";
 import { useDemoMode } from '../../contexts/DemoModeContext';
-import { getMockAuctions, updateMockAuctions } from '../../mockData';
 import { Row, Col, Typography } from 'antd';
 import { useMediaQuery } from 'react-responsive';
 const { Title } = Typography;
@@ -43,8 +42,8 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
     try {
       console.log("Fetching auctions...");
       if (isDemoMode) {
-        const mockAuctions = getMockAuctions();
-        setAuctions(mockAuctions);
+        // In demo mode, no auctions are available
+        setAuctions([]);
       } else {
         const { data: auctionData, error } = await supabase
           .from('auctions')
@@ -125,55 +124,8 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       }
 
       if (isDemoMode) {
-        if (demoUser.money < auction.buy) {
-          setCreditWarningModalvisible(true);
-          return;
-        }
-
-        setLoadingBid(true);
-
-        let increasedBidValue;
-        if (!auction.currentBid || auction.currentBid === auction.minBid) {
-          increasedBidValue = auction.minBid;
-        } else {
-          increasedBidValue = Math.floor(auction.currentBid * 1.1);
-        }
-
-        if (increasedBidValue >= auction.buy) {
-          await buyItem(auction);
-          return;
-        }
-
-        const newMoney = auction.lastBidPlayer === demoUser.nickname
-          ? demoUser.money - (increasedBidValue - auction.currentBid)
-          : demoUser.money - increasedBidValue;
-
-        // Update demo user's money
-        const updatedDemoUser = {
-          ...demoUser,
-          money: newMoney
-        };
-        localStorage.setItem('demoUser', JSON.stringify(updatedDemoUser));
-
-        // Update mock auctions
-        const mockAuctions = getMockAuctions();
-        const updatedAuctions = mockAuctions.map(a => {
-          if (a.id === auction.id) {
-            return {
-              ...a,
-              currentBid: increasedBidValue,
-              lastBidPlayer: demoUser.nickname,
-              bidsCount: (a.bidsCount || 0) + 1,
-              status: increasedBidValue < a.buy ? "Active" : "Finished",
-              ...(increasedBidValue >= a.buy && { finishedAt: new Date().toISOString() })
-            };
-          }
-          return a;
-        });
-        updateMockAuctions(updatedAuctions);
-        setAuctions(updatedAuctions);
-
-        message.success('Bid successfully increased!');
+        message.warning("Please sign in to bid on auctions. Demo mode is for viewing only.");
+        return;
       } else {
         if (money < auction.buy) {
           setCreditWarningModalvisible(true);
@@ -301,39 +253,8 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
       }
 
       if (isDemoMode) {
-        if (demoUser.money < auction.buy) {
-          setCreditWarningModalvisible(true);
-          return;
-        }
-
-        setLoadingBuy(true);
-
-        const newMoney = demoUser.money - auction.buy;
-        
-        // Update demo user's money
-        const updatedDemoUser = {
-          ...demoUser,
-          money: newMoney
-        };
-        localStorage.setItem('demoUser', JSON.stringify(updatedDemoUser));
-
-        // Update mock auctions
-        const mockAuctions = getMockAuctions();
-        const updatedAuctions = mockAuctions.map(a => {
-          if (a.id === auction.id) {
-            return {
-              ...a,
-              currentBid: a.buy,
-              status: "Finished",
-              finishedAt: new Date().toISOString()
-            };
-          }
-          return a;
-        });
-        updateMockAuctions(updatedAuctions);
-        setAuctions(updatedAuctions);
-
-        message.success('Item purchased successfully!');
+        message.warning("Please sign in to purchase items. Demo mode is for viewing only.");
+        return;
       } else {
         if (money < auction.buy) {
           setCreditWarningModalvisible(true);
@@ -681,71 +602,44 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
 
   // --- Demo Mode Rendering ---
   if (isDemoMode) {
-    // Use the same structure as live mode for consistency
     return (
       <div
-        className="auctionPage" // Apply same base class
-        tabIndex={0} // Keep focusable for keyboard nav if needed later
+        className="auctionPage"
+        tabIndex={0}
         ref={auctionPageRef}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '70vh',
+          textAlign: 'center',
+          padding: '2rem'
+        }}
       >
-        <div style={{ flex: 1 }}> {/* Mimic flex container */}
-          <div className="auction-items-container" ref={auctionContainerRef}> {/* Use same container class */}
-            {auctions.map((auction, index) => {
-              // Ensure refs are created for potential keyboard navigation/scrolling
-              itemRefs.current[index] = itemRefs.current[index] || React.createRef();
-              return !isMobile ? (
-                <div ref={itemRefs.current[index]} key={auction.id}>
-                  <AuctionPageItem
-                    // Pass necessary props for demo mode
-                    auction={auction}
-                    index={index} // Pass index
-                    isSelected={selectedAuction?.id === auction.id} // Check selection
-                    isFocused={index === focusedIndex} // Check focus
-                    handleItemClick={handleItemClick} // Pass click handler
-                    playerInfo={demoUser} // Pass demo user as playerInfo
-                    // Add other props if needed by AuctionPageItem in demo context
-                  />
-                </div>
-              ) : (
-                <div ref={itemRefs.current[index]} key={auction.id}>
-                  <AuctionMobilePageItem
-                    // Pass necessary props for demo mode (mobile)
-                    auction={auction}
-                    index={index}
-                    isSelected={selectedAuction?.id === auction.id}
-                    isFocused={index === focusedIndex}
-                    handleItemClick={handleItemClick}
-                    // Add other props if needed
-                  />
-                </div>
-              );
-            })}
-          </div>
+        <div style={{ maxWidth: '500px' }}>
+          <h2 style={{ marginBottom: '1rem', fontSize: '1.5rem' }}>
+            🏷️ Auctions Feature
+          </h2>
+          <p style={{ marginBottom: '1.5rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
+            The auction feature allows you to buy and sell cars with other players. 
+            Create auctions from your car collection and bid on others' listings.
+          </p>
+          <p style={{ marginBottom: '2rem', fontSize: '1rem', color: '#666' }}>
+            Please sign in to access the full auction functionality, including viewing active auctions, 
+            placing bids, and creating your own auctions.
+          </p>
+          <Button 
+            type="primary" 
+            size="large"
+            onClick={() => {
+              // Navigate to sign in or show sign in modal
+              window.location.href = '/';
+            }}
+          >
+            Sign In to Access Auctions
+          </Button>
         </div>
-        {/* Conditionally render details view like in live mode */}
-        {!isMobile && <SelectedAuctionDetails selectedAuction={selectedAuction} />}
-        {/* Keep Modals accessible */}
-        <AuctionActionsModal
-          visible={auctionActionsVisible}
-          handleAuctionActionsCancel={() => setAuctionActionsVisible(false)}
-          selectedAuction={selectedAuction}
-          bid={increaseBid}
-          loadingBid={loadingBid}
-          buyCar={buyItem}
-          loadingBuy={loadingBuy}
-        />
-        <CreditWarningModal
-          isModalVisible={creditWarningModalvisible}
-          setIsModalVisible={setCreditWarningModalvisible}
-        />
-        {isMobile === true && (
-          <SelectedAuctionDetailsModal
-            selectedAuction={selectedAuction}
-            visible={selectedAuctionDetailsModalVisible}
-            close={() => setSelectedAuctionDetailsModalVisible(false)}
-            handleAuctionActionsShow={handleAuctionActionsShow}
-          />
-        )}
       </div>
     );
   }

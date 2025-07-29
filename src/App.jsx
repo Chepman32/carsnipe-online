@@ -70,34 +70,75 @@ function BackspaceHandler() {
 }
 
 
-const AuthComponent = ({ onAuthSuccess }) => {
+const AuthComponent = ({ onAuthSuccess, currentAuthenticatedUser }) => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const { isDemoMode, toggleDemoMode } = useDemoMode();
 
   const handleGoogleSignIn = async () => {
     try {
+      console.log('Google Sign In button clicked');
       setLoading(true);
-      await signInWithGoogle();
+      console.log('Loading state set to true');
+      const result = await signInWithGoogle();
+      console.log('Google Sign In result:', result);
     } catch (error) {
+      console.error('Google Sign In error:', error);
       message.error(error.message);
     } finally {
+      console.log('Google Sign In process finished, setting loading to false');
       setLoading(false);
     }
   };
 
   const handleEmailAuth = async (values) => {
     try {
+      console.log('Email auth button clicked:', isSignUp ? 'Sign Up' : 'Sign In', values);
+      
+      // Check if user is already signed in
+      const currentUser = await getCurrentUser();
+      console.log('Current user before auth attempt:', currentUser);
+      
+      console.log('Debug: currentUser:', currentUser);
+      console.log('Debug: currentUser.email:', currentUser?.email);
+      console.log('Debug: values.email:', values.email);
+      console.log('Debug: isSignUp:', isSignUp);
+      console.log('Debug: condition check:', currentUser && currentUser.email === values.email && !isSignUp);
+      
+      if (currentUser && currentUser.email === values.email && !isSignUp) {
+        console.log('User is already signed in with this email, triggering auth success...');
+        message.success('Already signed in!');
+        // Trigger the auth state change to update the UI
+        try {
+          console.log('About to call currentAuthenticatedUser...');
+          await currentAuthenticatedUser();
+          console.log('currentAuthenticatedUser called successfully');
+        } catch (error) {
+          console.error('Error calling currentAuthenticatedUser:', error);
+        }
+        return;
+      }
+      
       setLoading(true);
+      console.log('Loading state set to true for email auth');
       if (isSignUp) {
-        await signUpWithEmail(values.email, values.password);
+        const result = await signUpWithEmail(values.email, values.password);
+        console.log('Sign Up result:', result);
         message.success('Check your email for verification link');
       } else {
-        await signInWithEmail(values.email, values.password);
+        const result = await signInWithEmail(values.email, values.password);
+        console.log('Email Sign In result:', result);
+        // After successful sign in, trigger the auth state update
+        if (result?.user) {
+          console.log('Sign in successful, triggering auth state update...');
+          await currentAuthenticatedUser();
+        }
       }
     } catch (error) {
+      console.error('Email auth error:', error);
       message.error(error.message);
     } finally {
+      console.log('Email auth process finished, setting loading to false');
       setLoading(false);
     }
   };
@@ -107,10 +148,6 @@ const AuthComponent = ({ onAuthSuccess }) => {
       console.log('Demo mode button clicked, current state:', isDemoMode);
       toggleDemoMode();
       console.log('Demo mode toggled, new state:', !isDemoMode);
-      
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 100);
     } catch (error) {
       console.error('Error in demo mode toggle:', error);
     }
@@ -225,24 +262,24 @@ const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, sig
     <Provider store={store}>
       <main>
         <CustomHeader 
-          money={isDemoMode && demoUser ? demoUser.money : money} 
-          nickname={isDemoMode && demoUser ? demoUser.nickname : playerInfo?.nickname} 
-          avatar={isDemoMode && demoUser ? avatars[demoUser.avatar] : avatars[playerInfo?.avatar]}
+          money={isDemoMode ? demoUser?.money : money} 
+          nickname={isDemoMode ? demoUser?.nickname : playerInfo?.nickname} 
+          avatar={isDemoMode ? avatars[demoUser?.avatar] : avatars[playerInfo?.avatar]}
         />
         <DarkModeWrapper>
           <Routes>
             <Route path="/" element={<MainPage />} />
-            <Route path="/profileEditPage" element={<ProfileEditPage playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} currentAuthenticatedUser={currentAuthenticatedUser} signOut={signOut} setPlayerInfo={setPlayerInfo} />} />
-            <Route path="/carsStore" element={<CarsStore playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
-            <Route path="/auctions" element={<AuctionPage playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
-            <Route path="/myCars" element={<MyCars playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
+            <Route path="/profileEditPage" element={<ProfileEditPage playerInfo={isDemoMode ? demoUser : playerInfo} currentAuthenticatedUser={currentAuthenticatedUser} signOut={signOut} setPlayerInfo={setPlayerInfo} />} />
+            <Route path="/carsStore" element={<CarsStore playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/auctions" element={<AuctionPage playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/myCars" element={<MyCars playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
             <Route path="/auctionsHub" element={<AuctionsHub />} />
-            <Route path="/myBids" element={<MyBids playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
-            <Route path="/myAuctions" element={<MyAuctions playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} money={isDemoMode && demoUser ? demoUser.money : money} setMoney={setMoney} />} />
-            <Route path="/achievements" element={<AchievementList userId={isDemoMode && demoUser ? demoUser.id : playerInfo?.id} />} />
+            <Route path="/myBids" element={<MyBids playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/myAuctions" element={<MyAuctions playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
+            <Route path="/achievements" element={<AchievementList userId={isDemoMode ? demoUser?.id : playerInfo?.id} />} />
             <Route path="/paymentError" element={<PaymentError />} />
-            <Route path="/store" element={<Store email={isDemoMode && demoUser ? demoUser.email : playerInfo?.email} />} />
-            <Route path="/settings" element={<GameSettings playerInfo={isDemoMode && demoUser ? demoUser : playerInfo} />} />
+            <Route path="/store" element={<Store email={isDemoMode ? demoUser?.email : playerInfo?.email} />} />
+            <Route path="/settings" element={<GameSettings playerInfo={isDemoMode ? demoUser : playerInfo} />} />
             <Route path="/musicUpload" element={<MusicUploadPage />} />
             <Route path="/musicLibraryPage" element={<MusicLibraryPage />} />
             <Route path="/user/:id" element={<UserPage />} />
@@ -258,23 +295,23 @@ const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, sig
 
 const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
   const { isDemoMode } = useDemoMode();
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Handle auth loading states
-  useEffect(() => {
-    if (playerInfo) {
-      setIsLoading(false);
-      navigate('/');
-    }
-  }, [playerInfo, navigate]);
+  // If user is authenticated, show app with full functionality
+  if (playerInfo) {
+    return (
+      <AppContent 
+        playerInfo={playerInfo}
+        money={money}
+        setMoney={setMoney}
+        currentAuthenticatedUser={currentAuthenticatedUser}
+        signOut={signOut}
+        setPlayerInfo={setPlayerInfo}
+      />
+    );
+  }
 
-  useEffect(() => {
-    if (playerInfo) {
-      setIsLoading(false);
-    }
-  }, [playerInfo]);
-
+  // If demo mode is enabled and no authenticated user, show app with demo functionality
   if (isDemoMode) {
     return (
       <AppContent 
@@ -288,6 +325,7 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
     );
   }
 
+  // Show login screen if not authenticated and not in demo mode
   if (!playerInfo) {
     return (
       <div className="auth-wrapper" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
@@ -315,37 +353,13 @@ const AppContentWrapper = ({ playerInfo, money, setMoney, currentAuthenticatedUs
           backgroundColor: "rgba(0, 0, 0, 0.5)", 
           zIndex: -1 
         }}></div>
-        {isLoading && (
-          <div style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
-            zIndex: 1
-          }}>
-            <Spin size="large" />
-          </div>
-        )}
-        <AuthComponent onAuthSuccess={() => setIsLoading(false)} />
+        <AuthComponent 
+          onAuthSuccess={() => {}} 
+          currentAuthenticatedUser={currentAuthenticatedUser}
+        />
       </div>
     );
   }
-
-  return (
-    <AppContent 
-      playerInfo={playerInfo}
-      money={money}
-      setMoney={setMoney}
-      currentAuthenticatedUser={currentAuthenticatedUser}
-      signOut={signOut}
-      setPlayerInfo={setPlayerInfo}
-    />
-  );
 };
 
 export default function App() {
@@ -355,6 +369,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [creatingUser, setCreatingUser] = useState(false);
   const [money, setMoney] = useState();
+
 
   useEffect(() => {
     if (playerInfo?.id) {
@@ -366,6 +381,7 @@ export default function App() {
     if (!user?.email) return;
     
     try {
+      console.log('createNewPlayer: Starting player creation for user:', user);
       setCreatingUser(true);
       
       // Check if user already exists in our database
@@ -516,6 +532,7 @@ export default function App() {
         console.error("Failed to create or find user:", error);
       }
     } finally {
+      console.log('createNewPlayer: Finished, setting states to false');
       setCreatingUser(false);
       setLoading(false);
     }
@@ -523,14 +540,20 @@ export default function App() {
 
   const currentAuthenticatedUser = useCallback(async () => {
     try {
+      console.log('currentAuthenticatedUser: Starting user check...');
       const user = await getCurrentUser();
+      console.log('currentAuthenticatedUser: Got user:', user);
       
       if (!user?.email) {
-        throw new Error("Could not retrieve user email");
+        console.log('currentAuthenticatedUser: No authenticated user, showing login screen');
+        setLoading(false);
+        return;
       }
 
+      console.log('currentAuthenticatedUser: Setting email:', user.email);
       setEmail(user.email);
 
+      console.log('currentAuthenticatedUser: Checking if user exists in database...');
       // Check if user exists in our database
       const { data: existingUser, error } = await supabase
         .from('users')
@@ -538,23 +561,34 @@ export default function App() {
         .eq('email', user.email)
         .single();
 
+      console.log('currentAuthenticatedUser: Database query result - existingUser:', existingUser, 'error:', error);
+
       if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
-        console.error('Error checking for existing user:', error);
+        console.error('currentAuthenticatedUser: Error checking for existing user:', error);
       }
 
       const isNewUser = !existingUser;
+      console.log('currentAuthenticatedUser: Is new user:', isNewUser);
       setIsNewUser(isNewUser);
 
       if (!existingUser) {
+        console.log('currentAuthenticatedUser: Creating new player...');
         await createNewPlayer(user);
       } else {
+        console.log('currentAuthenticatedUser: Using existing user, setting player info...');
+        console.log('currentAuthenticatedUser: Setting playerInfo to:', existingUser);
         setPlayerInfo(existingUser);
+        console.log('currentAuthenticatedUser: Setting money to:', existingUser?.money);
         setMoney(existingUser?.money);
         localStorage.setItem("userInfo", JSON.stringify(existingUser));
+        console.log('currentAuthenticatedUser: Setting loading to false');
         setLoading(false);
       }
+      console.log('currentAuthenticatedUser: Completed successfully');
     } catch (err) {
-      console.error("Error fetching current authenticated user:", err);
+      console.error("currentAuthenticatedUser: Error fetching current authenticated user:", err);
+      // If there's an error (like no authenticated user), set loading to false to show login screen
+      console.log('currentAuthenticatedUser: Setting loading to false due to error');
       setLoading(false);
     }
   }, [createNewPlayer]);
@@ -563,9 +597,14 @@ export default function App() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change event:', event, 'session:', session?.user?.email);
         if (event === 'SIGNED_IN' && session?.user) {
+          // Clear demo mode when user successfully signs in
+          localStorage.setItem('demoMode', 'false');
+          console.log('SIGNED_IN event detected, calling currentAuthenticatedUser...');
           await currentAuthenticatedUser();
         } else if (event === 'SIGNED_OUT') {
+          console.log('SIGNED_OUT event detected');
           setPlayerInfo(null);
           setMoney(null);
           setEmail('');
@@ -581,7 +620,25 @@ export default function App() {
   }, [currentAuthenticatedUser]);
 
   useEffect(() => {
-    currentAuthenticatedUser();
+    // Always check for authentication first, regardless of demo mode
+    // This ensures real users can sign in even if demo mode was previously enabled
+    const initAuth = async () => {
+      try {
+        console.log('initAuth: Starting initial authentication check...');
+        // Add timeout to prevent endless loading
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Authentication timeout')), 10000);
+        });
+        
+        await Promise.race([currentAuthenticatedUser(), timeoutPromise]);
+        console.log('initAuth: Authentication check completed');
+      } catch (error) {
+        console.error('Error in initial auth check:', error);
+        setLoading(false); // Ensure loading stops even if auth fails
+      }
+    };
+    
+    initAuth();
     document.title = "Carsnipe Online";
   }, [currentAuthenticatedUser]);
 
@@ -602,9 +659,9 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
-      <BackspaceHandler />
-      <DemoModeProvider>
+    <DemoModeProvider>
+      <BrowserRouter>
+        <BackspaceHandler />
         <div className="app-container">
           <AppContentWrapper 
             playerInfo={playerInfo}
@@ -615,7 +672,7 @@ export default function App() {
             setPlayerInfo={setPlayerInfo}
           />
         </div>
-      </DemoModeProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </DemoModeProvider>
   );
 }
