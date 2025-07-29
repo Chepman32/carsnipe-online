@@ -11,6 +11,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
+    storage: typeof window !== "undefined" ? window.localStorage : undefined,
+    storageKey: "carsnipe-auth-token",
   },
   realtime: {
     params: {
@@ -18,6 +20,66 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     },
   },
 });
+
+// Debug function to check authentication state
+export const debugAuthState = async () => {
+  try {
+    console.log("=== AUTH DEBUG INFO ===");
+
+    // Check session
+    const session = await getCurrentSession();
+    console.log("Session:", session);
+
+    // Check localStorage
+    if (typeof window !== "undefined") {
+      const userInfo = localStorage.getItem("userInfo");
+      console.log("localStorage userInfo:", userInfo);
+
+      const authToken = localStorage.getItem("carsnipe-auth-token");
+      console.log("localStorage auth token:", authToken);
+    }
+
+    // Check if authenticated
+    const isAuth = await isAuthenticated();
+    console.log("Is authenticated:", isAuth);
+
+    console.log("=== END AUTH DEBUG ===");
+    return { session, isAuth };
+  } catch (error) {
+    console.error("Error in debugAuthState:", error);
+    return { session: null, isAuth: false };
+  }
+};
+
+// Helper function to check if user is authenticated
+export const isAuthenticated = async () => {
+  try {
+    // First check for active session
+    const session = await getCurrentSession();
+    if (session?.user) {
+      return true;
+    }
+
+    // Fallback: check localStorage for user info
+    if (typeof window !== "undefined") {
+      const userInfo = localStorage.getItem("userInfo");
+      if (userInfo) {
+        try {
+          const parsedUserInfo = JSON.parse(userInfo);
+          return !!parsedUserInfo?.email;
+        } catch (error) {
+          console.error("Error parsing user info from localStorage:", error);
+          return false;
+        }
+      }
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Error checking authentication status:", error);
+    return false;
+  }
+};
 
 // Helper function to get current user
 export const getCurrentUser = async () => {
@@ -64,12 +126,25 @@ export const getCurrentUser = async () => {
 
 // Helper function to get session
 export const getCurrentSession = async () => {
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-  if (error) throw error;
-  return session;
+  try {
+    console.log("getCurrentSession: Checking for existing session...");
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    console.log("getCurrentSession: Session result:", session, "error:", error);
+
+    if (error) {
+      console.error("getCurrentSession: Error getting session:", error);
+      return null;
+    }
+
+    return session;
+  } catch (error) {
+    console.error("getCurrentSession: Caught error:", error);
+    return null;
+  }
 };
 
 // Helper function for sign out

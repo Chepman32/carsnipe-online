@@ -74,9 +74,7 @@ html, body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 95% !important;
   max-width: 95vw !important;
-  min-height: auto; /* Changed from 85vh to auto */
-  max-height: 90vh; /* Added max-height to prevent overflow */
-  overflow-y: auto !important; /* Changed from visible to auto */
+  min-height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -86,23 +84,7 @@ html, body {
   z-index: 10;
 }
 
-/* Stylish scrollbar like in carsstore */
-.profile-box::-webkit-scrollbar {
-  width: 12px;
-}
 
-.profile-box::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.profile-box::-webkit-scrollbar-thumb {
-  background: rgba(135, 206, 250, 0.7);
-  border-radius: 6px;
-}
-
-.profile-box::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 180, 255, 0.9);
-}
 
 .dark-mode .profile-title {
   text-align: center;
@@ -120,13 +102,11 @@ html, body {
   justify-content: center;
   margin-bottom: 15px;
   padding: 0.2rem 0.1rem;
-  overflow: visible;
   width: 90vw !important;
   max-width: 90% !important;
   margin-left: auto !important;
   margin-right: auto !important;
   order: 1; /* Ensure avatar container appears first in flex layout */
-  overflow-y: visible; /* Prevent scrolling in avatar container */
 }
 
 .avatar-item {
@@ -266,13 +246,10 @@ html, body {
     padding: 10px;
     padding-top: 8px;
     min-height: auto;
-    max-height: 90vh;
-    overflow-y: auto;
   }
   
   /* Responsive scrollbar for smaller screens */
-  .profile-container::-webkit-scrollbar,
-  .profile-box::-webkit-scrollbar {
+  .profile-container::-webkit-scrollbar {
     width: 8px;
   }
   
@@ -286,7 +263,6 @@ html, body {
     width: 100% !important;
     max-width: 100% !important;
     grid-template-columns: repeat(4, 1fr); /* Reduced number of columns for larger avatars */
-    overflow-y: visible;
   }
 
   .avatar-item {
@@ -338,8 +314,7 @@ html, body {
   }
   
   /* Even smaller scrollbar for mobile devices */
-  .profile-container::-webkit-scrollbar,
-  .profile-box::-webkit-scrollbar {
+  .profile-container::-webkit-scrollbar {
     width: 6px;
   }
   
@@ -349,7 +324,6 @@ html, body {
   .avatar-container {
     grid-template-columns: repeat(3, 1fr); /* Reduced number of columns for larger avatars */
     gap: 0.5rem; /* Increased gap for better spacing */
-    overflow-y: visible;
   }
 
   .avatar-item {

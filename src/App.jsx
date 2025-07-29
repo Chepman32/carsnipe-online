@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { supabase, getCurrentUser, getCurrentSession, signOut, signInWithGoogle, signInWithEmail, signUpWithEmail } from "./supabase";
+import { supabase, getCurrentUser, getCurrentSession, signOut, signInWithGoogle, signInWithEmail, signUpWithEmail, isAuthenticated, debugAuthState } from "./supabase";
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import {
@@ -541,8 +541,19 @@ export default function App() {
   const currentAuthenticatedUser = useCallback(async () => {
     try {
       console.log('currentAuthenticatedUser: Starting user check...');
-      const user = await getCurrentUser();
-      console.log('currentAuthenticatedUser: Got user:', user);
+      
+      // First, try to get the current session
+      const session = await getCurrentSession();
+      console.log('currentAuthenticatedUser: Session check result:', session);
+      
+      if (!session) {
+        console.log('currentAuthenticatedUser: No active session found');
+        setLoading(false);
+        return;
+      }
+      
+      const user = session.user;
+      console.log('currentAuthenticatedUser: Got user from session:', user);
       
       if (!user?.email) {
         console.log('currentAuthenticatedUser: No authenticated user, showing login screen');
@@ -610,14 +621,37 @@ export default function App() {
           setEmail('');
           localStorage.removeItem('userInfo');
           setLoading(false);
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          console.log('TOKEN_REFRESHED event detected, updating user state...');
+          await currentAuthenticatedUser();
         }
       }
     );
 
+    // Set up periodic session check
+    const sessionCheckInterval = setInterval(async () => {
+      if (playerInfo) {
+        try {
+          const session = await getCurrentSession();
+          if (!session) {
+            console.log('Session expired, signing out user...');
+            setPlayerInfo(null);
+            setMoney(null);
+            setEmail('');
+            localStorage.removeItem('userInfo');
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error('Error checking session:', error);
+        }
+      }
+    }, 60000); // Check every minute
+
     return () => {
       subscription?.unsubscribe();
+      clearInterval(sessionCheckInterval);
     };
-  }, [currentAuthenticatedUser]);
+  }, [currentAuthenticatedUser, playerInfo]);
 
   useEffect(() => {
     // Always check for authentication first, regardless of demo mode
@@ -625,6 +659,44 @@ export default function App() {
     const initAuth = async () => {
       try {
         console.log('initAuth: Starting initial authentication check...');
+        
+        // Debug authentication state
+        await debugAuthState();
+        
+        // Check if user is authenticated
+        const authenticated = await isAuthenticated();
+        console.log('initAuth: Authentication check result:', authenticated);
+        
+        if (!authenticated) {
+          console.log('initAuth: User not authenticated, showing login screen');
+          setLoading(false);
+          return;
+        }
+        
+        // Try to refresh the session first to ensure we have the latest auth state
+        try {
+          const { data: { session }, error } = await supabase.auth.refreshSession();
+          console.log('initAuth: Session refresh result:', session, 'error:', error);
+        } catch (refreshError) {
+          console.log('initAuth: Session refresh failed (this is normal if no session exists):', refreshError);
+        }
+        
+        // Check if we have user info in localStorage as a fallback
+        const storedUserInfo = localStorage.getItem("userInfo");
+        if (storedUserInfo) {
+          try {
+            const parsedUserInfo = JSON.parse(storedUserInfo);
+            console.log('initAuth: Found stored user info:', parsedUserInfo);
+            // Set the user info temporarily while we check the session
+            setPlayerInfo(parsedUserInfo);
+            setMoney(parsedUserInfo.money);
+            setEmail(parsedUserInfo.email);
+          } catch (error) {
+            console.error('initAuth: Error parsing stored user info:', error);
+            localStorage.removeItem("userInfo");
+          }
+        }
+        
         // Add timeout to prevent endless loading
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Authentication timeout')), 10000);
