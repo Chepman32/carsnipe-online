@@ -13,10 +13,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     storage: typeof window !== "undefined" ? window.localStorage : undefined,
     storageKey: "carsnipe-auth-token",
+    flowType: "pkce", // Use PKCE flow for better security
   },
   realtime: {
     params: {
       eventsPerSecond: 10,
+    },
+  },
+  global: {
+    headers: {
+      "X-Client-Info": "carsnipe-online",
     },
   },
 });
@@ -37,6 +43,23 @@ export const debugAuthState = async () => {
 
       const authToken = localStorage.getItem("carsnipe-auth-token");
       console.log("localStorage auth token:", authToken);
+
+      // Check if auth token is expired
+      if (authToken) {
+        try {
+          const parsedToken = JSON.parse(authToken);
+          const currentTime = Date.now() / 1000;
+          if (parsedToken.expires_at && parsedToken.expires_at < currentTime) {
+            console.log("Auth token is expired, clearing it");
+            localStorage.removeItem("carsnipe-auth-token");
+            return { session: null, isAuth: false };
+          }
+        } catch (error) {
+          console.log("Error parsing auth token, clearing it");
+          localStorage.removeItem("carsnipe-auth-token");
+          return { session: null, isAuth: false };
+        }
+      }
     }
 
     // Check if authenticated

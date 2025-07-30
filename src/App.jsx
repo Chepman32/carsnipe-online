@@ -370,173 +370,189 @@ export default function App() {
   const [creatingUser, setCreatingUser] = useState(false);
   const [money, setMoney] = useState();
 
+  // Force clear authentication state if there are persistent issues
+  const forceClearAuth = useCallback(() => {
+    console.log('Force clearing authentication state');
+    localStorage.removeItem("carsnipe-auth-token");
+    localStorage.removeItem("userInfo");
+    setPlayerInfo(null);
+    setMoney(null);
+    setEmail('');
+    setLoading(false);
+    setCreatingUser(false);
+  }, []);
+
+  // Clear all cached data and restart authentication
+  const clearAllCachedData = useCallback(() => {
+    console.log('Clearing all cached data...');
+    
+    // Clear all localStorage items that might be related to authentication
+    const keysToRemove = [
+      "carsnipe-auth-token",
+      "userInfo",
+      "supabase.auth.token",
+      "supabase.auth.refreshToken",
+      "supabase.auth.expiresAt",
+      "supabase.auth.expiresIn",
+      "supabase.auth.tokenType",
+      "supabase.auth.providerToken",
+      "supabase.auth.providerRefreshToken"
+    ];
+    
+    keysToRemove.forEach(key => {
+      localStorage.removeItem(key);
+      console.log(`Removed ${key}`);
+    });
+    
+    // Clear session storage as well
+    sessionStorage.clear();
+    console.log('Cleared sessionStorage');
+    
+    // Reset all state
+    setPlayerInfo(null);
+    setMoney(null);
+    setEmail('');
+    setLoading(false);
+    setCreatingUser(false);
+    
+    // Force page reload to start fresh
+    window.location.reload();
+  }, []);
+
+  // Clear any stale authentication state on app start
+  useEffect(() => {
+    const clearStaleAuth = () => {
+      // Clear any potentially stale auth tokens
+      if (typeof window !== "undefined") {
+        const authToken = localStorage.getItem("carsnipe-auth-token");
+        if (authToken) {
+          try {
+            const parsedToken = JSON.parse(authToken);
+            const currentTime = Date.now() / 1000;
+            if (parsedToken.expires_at && parsedToken.expires_at < currentTime) {
+              console.log('Clearing expired auth token');
+              localStorage.removeItem("carsnipe-auth-token");
+            }
+          } catch (error) {
+            console.log('Error parsing auth token, clearing it');
+            localStorage.removeItem("carsnipe-auth-token");
+          }
+        }
+      }
+    };
+    
+    clearStaleAuth();
+  }, []);
+
+  // Monitor loading state to prevent endless loading
+  useEffect(() => {
+    if (loading) {
+      const loadingTimeout = setTimeout(() => {
+        if (loading) {
+          console.log('Loading timeout reached, forcing loading to false');
+          setLoading(false);
+          forceClearAuth();
+        }
+      }, 20000); // 20 second timeout
+
+      return () => clearTimeout(loadingTimeout);
+    }
+  }, [loading, forceClearAuth]);
+
+  // Additional monitoring for stuck authentication
+  useEffect(() => {
+    if (loading && !creatingUser) {
+      const stuckAuthTimeout = setTimeout(() => {
+        if (loading && !creatingUser) {
+          console.log('Stuck authentication detected, attempting recovery...');
+          
+          // Check if we have user data but no session
+          const userInfo = localStorage.getItem("userInfo");
+          if (userInfo) {
+            console.log('Found user data, attempting to use it...');
+            try {
+              const parsedUserInfo = JSON.parse(userInfo);
+              setPlayerInfo(parsedUserInfo);
+              setMoney(parsedUserInfo.money);
+              setEmail(parsedUserInfo.email);
+              setLoading(false);
+            } catch (error) {
+              console.error('Error parsing user info:', error);
+              forceClearAuth();
+            }
+          } else {
+            console.log('No user data found, clearing auth state...');
+            forceClearAuth();
+          }
+        }
+      }, 10000); // 10 second timeout for stuck auth
+
+      return () => clearTimeout(stuckAuthTimeout);
+    }
+  }, [loading, creatingUser, forceClearAuth]);
+
+  // Test function to verify authentication flow
+  const testAuthFlow = useCallback(async () => {
+    console.log('Testing authentication flow...');
+    try {
+      const session = await getCurrentSession();
+      console.log('Test - Session:', session);
+      
+      const user = await getCurrentUser();
+      console.log('Test - User:', user);
+      
+      const isAuth = await isAuthenticated();
+      console.log('Test - Is authenticated:', isAuth);
+      
+      return { session, user, isAuth };
+    } catch (error) {
+      console.error('Test - Error:', error);
+      return { session: null, user: null, isAuth: false };
+    }
+  }, []);
+
+  // Detailed authentication state logging
+  const logDetailedAuthState = useCallback(() => {
+    console.log('=== DETAILED AUTH STATE ===');
+    
+    // Check localStorage
+    const authToken = localStorage.getItem("carsnipe-auth-token");
+    const userInfo = localStorage.getItem("userInfo");
+    
+    console.log('localStorage auth token:', authToken);
+    console.log('localStorage user info:', userInfo);
+    
+    // Check sessionStorage
+    console.log('sessionStorage keys:', Object.keys(sessionStorage));
+    
+    // Check all localStorage keys
+    const allKeys = Object.keys(localStorage);
+    const authKeys = allKeys.filter(key => key.includes('auth') || key.includes('supabase') || key.includes('user'));
+    console.log('All auth-related localStorage keys:', authKeys);
+    
+    // Try to parse auth token
+    if (authToken) {
+      try {
+        const parsed = JSON.parse(authToken);
+        console.log('Parsed auth token:', parsed);
+        const currentTime = Date.now() / 1000;
+        if (parsed.expires_at) {
+          console.log('Token expires at:', new Date(parsed.expires_at * 1000));
+          console.log('Token is expired:', parsed.expires_at < currentTime);
+        }
+      } catch (error) {
+        console.log('Error parsing auth token:', error);
+      }
+    }
+    
+    console.log('=== END DETAILED AUTH STATE ===');
+  }, []);
 
   useEffect(() => {
     if (playerInfo?.id) {
       checkAndUpdateAchievements(playerInfo.id);
     }
   }, [playerInfo?.id, money]);
-
-  const createNewPlayer = useCallback(async (user) => {
-    if (!user?.email) return;
-    
-    try {
-      console.log('createNewPlayer: Starting player creation for user:', user);
-      setCreatingUser(true);
-      
-      // Check if user already exists in our database
-      const { data: existingUsers, error: fetchError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', user.email);
-      
-      if (fetchError) {
-        console.error('Error checking for existing user:', fetchError);
-      }
-      
-      if (existingUsers && existingUsers.length > 0) {
-        const existingUser = existingUsers[0];
-        setPlayerInfo(existingUser);
-        setMoney(existingUser.money);
-        localStorage.setItem("userInfo", JSON.stringify(existingUser));
-        setLoading(false);
-        return;
-      }
-
-      const randomAvatarNumber = Math.floor(Math.random() * 72) + 1;
-      const randomAvatar = `avatar${randomAvatarNumber}`;
-      
-      const newUserData = {
-        id: user.id, // Use Supabase auth user ID
-        nickname: user.user_metadata?.full_name || user.email.split('@')[0],
-        email: user.email,
-        money: 100000,
-        avatar: randomAvatar,
-        bio: "",
-        sold: [],
-        total_cars_owned: 0,
-        total_auctions_participated: 0,
-        total_bids_placed: 0,
-        total_spent: 0,
-        total_auctions_won: 0,
-        total_profit_earned: 0,
-        is_mock: false
-      };
-
-      // Create the user in our database
-      const { data: createdPlayer, error: createError } = await supabase
-        .from('users')
-        .insert([newUserData])
-        .select()
-        .single();
-
-      if (createError) {
-        console.error('Error creating user:', createError);
-        // If user already exists due to race condition, fetch them
-        if (createError.code === '23505') { // Unique violation
-          const { data: retryUser } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', user.email)
-            .single();
-          
-          if (retryUser) {
-            setPlayerInfo(retryUser);
-            setMoney(retryUser.money);
-            localStorage.setItem("userInfo", JSON.stringify(retryUser));
-            return;
-          }
-        }
-        throw createError;
-      }
-
-      if (createdPlayer) {
-        // Fetch all cars from the backend
-        const { data: availableCars, error: carsError } = await supabase
-          .from('cars')
-          .select('*')
-          .lt('price', 100000);
-        
-        if (carsError) {
-          console.error('Error fetching cars:', carsError);
-        }
-        
-        let affordableCars = availableCars || [];
-        
-        // If no affordable cars found, add some default ones
-        if (affordableCars.length === 0) {
-          console.log("No affordable cars found in the database, creating defaults");
-          const defaultCars = [
-            { make: 'Toyota', model: 'Camry', year: 2022, price: 35000, type: 'COMMON' },
-            { make: 'Honda', model: 'Civic', year: 2022, price: 28000, type: 'COMMON' },
-            { make: 'Ford', model: 'Focus', year: 2021, price: 25000, type: 'COMMON' },
-            { make: 'Mazda', model: 'MX-5', year: 2020, price: 32000, type: 'COMMON' },
-            { make: 'Volkswagen', model: 'Golf GTI', year: 2021, price: 38000, type: 'COMMON' },
-            { make: 'Chevrolet', model: 'Corvette C8', year: 2022, price: 80000, type: 'COMMON' },
-            { make: 'BMW', model: '3 Series', year: 2021, price: 45000, type: 'RARE' },
-            { make: 'Hyundai', model: 'Elantra', year: 2022, price: 26000, type: 'COMMON' }
-          ];
-          
-          const { data: createdCars } = await supabase
-            .from('cars')
-            .insert(defaultCars)
-            .select();
-          
-          if (createdCars) {
-            affordableCars = createdCars;
-          }
-        }
-        
-        // If we have affordable cars, add 5 random ones to the user
-        if (affordableCars.length > 0) {
-          const carsToAdd = Math.min(5, affordableCars.length);
-          const shuffledCars = [...affordableCars].sort(() => 0.5 - Math.random());
-          const selectedCars = shuffledCars.slice(0, carsToAdd);
-          
-          // Add the selected cars to the user
-          const userCarInserts = selectedCars.map(car => ({
-            user_id: createdPlayer.id,
-            car_id: car.id
-          }));
-          
-          await supabase
-            .from('user_cars')
-            .insert(userCarInserts);
-          
-          // Update user's total_cars_owned count
-          await supabase
-            .from('users')
-            .update({ total_cars_owned: selectedCars.length })
-            .eq('id', createdPlayer.id);
-        }
-        
-        setPlayerInfo(createdPlayer);
-        setMoney(createdPlayer.money);
-        localStorage.setItem("userInfo", JSON.stringify(createdPlayer));
-      }
-      
-    } catch (error) {
-      console.error("Error in createNewPlayer:", error);
-      // Try to fetch user one more time
-      const { data: finalUser } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', user.email)
-        .single();
-      
-      if (finalUser) {
-        setPlayerInfo(finalUser);
-        setMoney(finalUser.money);
-        localStorage.setItem("userInfo", JSON.stringify(finalUser));
-      } else {
-        console.error("Failed to create or find user:", error);
-      }
-    } finally {
-      console.log('createNewPlayer: Finished, setting states to false');
-      setCreatingUser(false);
-      setLoading(false);
-    }
-  }, []);
 
   const currentAuthenticatedUser = useCallback(async () => {
     try {
@@ -546,14 +562,28 @@ export default function App() {
       const session = await getCurrentSession();
       console.log('currentAuthenticatedUser: Session check result:', session);
       
-      if (!session) {
-        console.log('currentAuthenticatedUser: No active session found');
-        setLoading(false);
-        return;
-      }
+      // Check if we have stored user info as a fallback
+      const storedUserInfo = localStorage.getItem("userInfo");
+      let user = null;
       
-      const user = session.user;
-      console.log('currentAuthenticatedUser: Got user from session:', user);
+      if (session?.user) {
+        user = session.user;
+        console.log('currentAuthenticatedUser: Got user from session:', user);
+      } else if (storedUserInfo) {
+        try {
+          const parsedUserInfo = JSON.parse(storedUserInfo);
+          console.log('currentAuthenticatedUser: Using stored user info as fallback:', parsedUserInfo);
+          // Create a mock user object from stored data
+          user = {
+            id: parsedUserInfo.id,
+            email: parsedUserInfo.email,
+            user_metadata: { full_name: parsedUserInfo.nickname }
+          };
+        } catch (error) {
+          console.error('currentAuthenticatedUser: Error parsing stored user info:', error);
+          localStorage.removeItem("userInfo");
+        }
+      }
       
       if (!user?.email) {
         console.log('currentAuthenticatedUser: No authenticated user, showing login screen');
@@ -576,6 +606,8 @@ export default function App() {
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
         console.error('currentAuthenticatedUser: Error checking for existing user:', error);
+        setLoading(false);
+        return;
       }
 
       const isNewUser = !existingUser;
@@ -584,7 +616,176 @@ export default function App() {
 
       if (!existingUser) {
         console.log('currentAuthenticatedUser: Creating new player...');
-        await createNewPlayer(user);
+        // Call createNewPlayer logic directly here instead of depending on the function
+        if (!user?.email) {
+          console.log('createNewPlayer: No user email provided, setting loading to false');
+          setLoading(false);
+          return;
+        }
+        
+        try {
+          console.log('createNewPlayer: Starting player creation for user:', user);
+          setCreatingUser(true);
+          
+          // Check if user already exists in our database
+          const { data: existingUsers, error: fetchError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', user.email);
+          
+          if (fetchError) {
+            console.error('Error checking for existing user:', fetchError);
+          }
+          
+          if (existingUsers && existingUsers.length > 0) {
+            const existingUser = existingUsers[0];
+            console.log('createNewPlayer: Found existing user:', existingUser);
+            setPlayerInfo(existingUser);
+            setMoney(existingUser.money);
+            localStorage.setItem("userInfo", JSON.stringify(existingUser));
+            setLoading(false);
+            setCreatingUser(false);
+            return;
+          }
+
+          const randomAvatarNumber = Math.floor(Math.random() * 72) + 1;
+          const randomAvatar = `avatar${randomAvatarNumber}`;
+          
+          const newUserData = {
+            id: user.id, // Use Supabase auth user ID
+            nickname: user.user_metadata?.full_name || user.email.split('@')[0],
+            email: user.email,
+            money: 100000,
+            avatar: randomAvatar,
+            bio: "",
+            sold: [],
+            total_cars_owned: 0,
+            total_auctions_participated: 0,
+            total_bids_placed: 0,
+            total_spent: 0,
+            total_auctions_won: 0,
+            total_profit_earned: 0,
+            is_mock: false
+          };
+
+          // Create the user in our database
+          const { data: createdPlayer, error: createError } = await supabase
+            .from('users')
+            .insert([newUserData])
+            .select()
+            .single();
+
+          if (createError) {
+            console.error('Error creating user:', createError);
+            // If user already exists due to race condition, fetch them
+            if (createError.code === '23505') { // Unique violation
+              const { data: retryUser } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', user.email)
+                .single();
+              
+              if (retryUser) {
+                console.log('createNewPlayer: Found user after unique violation:', retryUser);
+                setPlayerInfo(retryUser);
+                setMoney(retryUser.money);
+                localStorage.setItem("userInfo", JSON.stringify(retryUser));
+                setLoading(false);
+                setCreatingUser(false);
+                return;
+              }
+            }
+            throw createError;
+          }
+
+          if (createdPlayer) {
+            // Fetch all cars from the backend
+            const { data: availableCars, error: carsError } = await supabase
+              .from('cars')
+              .select('*')
+              .lt('price', 100000);
+            
+            if (carsError) {
+              console.error('Error fetching cars:', carsError);
+            }
+            
+            let affordableCars = availableCars || [];
+            
+            // If no affordable cars found, add some default ones
+            if (affordableCars.length === 0) {
+              console.log("No affordable cars found in the database, creating defaults");
+              const defaultCars = [
+                { make: 'Toyota', model: 'Camry', year: 2022, price: 35000, type: 'COMMON' },
+                { make: 'Honda', model: 'Civic', year: 2022, price: 28000, type: 'COMMON' },
+                { make: 'Ford', model: 'Focus', year: 2021, price: 25000, type: 'COMMON' },
+                { make: 'Mazda', model: 'MX-5', year: 2020, price: 32000, type: 'COMMON' },
+                { make: 'Volkswagen', model: 'Golf GTI', year: 2021, price: 38000, type: 'COMMON' },
+                { make: 'Chevrolet', model: 'Corvette C8', year: 2022, price: 80000, type: 'COMMON' },
+                { make: 'BMW', model: '3 Series', year: 2021, price: 45000, type: 'RARE' },
+                { make: 'Hyundai', model: 'Elantra', year: 2022, price: 26000, type: 'COMMON' }
+              ];
+              
+              const { data: createdCars } = await supabase
+                .from('cars')
+                .insert(defaultCars)
+                .select();
+              
+              if (createdCars) {
+                affordableCars = createdCars;
+              }
+            }
+            
+            // If we have affordable cars, add 5 random ones to the user
+            if (affordableCars.length > 0) {
+              const carsToAdd = Math.min(5, affordableCars.length);
+              const shuffledCars = [...affordableCars].sort(() => 0.5 - Math.random());
+              const selectedCars = shuffledCars.slice(0, carsToAdd);
+              
+              // Add the selected cars to the user
+              const userCarInserts = selectedCars.map(car => ({
+                user_id: createdPlayer.id,
+                car_id: car.id
+              }));
+              
+              await supabase
+                .from('user_cars')
+                .insert(userCarInserts);
+              
+              // Update user's total_cars_owned count
+              await supabase
+                .from('users')
+                .update({ total_cars_owned: selectedCars.length })
+                .eq('id', createdPlayer.id);
+            }
+            
+            console.log('createNewPlayer: Successfully created new player:', createdPlayer);
+            setPlayerInfo(createdPlayer);
+            setMoney(createdPlayer.money);
+            localStorage.setItem("userInfo", JSON.stringify(createdPlayer));
+          }
+          
+        } catch (error) {
+          console.error("Error in createNewPlayer:", error);
+          // Try to fetch user one more time
+          const { data: finalUser } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', user.email)
+            .single();
+          
+          if (finalUser) {
+            console.log('createNewPlayer: Found user after error:', finalUser);
+            setPlayerInfo(finalUser);
+            setMoney(finalUser.money);
+            localStorage.setItem("userInfo", JSON.stringify(finalUser));
+          } else {
+            console.error("Failed to create or find user:", error);
+          }
+        } finally {
+          console.log('createNewPlayer: Finished, setting states to false');
+          setCreatingUser(false);
+          setLoading(false);
+        }
       } else {
         console.log('currentAuthenticatedUser: Using existing user, setting player info...');
         console.log('currentAuthenticatedUser: Setting playerInfo to:', existingUser);
@@ -602,7 +803,32 @@ export default function App() {
       console.log('currentAuthenticatedUser: Setting loading to false due to error');
       setLoading(false);
     }
-  }, [createNewPlayer]);
+  }, []);
+
+  // Handle stuck authentication state
+  const handleStuckAuth = useCallback(async () => {
+    console.log('Handling stuck authentication state...');
+    
+    // Clear all auth state
+    forceClearAuth();
+    
+    // Try to get fresh session
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log('Fresh session check:', session, error);
+      
+      if (session?.user) {
+        console.log('Found fresh session, attempting to load user...');
+        await currentAuthenticatedUser();
+      } else {
+        console.log('No fresh session found, showing login screen');
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error handling stuck auth:', error);
+      setLoading(false);
+    }
+  }, [forceClearAuth, currentAuthenticatedUser]);
 
   // Listen for auth state changes
   useEffect(() => {
@@ -697,16 +923,32 @@ export default function App() {
           }
         }
         
+        // If we have stored user info but no session, we can proceed with the stored data
+        if (storedUserInfo && !authenticated) {
+          console.log('initAuth: Using stored user info, proceeding without session');
+          setLoading(false);
+          return;
+        }
+        
         // Add timeout to prevent endless loading
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Authentication timeout')), 10000);
         });
         
-        await Promise.race([currentAuthenticatedUser(), timeoutPromise]);
-        console.log('initAuth: Authentication check completed');
+        try {
+          await Promise.race([currentAuthenticatedUser(), timeoutPromise]);
+          console.log('initAuth: Authentication check completed');
+        } catch (timeoutError) {
+          console.error('initAuth: Authentication timeout, setting loading to false');
+          setLoading(false);
+          // Force clear auth state if there's a timeout
+          forceClearAuth();
+        }
       } catch (error) {
         console.error('Error in initial auth check:', error);
         setLoading(false); // Ensure loading stops even if auth fails
+        // Force clear auth state if there's an error
+        forceClearAuth();
       }
     };
     
@@ -724,8 +966,52 @@ export default function App() {
 
   if (loading || creatingUser) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <Spin size="large" />
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
+            Loading... If this takes too long, try the buttons below:
+          </div>
+          <Button 
+            type="primary" 
+            onClick={forceClearAuth}
+            style={{ marginTop: '10px', marginRight: '10px' }}
+          >
+            Clear Auth State (Debug)
+          </Button>
+          <Button 
+            type="default" 
+            onClick={testAuthFlow}
+            style={{ marginTop: '10px', marginRight: '10px' }}
+          >
+            Test Auth Flow
+          </Button>
+          <Button 
+            type="dashed" 
+            onClick={handleStuckAuth}
+            style={{ marginTop: '10px' }}
+          >
+            Fix Stuck Auth
+          </Button>
+          <Button 
+            type="danger" 
+            onClick={clearAllCachedData}
+            style={{ marginTop: '10px' }}
+          >
+            Clear All Cache & Reload
+          </Button>
+          <Button 
+            type="default" 
+            onClick={logDetailedAuthState}
+            style={{ marginTop: '10px' }}
+          >
+            Log Auth State
+          </Button>
+          <div style={{ marginTop: '15px', fontSize: '12px', color: '#999' }}>
+            <div>Session: {localStorage.getItem("carsnipe-auth-token") ? "Found" : "Not found"}</div>
+            <div>User Info: {localStorage.getItem("userInfo") ? "Found" : "Not found"}</div>
+          </div>
+        </div>
       </div>
     );
   }
