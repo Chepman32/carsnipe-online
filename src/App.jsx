@@ -369,6 +369,20 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [creatingUser, setCreatingUser] = useState(false);
   const [money, setMoney] = useState();
+  const [showDebugButtons, setShowDebugButtons] = useState(false);
+
+  // Show debug buttons after 3 seconds if still loading
+  useEffect(() => {
+    if (loading || creatingUser) {
+      const debugTimeout = setTimeout(() => {
+        setShowDebugButtons(true);
+      }, 3000); // Show debug buttons after 3 seconds
+
+      return () => clearTimeout(debugTimeout);
+    } else {
+      setShowDebugButtons(false);
+    }
+  }, [loading, creatingUser]);
 
   // Force clear authentication state if there are persistent issues
   const forceClearAuth = useCallback(() => {
@@ -449,11 +463,29 @@ export default function App() {
     if (loading) {
       const loadingTimeout = setTimeout(() => {
         if (loading) {
-          console.log('Loading timeout reached, forcing loading to false');
+          console.log('Loading timeout reached, checking for stored user data...');
+          
+          // Check if we have stored user data before clearing auth
+          const storedUserInfo = localStorage.getItem("userInfo");
+          if (storedUserInfo) {
+            try {
+              const parsedUserInfo = JSON.parse(storedUserInfo);
+              console.log('Found stored user data, using it instead of clearing auth');
+              setPlayerInfo(parsedUserInfo);
+              setMoney(parsedUserInfo.money);
+              setEmail(parsedUserInfo.email);
+              setLoading(false);
+              return;
+            } catch (error) {
+              console.error('Error parsing stored user info:', error);
+            }
+          }
+          
+          console.log('No stored user data found, clearing auth state');
           setLoading(false);
           forceClearAuth();
         }
-      }, 20000); // 20 second timeout
+      }, 5000); // Set to 5 seconds to give auth time to work
 
       return () => clearTimeout(loadingTimeout);
     }
@@ -485,7 +517,7 @@ export default function App() {
             forceClearAuth();
           }
         }
-      }, 10000); // 10 second timeout for stuck auth
+      }, 5000); // Reduced from 10 seconds to 5 seconds
 
       return () => clearTimeout(stuckAuthTimeout);
     }
@@ -579,6 +611,14 @@ export default function App() {
             email: parsedUserInfo.email,
             user_metadata: { full_name: parsedUserInfo.nickname }
           };
+          // Set loading to false immediately if we have stored user data
+          setLoading(false);
+          // Also set the user data immediately
+          setPlayerInfo(parsedUserInfo);
+          setMoney(parsedUserInfo.money);
+          setEmail(parsedUserInfo.email);
+          console.log('currentAuthenticatedUser: Using stored user data, authentication complete');
+          return; // Exit early since we have user data
         } catch (error) {
           console.error('currentAuthenticatedUser: Error parsing stored user info:', error);
           localStorage.removeItem("userInfo");
@@ -913,10 +953,13 @@ export default function App() {
           try {
             const parsedUserInfo = JSON.parse(storedUserInfo);
             console.log('initAuth: Found stored user info:', parsedUserInfo);
-            // Set the user info temporarily while we check the session
+            // Set the user info immediately and stop loading
             setPlayerInfo(parsedUserInfo);
             setMoney(parsedUserInfo.money);
             setEmail(parsedUserInfo.email);
+            setLoading(false);
+            console.log('initAuth: Using stored user info, authentication complete');
+            return; // Exit early since we have user data
           } catch (error) {
             console.error('initAuth: Error parsing stored user info:', error);
             localStorage.removeItem("userInfo");
@@ -968,50 +1011,52 @@ export default function App() {
     return (
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <Spin size="large" />
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
-          <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
-            Loading... If this takes too long, try the buttons below:
+        {/* {showDebugButtons && (
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
+              Loading... If this takes too long, try the buttons below:
+            </div>
+            <Button 
+              type="primary" 
+              onClick={forceClearAuth}
+              style={{ marginTop: '10px', marginRight: '10px' }}
+            >
+              Clear Auth State (Debug)
+            </Button>
+            <Button 
+              type="default" 
+              onClick={testAuthFlow}
+              style={{ marginTop: '10px', marginRight: '10px' }}
+            >
+              Test Auth Flow
+            </Button>
+            <Button 
+              type="dashed" 
+              onClick={handleStuckAuth}
+              style={{ marginTop: '10px' }}
+            >
+              Fix Stuck Auth
+            </Button>
+            <Button 
+              type="danger" 
+              onClick={clearAllCachedData}
+              style={{ marginTop: '10px' }}
+            >
+              Clear All Cache & Reload
+            </Button>
+            <Button 
+              type="default" 
+              onClick={logDetailedAuthState}
+              style={{ marginTop: '10px' }}
+            >
+              Log Auth State
+            </Button>
+            <div style={{ marginTop: '15px', fontSize: '12px', color: '#999' }}>
+              <div>Session: {localStorage.getItem("carsnipe-auth-token") ? "Found" : "Not found"}</div>
+              <div>User Info: {localStorage.getItem("userInfo") ? "Found" : "Not found"}</div>
+            </div>
           </div>
-          <Button 
-            type="primary" 
-            onClick={forceClearAuth}
-            style={{ marginTop: '10px', marginRight: '10px' }}
-          >
-            Clear Auth State (Debug)
-          </Button>
-          <Button 
-            type="default" 
-            onClick={testAuthFlow}
-            style={{ marginTop: '10px', marginRight: '10px' }}
-          >
-            Test Auth Flow
-          </Button>
-          <Button 
-            type="dashed" 
-            onClick={handleStuckAuth}
-            style={{ marginTop: '10px' }}
-          >
-            Fix Stuck Auth
-          </Button>
-          <Button 
-            type="danger" 
-            onClick={clearAllCachedData}
-            style={{ marginTop: '10px' }}
-          >
-            Clear All Cache & Reload
-          </Button>
-          <Button 
-            type="default" 
-            onClick={logDetailedAuthState}
-            style={{ marginTop: '10px' }}
-          >
-            Log Auth State
-          </Button>
-          <div style={{ marginTop: '15px', fontSize: '12px', color: '#999' }}>
-            <div>Session: {localStorage.getItem("carsnipe-auth-token") ? "Found" : "Not found"}</div>
-            <div>User Info: {localStorage.getItem("userInfo") ? "Found" : "Not found"}</div>
-          </div>
-        </div>
+        )} */}
       </div>
     );
   }
