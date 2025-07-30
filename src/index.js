@@ -1,13 +1,21 @@
-import React, { Suspense } from 'react'; // Import Suspense
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import './i18n';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { PersistGate } from 'redux-persist/integration/react';
-import { persistor } from './redux/store';
+// Import React first to ensure proper initialization
+import React, { Suspense } from "react";
+import ReactDOM from "react-dom/client";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+// Import other dependencies after React
+import "./index.css";
+import "./i18n";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { PersistGate } from "redux-persist/integration/react";
+import { persistor } from "./redux/store";
+
+// Ensure React is properly initialized
+if (typeof window !== "undefined") {
+  window.React = React;
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     {/* Wrap App with Suspense for i18n loading */}

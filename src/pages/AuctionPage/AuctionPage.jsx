@@ -37,8 +37,9 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   const itemRefs = useRef({});
   const { isDemoMode, demoUser } = useDemoMode();
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const selectedAuctionRef = useRef(null);
 
-  const listAuctions = useCallback(async (previousIndex = null) => {
+  const listAuctions = useCallback(async () => {
     try {
       console.log("Fetching auctions...");
       if (isDemoMode) {
@@ -101,7 +102,8 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         setAuctions(auctions);
         console.log("Auctions state set:", auctions);
 
-        if (auctions.length > 0 && !selectedAuction) {
+        // Only set initial selection if no auction is currently selected
+        if (auctions.length > 0 && !selectedAuctionRef.current) {
           setSelectedAuction(auctions[0]);
           setFocusedIndex(0);
         }
@@ -113,7 +115,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
         description: 'Failed to fetch auctions',
       });
     }
-  }, [playerInfo, selectedAuction, isDemoMode]);
+  }, [playerInfo, isDemoMode, selectedAuction]);
 
   const increaseBid = async (auction) => {
     try {
@@ -218,8 +220,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
     
         message.success('Bid successfully increased!');
     
-        const currentIndex = auctions.findIndex(a => a.id === auction.id);
-        await listAuctions(currentIndex);
+        await listAuctions();
     
         // TODO: Update user participation statistics when GraphQL is implemented
         // if (playerInfo && auction.player !== playerInfo.nickname) {
@@ -493,7 +494,7 @@ export default function AuctionPage({ playerInfo, setMoney, money }) {
   useEffect(() => {
     console.log("useEffect triggered, calling listAuctions...");
     listAuctions();
-  }, [listAuctions]);
+  }, []); // Only run once on mount
 
   // Flag to track initial selection
   const hasInitializedRef = useRef(false);
