@@ -253,6 +253,23 @@ const backgrounds = [
   "/videos/Intro3.mp4",
   "/videos/Intro4.mp4",
   "/videos/Intro5.mp4",
+  "/videos/Intro6.mp4",
+  "/videos/Intro7.mp4",
+  "/videos/Intro8.mp4",
+  "/videos/Intro9.mp4",
+  "/videos/Intro10.mp4",
+  "/videos/Intro11.mp4",
+  "/videos/Intro12.mp4",
+  "/videos/Intro13.mp4",
+  "/videos/Intro14.mp4",
+  "/videos/Intro15.mp4",
+  "/videos/Intro16.mp4",
+  "/videos/Intro17.mp4",
+  "/videos/Intro18.mp4",
+  "/videos/Intro19.mp4",
+  "/videos/Intro20.mp4",
+  "/videos/Intro21.mp4",
+  "/videos/Intro22.mp4",
 ]
 
 const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, signOut, setPlayerInfo }) => {
