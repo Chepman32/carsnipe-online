@@ -17,6 +17,26 @@
   text-align: center;
   position: relative;
   transition: transform 0.3s ease;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.store-item-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.store-item-card:focus {
+  outline: 2px solid #4CAF50;
+  outline-offset: 2px;
+}
+
+.store-item-card.focused {
+  transform: translateY(-5px);
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  outline: 2px solid #4CAF50;
+  outline-offset: 2px;
 }
 
 .item-image {

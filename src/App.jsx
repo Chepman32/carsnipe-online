@@ -278,7 +278,7 @@ const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, sig
             <Route path="/myAuctions" element={<MyAuctions playerInfo={isDemoMode ? demoUser : playerInfo} money={isDemoMode ? demoUser?.money : money} setMoney={setMoney} />} />
             <Route path="/achievements" element={<AchievementList userId={isDemoMode ? demoUser?.id : playerInfo?.id} />} />
             <Route path="/paymentError" element={<PaymentError />} />
-            <Route path="/store" element={<Store email={isDemoMode ? demoUser?.email : playerInfo?.email} />} />
+            <Route path="/store" element={<Store email={isDemoMode ? demoUser?.email : playerInfo?.email} username={isDemoMode ? demoUser?.nickname : playerInfo?.nickname} userId={isDemoMode ? demoUser?.id : playerInfo?.id} />} />
             <Route path="/settings" element={<GameSettings playerInfo={isDemoMode ? demoUser : playerInfo} />} />
             <Route path="/musicUpload" element={<MusicUploadPage />} />
             <Route path="/musicLibraryPage" element={<MusicLibraryPage />} />
