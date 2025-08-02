@@ -26,6 +26,7 @@ import {
 import useSoundEffects from "../../hooks/useSoundEffects";
 import { useDemoMode } from "../../contexts/DemoModeContext";
 import { getMockCars, updateMockCars } from "../../mockData";
+import { getCarImageUrl } from "../../config/assets";
 
 const { Option } = Select;
 // Supabase client configured in ../../supabase.js
@@ -943,13 +944,13 @@ const CarsStore = ({ playerInfo, setMoney, money }) => {
     }
   };
 
-  // Memoize image source function generation if performance is critical, though unlikely needed here.
+  // Get image source from external storage
   const getImageSource = (make, model) => {
       try {
         // Basic sanitization
         const safeMake = make?.replace(/[^a-z0-9\s-]/gi, '') || 'default';
         const safeModel = model?.replace(/[^a-z0-9\s-]/gi, '') || 'model';
-        return require(`../../assets/images/cars/${safeMake} ${safeModel}.png`);
+        return getCarImageUrl(`${safeMake} ${safeModel}`);
       } catch (error) {
          // console.warn(`Image not found for: ${make} ${model}. Using default.`);
           // Use a placeholder image URL instead of requiring a local file

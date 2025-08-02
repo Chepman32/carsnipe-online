@@ -38,6 +38,7 @@ import MessengerPage from "./pages/MessengerPage/MessengerPage";
 import { DarkModeWrapper } from "./components/DarkModeWrapper/DarkModeWrapper";
 import { avatars } from "./avatars";
 import { DemoModeProvider, useDemoMode } from "./contexts/DemoModeContext";
+import { getVideoUrl, getImageUrl } from './config/assets';
 import "./AuthStyles.css";
 
 // Supabase client is configured in ./supabase.js
@@ -166,7 +167,7 @@ const AuthComponent = ({ onAuthSuccess, currentAuthenticatedUser }) => {
         <div>
           <img 
             alt="Carsnipe Logo" 
-            src={require("./assets/images/Logo.png")} 
+            src={getImageUrl('logo')} 
             width="160px" 
           />
           <Title level={3} style={{ marginTop: 16 }}>
@@ -244,32 +245,30 @@ const AuthComponent = ({ onAuthSuccess, currentAuthenticatedUser }) => {
   );
 };
 
-
-
 const backgrounds = [
-  "/videos/Intro.mp4",
-  "/videos/Intro1.mp4",
-  "/videos/Intro2.mp4",
-  "/videos/Intro3.mp4",
-  "/videos/Intro4.mp4",
-  "/videos/Intro5.mp4",
-  "/videos/Intro6.mp4",
-  "/videos/Intro7.mp4",
-  "/videos/Intro8.mp4",
-  "/videos/Intro9.mp4",
-  "/videos/Intro10.mp4",
-  "/videos/Intro11.mp4",
-  "/videos/Intro12.mp4",
-  "/videos/Intro13.mp4",
-  "/videos/Intro14.mp4",
-  "/videos/Intro15.mp4",
-  "/videos/Intro16.mp4",
-  "/videos/Intro17.mp4",
-  "/videos/Intro18.mp4",
-  "/videos/Intro19.mp4",
-  "/videos/Intro20.mp4",
-  "/videos/Intro21.mp4",
-  "/videos/Intro22.mp4",
+  getVideoUrl('intro'),
+  getVideoUrl('intro1'),
+  getVideoUrl('intro2'),
+  getVideoUrl('intro3'),
+  getVideoUrl('intro4'),
+  getVideoUrl('intro5'),
+  getVideoUrl('intro6'),
+  getVideoUrl('intro7'),
+  getVideoUrl('intro8'),
+  getVideoUrl('intro9'),
+  getVideoUrl('intro10'),
+  getVideoUrl('intro11'),
+  getVideoUrl('intro12'),
+  getVideoUrl('intro13'),
+  getVideoUrl('intro14'),
+  getVideoUrl('intro15'),
+  getVideoUrl('intro16'),
+  getVideoUrl('intro17'),
+  getVideoUrl('intro18'),
+  getVideoUrl('intro19'),
+  getVideoUrl('intro20'),
+  getVideoUrl('intro21'),
+  getVideoUrl('intro22'),
 ]
 
 const AppContent = ({ playerInfo, money, setMoney, currentAuthenticatedUser, signOut, setPlayerInfo }) => {

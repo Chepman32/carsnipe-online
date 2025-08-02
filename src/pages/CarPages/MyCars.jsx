@@ -25,6 +25,7 @@ import {
 } from "../../redux/slices/focusSlice";
 import { useDemoMode } from "../../contexts/DemoModeContext";
 import { getMockCars, updateMockCars } from "../../mockData";
+import { getCarImageUrl } from "../../config/assets";
 
 // Supabase client configured in ../../supabase.js
 
@@ -574,7 +575,7 @@ const MyCars = ({ playerInfo }) => {
       // Basic sanitization
       const safeMake = make?.replace(/[^a-z0-9\s-]/gi, '') || 'default';
       const safeModel = model?.replace(/[^a-z0-9\s-]/gi, '') || 'model';
-      return require(`../../assets/images/cars/${safeMake} ${safeModel}.png`);
+      return getCarImageUrl(`${safeMake} ${safeModel}`);
     } catch (error) {
       console.warn(`Image not found for: ${make} ${model}. Using default.`);
       // Use a placeholder image URL instead of requiring a local file

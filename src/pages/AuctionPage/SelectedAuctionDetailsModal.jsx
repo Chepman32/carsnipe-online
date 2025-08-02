@@ -6,10 +6,11 @@ import { useNavigate } from "react-router-dom";
 import AuctionActionsModalRow from "../../components/AuctionActionsModalRow/AuctionActionsModalRow";
 import { isMobile } from "react-device-detect";
 import { SelectedAuctionDetails } from "./SelectedAuctionDetails";
+import { getCarImageUrl } from '../../config/assets';
 
 const getImageSource = (make, model) => {
     const imageName = `${make} ${model}.png`;
-    return require(`../../assets/images/cars/${imageName}`);
+    return getCarImageUrl(imageName.replace('.png', ''));
   };
 
 export const SelectedAuctionDetailsModal = ({ visible, close, selectedAuction, handleAuctionActionsShow }) => {

@@ -3,10 +3,11 @@ import { calculateTimeDifference } from '../../functions';
 import { Col, Flex, Typography } from 'antd';
 import "./auctionPage.css"
 import ThinText from '../../components/Text/ThinText';
+import { getCarImageUrl } from '../../config/assets';
 
 const getImageSource = (make, model) => {
     const imageName = `${make} ${model}.png`;
-    return require(`../../assets/images/cars/${imageName}`);
+    return getCarImageUrl(imageName.replace('.png', ''));
 };
 
 export default function AuctionPageItem({ playerInfo, auction, isSelected, isFocused, index, handleItemClick }) {
