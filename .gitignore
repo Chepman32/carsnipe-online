@@ -27,6 +27,7 @@ yarn-error.log*
 firebase-debug.log
 firebase-debug.*.log
 .firebaserc
+firebase-service-account.json
 
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend
